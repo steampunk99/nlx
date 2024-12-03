@@ -1,0 +1,197 @@
+This operation is used to claim a consent by the account holder for the requested scopes.
+
+Request
+https://sandbox.momodeveloper.mtn.com/collection/oauth2/v1_0/userinfo
+Request headers
+Name
+Required
+Type
+Example
+Description
+Authorization
+true
+string
+Bearer Token. Replace with a valid oauth2 token received from oauth2 token endpoint in Wallet Platform.
+
+X-Target-Environment
+true
+string
+
+
+{
+    "sub": "string",
+    "name": "string",
+    "given_name": "string",
+    "family_name": "string",
+    "middle_name": "string",
+    "email": "string",
+    "email_verified": true,
+    "gender": "string",
+    "locale": "string",
+    "phone_number": "string",
+    "phone_number_verified": true,
+    "address": "string",
+    "updated_at": 0,
+    "status": "string",
+    "birthdate": "string",
+    "credit_score": "string",
+    "active": true,
+    "country_of_birth": "string",
+    "region_of_birth": "string",
+    "city_of_birth": "string",
+    "occupation": "string",
+    "employer_name": "string",
+    "identification_type": "string",
+    "identification_value": "string"
+}
+
+--------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------
+bc-authorize
+Try it 
+This operation is used to claim a consent by the account holder for the requested scopes.
+
+Request
+https://sandbox.momodeveloper.mtn.com/collection/v1_0/bc-authorize
+Request headers
+Name
+Required
+Type
+Example
+Description
+Authorization
+true
+string
+Bearer Token. Replace with a valid oauth2 token received from oauth2 token endpoint in Wallet Platform.
+
+X-Target-Environment
+true
+string
+The identifier of the Wallet Platform system where the transaction shall be processed. This parameter is used to route the request to the Wallet Platform system that will initiate the transaction.
+
+X-Callback-Url
+false
+string
+
+
+
+{
+    "auth_req_id": "string",
+    "interval": 0,
+    "expires_in": 0
+}
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Operation is used to check if an account holder is registered and active in the system.
+
+Request
+https://sandbox.momodeveloper.mtn.com/collection/v1_0/accountholder/{accountHolderIdType}/{accountHolderId}/active
+Request parameters
+Name
+In
+Required
+Type
+Example
+Description
+accountHolderId
+template
+true
+string
+The AccountHolder number. Validated according to the AccountHolder ID type (case Sensitive).
+msisdn - Mobile Number validated according to ITU-T E.164. Validated with IsMSISDN
+email - Validated to be a valid e-mail format. Validated with IsEmail
+
+accountHolderIdType
+template
+true
+string
+Specifies the type of the AccountHolder ID. Allowed values [msisdn, email].
+accountHolderId should explicitly be in small letters.
+
+Request headers
+Name
+Required
+Type
+Example
+Description
+Authorization
+true
+string
+Bearer Authentication Token generated using CreateAccessToken API Call
+
+X-Target-Environment
+true
+string
+
+-----------------------------------------------------------------------------------------------
+This operation is used to request a payment from a consumer (Payer). The payer will be asked to authorize the payment. The transaction will be executed once the payer has authorized the payment. The requesttopay will be in status PENDING until the transaction is authorized or declined by the payer or it is timed out by the system. Status of the transaction can be validated by using the GET /requesttopay/<resourceId>
+
+Request
+https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay
+Request headers
+Name
+Required
+Type
+Example
+Description
+Authorization
+true
+string
+Bearer Authentication Token generated using CreateAccessToken API Call
+
+X-Callback-Url
+false
+string
+URL to the server where the callback should be sent.
+
+X-Reference-Id
+true
+string
+Format - UUID. Recource ID of the created request to pay transaction. This ID is used, for example, validating the status of the request. ‘Universal Unique ID’ for the transaction generated using UUID version 4.
+
+X-Target-Environment
+true
+string
+
+
+Name
+Required
+Type
+Description
+amount
+false
+string
+Amount that will be debited from the payer account.
+
+currency
+false
+string
+ISO4217 Currency
+
+externalId
+false
+string
+External id is used as a reference to the transaction. External id is used for reconciliation. The external id will be included in transaction history report.
+External id is not required to be unique.
+
+payer
+false
+Party
+Party identifies a account holder in the wallet platform. Party consists of two parameters, type and partyId. Each type have its own validation of the partyId
+MSISDN - Mobile Number validated according to ITU-T E.164. Validated with IsMSISDN
+EMAIL - Validated to be a valid e-mail format. Validated with IsEmail
+PARTY_CODE - UUID of the party. Validated with IsUuid
+
+payerMessage
+false
+string
+Message that will be written in the payer transaction history message field.
+
+payeeNote
+false
+string
+Message that will be written in the payee transaction history note field.
+
+default

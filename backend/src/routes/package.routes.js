@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isActive, isAdmin } = require('../middleware/auth');
+const { auth, isActive, isAdmin } = require('../middleware/auth');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const packageController = require('../controllers/package.controller');
@@ -40,7 +40,7 @@ const packageController = require('../controllers/package.controller');
  *     summary: Get all available packages
  *     tags: [Packages]
  */
-router.get('/', isActive, packageController.getAllPackages);
+router.get('/', [auth, ], packageController.getAllPackages);
 
 /**
  * @swagger
@@ -49,7 +49,7 @@ router.get('/', isActive, packageController.getAllPackages);
  *     summary: Get user's purchased packages
  *     tags: [Packages]
  */
-router.get('/user', isActive, packageController.getUserPackages);
+router.get('/user', [auth, ], packageController.getUserPackages);
 
 /**
  * @swagger
@@ -59,6 +59,9 @@ router.get('/user', isActive, packageController.getUserPackages);
  *     tags: [Packages]
  */
 router.post('/', [
+    auth,
+    isActive
+    ,
     isAdmin,
     body('name').trim().notEmpty(),
     body('description').trim().notEmpty(),
@@ -77,6 +80,8 @@ router.post('/', [
  *     tags: [Packages]
  */
 router.put('/:id', [
+    auth,
+    isActive,
     isAdmin,
     param('id').isString(),
     body('name').optional().trim().notEmpty(),
@@ -96,6 +101,8 @@ router.put('/:id', [
  *     tags: [Packages]
  */
 router.delete('/:id', [
+    auth,
+    isActive,
     isAdmin,
     param('id').isString(),
     validate
@@ -109,6 +116,7 @@ router.delete('/:id', [
  *     tags: [Packages]
  */
 router.post('/upgrade', [
+    auth,
     isActive,
     body('currentPackageId').isString(),
     body('newPackageId').isString(),
@@ -125,6 +133,7 @@ router.post('/upgrade', [
  *     tags: [Packages]
  */
 router.get('/upgrade/history', [
+    auth,
     isActive,
     query('startDate').optional().isISO8601(),
     query('endDate').optional().isISO8601(),

@@ -4,8 +4,7 @@ const prisma = new PrismaClient();
 class NodeChildrenService {
     async getDownline({ userId, level, status, startDate, endDate }) {
         const where = {
-            sponsorId: userId,
-            isDeleted: false
+            sponsorId: userId
         };
 
         if (status) where.status = status;
@@ -46,12 +45,100 @@ class NodeChildrenService {
         return genealogy;
     }
 
+    async getTotalNetwork(nodeId) {
+        const nodes = await prisma.node.findMany({
+            where: {
+                sponsorId: nodeId
+            }
+        });
+
+        let total = nodes.length;
+        
+        // Recursively get counts for each child node
+        for (const node of nodes) {
+            total += await this.getTotalNetwork(node.id);
+        }
+
+        return total;
+    }
+
     async getNetworkStats(userId) {
+        try {
+            // First get the user with their node
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { node: true }
+            });
+
+            console.log('Found user:', {
+                userId,
+                hasNode: !!user?.node,
+                nodeId: user?.node?.id
+            });
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            if (!user.node) {
+                console.log('User has no node, creating one...');
+                // Create a node if it doesn't exist
+                const node = await prisma.node.create({
+                    data: {
+                        userId: user.id,
+                        position: 'ONE',
+                        status: 'ACTIVE',
+                        level: 1
+                    }
+                });
+                user.node = node;
+                console.log('Created node:', node);
+            }
+
+            // Get direct referrals (users who have this user's node as sponsor)
+            const directReferrals = await prisma.node.count({
+                where: {
+                    sponsorId: user.node.id,
+                }
+            });
+
+            console.log('Direct referrals:', {
+                sponsorId: user.node.id,
+                count: directReferrals
+            });
+
+            // Get total team (all nodes in downline recursively)
+            const totalTeam = await this.getTotalNetwork(user.node.id);
+
+            console.log('Total team:', {
+                sponsorId: user.node.id,
+                count: totalTeam
+            });
+
+            // Get active members
+            const activeMembers = await prisma.node.count({
+                where: {
+                    sponsorId: user.node.id,
+                    status: 'ACTIVE'
+                }
+            });
+
+            return {
+                directReferrals,
+                totalTeam,
+                activeMembers
+            };
+        } catch (error) {
+            console.error('Error getting network stats:', error);
+            throw error;
+        }
+    }
+
+    async getTeamStats(userId) {
         const [directReferrals, leftTeam, rightTeam] = await Promise.all([
             prisma.node.count({
                 where: {
-                    sponsorId: userId,
-                    isDeleted: false
+                    sponsorId: userId
                 }
             }),
             this.getTeamCount(userId, 'L'),
@@ -71,16 +158,14 @@ class NodeChildrenService {
             prisma.node.count({
                 where: {
                     parentId: userId,
-                    direction,
-                    isDeleted: false
+                    direction
                 }
             }),
             prisma.node.count({
                 where: {
                     parentId: userId,
                     direction,
-                    status: 'ACTIVE',
-                    isDeleted: false
+                    status: 'ACTIVE'
                 }
             })
         ]);
@@ -93,8 +178,7 @@ class NodeChildrenService {
             OR: [
                 { parentId: userId },
                 { sponsorId: userId }
-            ],
-            isDeleted: false
+            ]
         };
 
         if (startDate) where.createdAt = { gte: startDate };
@@ -123,83 +207,206 @@ class NodeChildrenService {
         }));
     }
 
-    async getGenealogyTree({ userId, depth = 3 }) {
-        const getChildren = async (nodeId, currentDepth) => {
-            if (currentDepth >= depth) return null;
-
-            const children = await prisma.node.findMany({
-                where: {
-                    parentId: nodeId,
-                    isDeleted: false
-                },
+    async getGenealogyTree({ userId, depth = 5 }) {
+        try {
+            // Get the root user's node
+            const rootNode = await prisma.node.findFirst({
+                where: { userId },
                 include: {
-                    package: true,
-                    rank: true
+                    user: {
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    }
                 }
             });
 
-            const childrenWithSubtrees = await Promise.all(
-                children.map(async child => ({
-                    ...child,
-                    children: await getChildren(child.id, currentDepth + 1)
+            if (!rootNode) {
+                throw new Error('Node not found for user');
+            }
+
+            // Recursive function to get all children for a node
+            async function getChildrenRecursive(nodeId, currentLevel, maxLevel) {
+                if (currentLevel > maxLevel) return null;
+
+                // Get up to 3 children for this node
+                const children = await prisma.node.findMany({
+                    where: { 
+                        sponsorId: nodeId,
+                        position: { in: ['ONE', 'TWO', 'THREE'] }
+                    },
+                    orderBy: {
+                        position: 'asc'
+                    },
+                    take: 3,
+                    include: {
+                        user: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                email: true
+                            }
+                        }
+                    }
+                });
+
+                // Process each child recursively
+                const processedChildren = await Promise.all(
+                    children.map(async (child) => {
+                        const childChildren = await getChildrenRecursive(
+                            child.id,
+                            currentLevel + 1,
+                            maxLevel
+                        );
+
+                        return {
+                            ...child,
+                            children: childChildren || []
+                        };
+                    })
+                );
+
+                return processedChildren;
+            }
+
+            // Get all children recursively
+            const allChildren = await getChildrenRecursive(rootNode.id, 1, depth);
+
+            // Organize children by levels
+            const levels = {};
+            function organizeByLevels(nodes, level = 1) {
+                if (!nodes || nodes.length === 0) return;
+                
+                levels[level] = levels[level] || [];
+                levels[level].push(...nodes);
+
+                // Process next level
+                nodes.forEach(node => {
+                    if (node.children && node.children.length > 0) {
+                        organizeByLevels(node.children, level + 1);
+                    }
+                });
+            }
+
+            organizeByLevels(allChildren);
+
+            // Log the structure for debugging
+            console.log('Network structure:', {
+                totalLevels: Object.keys(levels).length,
+                nodesPerLevel: Object.entries(levels).map(([level, nodes]) => ({
+                    level,
+                    count: nodes.length
                 }))
-            );
+            });
 
             return {
-                left: childrenWithSubtrees.find(child => child.direction === 'L') || null,
-                right: childrenWithSubtrees.find(child => child.direction === 'R') || null
+                id: rootNode.id,
+                user: rootNode.user,
+                status: rootNode.status,
+                children: levels
             };
-        };
-
-        const root = await prisma.node.findUnique({
-            where: { id: userId },
-            include: {
-                package: true,
-                rank: true
-            }
-        });
-
-        return {
-            ...root,
-            children: await getChildren(userId, 0)
-        };
+        } catch (error) {
+            console.error('Error getting genealogy tree:', error);
+            throw error;
+        }
     }
 
     async getDirectReferrals({ userId, status, startDate, endDate, page = 1, limit = 10 }) {
-        const where = {
-            sponsorId: userId,
-            isDeleted: false
-        };
+        try {
+            // First get the user with their node
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { node: true }
+            });
 
-        if (status) where.status = status;
-        if (startDate) where.createdAt = { gte: startDate };
-        if (endDate) where.createdAt = { ...where.createdAt, lte: endDate };
+            console.log('Found user:', {
+                userId,
+                hasNode: !!user?.node,
+                nodeId: user?.node?.id
+            });
 
-        const [total, referrals] = await Promise.all([
-            prisma.node.count({ where }),
-            prisma.node.findMany({
-                where,
-                include: {
-                    package: true,
-                    rank: true
-                },
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    createdAt: 'desc'
-                }
-            })
-        ]);
-
-        return {
-            data: referrals,
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
+            if (!user) {
+                throw new Error('User not found');
             }
-        };
+
+            if (!user.node) {
+                console.log('User has no node, creating one...');
+                // Create a node if it doesn't exist
+                const node = await prisma.node.create({
+                    data: {
+                        userId: user.id,
+                        position: 'ONE',
+                        status: 'ACTIVE',
+                        level: 1
+                    }
+                });
+                user.node = node;
+                console.log('Created node:', node);
+            }
+
+            // Build where clause for referrals
+            const where = {
+                sponsorId: user.node.id
+            };
+
+            if (status) where.status = status;
+            if (startDate) where.createdAt = { gte: new Date(startDate) };
+            if (endDate) where.createdAt = { ...where.createdAt, lte: new Date(endDate) };
+
+            console.log('Searching for referrals with:', where);
+
+            // Get total count and referrals
+            const [total, referrals] = await Promise.all([
+                prisma.node.count({ where }),
+                prisma.node.findMany({
+                    where,
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                                phone: true,
+                                status: true,
+                                createdAt: true
+                            }
+                        }
+                    },
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                })
+            ]);
+
+            console.log('Found referrals:', {
+                sponsorId: user.node.id,
+                total,
+                referrals: referrals.length,
+                referralDetails: referrals.map(ref => ({
+                    nodeId: ref.id,
+                    userId: ref.userId,
+                    email: ref.user.email
+                }))
+            });
+
+            return {
+                data: referrals,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(total / limit)
+                }
+            };
+        } catch (error) {
+            console.error('Error getting direct referrals:', error);
+            throw error;
+        }
     }
 
     async getBusinessVolume({ userId, startDate, endDate }) {
@@ -207,8 +414,7 @@ class NodeChildrenService {
             OR: [
                 { parentId: userId },
                 { sponsorId: userId }
-            ],
-            isDeleted: false
+            ]
         };
 
         if (startDate) where.createdAt = { gte: startDate };
@@ -218,12 +424,7 @@ class NodeChildrenService {
             prisma.transaction.aggregate({
                 where: {
                     userId,
-                    type: 'PURCHASE',
-                    status: 'COMPLETED',
-                    createdAt: {
-                        gte: startDate,
-                        lte: endDate
-                    }
+                    type: 'PURCHASE'
                 },
                 _sum: {
                     amount: true
@@ -231,18 +432,13 @@ class NodeChildrenService {
             }),
             prisma.transaction.aggregate({
                 where: {
-                    user: {
+                    node: {
                         OR: [
                             { parentId: userId },
                             { sponsorId: userId }
                         ]
                     },
-                    type: 'PURCHASE',
-                    status: 'COMPLETED',
-                    createdAt: {
-                        gte: startDate,
-                        lte: endDate
-                    }
+                    type: 'PURCHASE'
                 },
                 _sum: {
                     amount: true
@@ -290,7 +486,6 @@ class NodeChildrenService {
             prisma.node.count({
                 where: {
                     sponsorId: userId,
-                    isDeleted: false,
                     status: 'ACTIVE'
                 }
             }),
@@ -338,8 +533,7 @@ class NodeChildrenService {
 
             const children = await prisma.node.findMany({
                 where: {
-                    [structure === 'binary' ? 'parentId' : 'sponsorId']: nodeId,
-                    isDeleted: false
+                    [structure === 'binary' ? 'parentId' : 'sponsorId']: nodeId
                 },
                 include: {
                     package: true,
@@ -363,8 +557,7 @@ class NodeChildrenService {
             OR: [
                 { parentId: userId },
                 { sponsorId: userId }
-            ],
-            isDeleted: false
+            ]
         };
 
         if (type === 'username') {
@@ -409,8 +602,7 @@ class NodeChildrenService {
         const nodes = await prisma.node.findMany({
             where: {
                 parentId: userId,
-                direction,
-                isDeleted: false
+                direction
             },
             include: {
                 package: {
@@ -455,8 +647,7 @@ class NodeChildrenService {
                     { parentId: userId },
                     { sponsorId: userId }
                 ],
-                status: 'INACTIVE',
-                isDeleted: false
+                status: 'INACTIVE'
             },
             include: {
                 children: {
@@ -485,8 +676,7 @@ class NodeChildrenService {
                 OR: [
                     { parentId: userId },
                     { sponsorId: userId }
-                ],
-                isDeleted: false
+                ]
             },
             include: {
                 package: {
@@ -570,8 +760,7 @@ class NodeChildrenService {
             const nextLevel = await prisma.node.findMany({
                 where: {
                     parentId: { in: currentLevel },
-                    direction,
-                    isDeleted: false
+                    direction
                 },
                 select: { id: true }
             });
@@ -740,6 +929,144 @@ class NodeChildrenService {
             powerMemberPercentage: (powerMemberCount / teamSize) * 100,
             averageTeamVolume: teamVolume / teamSize
         };
+    }
+
+    async getNetworkLevels(userId) {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { node: true }
+            });
+
+            if (!user?.node) {
+                return [];
+            }
+
+            // Get direct referrals (level 1)
+            const directReferrals = await prisma.node.findMany({
+                where: { sponsorId: user.node.id },
+                include: { user: true }
+            });
+
+            const levelsMap = new Map();
+
+            // Add level 1 (direct referrals)
+            if (directReferrals.length > 0) {
+                levelsMap.set(1, {
+                    level: 1,
+                    members: directReferrals.length,
+                    active: directReferrals.filter(n => n.status === 'ACTIVE').length,
+                    earnings: 0
+                });
+            }
+
+            // For each direct referral, get their referrals (level 2)
+            for (const referral of directReferrals) {
+                const level2Referrals = await prisma.node.findMany({
+                    where: { sponsorId: referral.id },
+                    include: { user: true }
+                });
+
+                if (level2Referrals.length > 0) {
+                    const currentLevel = levelsMap.get(2) || {
+                        level: 2,
+                        members: 0,
+                        active: 0,
+                        earnings: 0
+                    };
+
+                    currentLevel.members += level2Referrals.length;
+                    currentLevel.active += level2Referrals.filter(n => n.status === 'ACTIVE').length;
+
+                    levelsMap.set(2, currentLevel);
+                }
+            }
+
+            // Convert map to array and sort by level
+            return Array.from(levelsMap.values()).sort((a, b) => a.level - b.level);
+        } catch (error) {
+            console.error('Error getting network levels:', error);
+            throw error;
+        }
+    }
+
+    async getNodesAtLevel(sponsorId, level) {
+        const nodes = await prisma.node.findMany({
+            where: { sponsorId }
+        });
+
+        let allNodes = [...nodes];
+
+        // Recursively get nodes for next level
+        for (const node of nodes) {
+            const childNodes = await this.getNodesAtLevel(node.id, level + 1);
+            allNodes = allNodes.concat(childNodes);
+        }
+
+        return allNodes;
+    }
+
+    async fixNodeRelationships() {
+        try {
+            // Get the referral link to find the relationship
+            const referralLink = await prisma.referralLink.findFirst({
+                where: { code: '9ba11114' },
+                include: {
+                    user: {
+                        include: { node: true }
+                    }
+                }
+            });
+
+            if (!referralLink) {
+                throw new Error('Referral link not found');
+            }
+
+            // Update node 2 to have node 1 as sponsor
+            await prisma.node.update({
+                where: { id: 2 }, // User 2's node
+                data: {
+                    sponsorId: 1, // User 1's node
+                    level: 2 // Level 2 since it's under node 1
+                }
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error fixing node relationships:', error);
+            throw error;
+        }
+    }
+
+    async fixAllNodeRelationships() {
+        try {
+            // Fix Node 2's relationship (already correct but included for completeness)
+            await prisma.node.update({
+                where: { id: 2 },
+                data: {
+                    sponsorId: 1,
+                    level: 2
+                }
+            });
+
+            // Fix Node 3's relationship
+            await prisma.node.update({
+                where: { id: 3 },
+                data: {
+                    sponsorId: 2,
+                    level: 3
+                }
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error fixing node relationships:', error);
+            throw error;
+        }
+    }
+
+    async getGenealogy({ userId, maxLevel }) {
+        return this.getGenealogyTree({ userId, depth: maxLevel });
     }
 }
 

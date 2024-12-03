@@ -35,7 +35,6 @@ export function AdminLayout() {
 
   const handleNavigation = useCallback((to) => {
     if (to !== location.pathname) {
-      setSelectedGroup(null)
       navigate(to)
     }
   }, [navigate, location.pathname])
@@ -47,156 +46,17 @@ export function AdminLayout() {
     }
   }, [])
 
-  useEffect(() => {
-    // Reset selected group when navigating to a new path
-    if (!location.pathname.includes(selectedGroup?.toLowerCase() || '')) {
-      setSelectedGroup(null)
-    }
-  }, [location.pathname, selectedGroup])
+  const isActiveLink = useCallback((itemTo) => {
+    // Exact match or child route match
+    return activePath === itemTo || 
+           (itemTo !== '/admin' && activePath.startsWith(itemTo))
+  }, [activePath])
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  // Memoize NavItem component to prevent unnecessary re-renders
-  const NavItem = useCallback(({ item, isChild }) => {
-    const isActive = activePath === item.to
-    const isChildActive = item.children?.some(child => child.to === activePath)
-    const isOpen = openGroups[item.label]
-    const isSelected = selectedGroup === item.label
-
-    const handleClick = (e, to, isCollapsible = false) => {
-      e.preventDefault()
-      if (isCollapsible) {
-        toggleGroup(item.label, true)
-      } else {
-        handleNavigation(to)
-      }
-    }
-
-    if (item.children) {
-      return (
-        <Collapsible
-          open={isOpen}
-          onOpenChange={() => toggleGroup(item.label, true)}
-        >
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <CollapsibleTrigger
-                  onClick={(e) => handleClick(e, null, true)}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2",
-                    "transition-colors duration-200 ease-in-out",
-                    (isSelected || isChildActive)
-                      ? "bg-blue-100 text-blue-900"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                >
-                  <div className={cn(
-                    "flex items-center gap-2",
-                    isCollapsed && "h-full w-full justify-center"
-                  )}>
-                    <Icon icon={item.icon} className={cn(
-                      "h-4 w-4 transition-colors duration-200",
-                      (isSelected || isChildActive) ? "text-blue-600" : "text-gray-500"
-                    )} />
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium tracking-tight">{item.label}</span>
-                    )}
-                  </div>
-                  {!isCollapsed && (
-                    <Icon icon="ph:caret-right-bold" className={cn(
-                      "h-3.5 w-3.5 transition-transform duration-200",
-                      isOpen && "rotate-90"
-                    )} />
-                  )}
-                </CollapsibleTrigger>
-              </TooltipTrigger>
-              {isCollapsed && (
-                <TooltipContent side="right">
-                  {item.label}
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
-          {!isCollapsed && (
-            <CollapsibleContent className="space-y-1">
-              {item.children.map((child) => (
-                <Link
-                  key={child.to}
-                  to={child.to}
-                  onClick={(e) => handleClick(e, child.to)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 pl-9",
-                    "transition-colors duration-200 ease-in-out",
-                    activePath === child.to
-                      ? "bg-blue-50/80 text-blue-800"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <Icon icon={child.icon} className={cn(
-                    "h-3.5 w-3.5",
-                    activePath === child.to ? "text-blue-500" : "text-gray-400"
-                  )} />
-                  <span className={cn(
-                    "text-sm tracking-tight",
-                    activePath === child.to ? "font-medium" : "font-normal"
-                  )}>{child.label}</span>
-                </Link>
-              ))}
-            </CollapsibleContent>
-          )}
-        </Collapsible>
-      )
-    }
-
-    return (
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to={item.to}
-              onClick={(e) => handleClick(e, item.to)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg",
-                "transition-colors duration-200 ease-in-out",
-                isCollapsed && !isChild ? "h-10 w-10 justify-center p-0" : "px-3 py-2",
-                isActive
-                  ? "bg-blue-100 text-blue-900"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-                isChild && !isCollapsed && "ml-4 pl-6"
-              )}
-            >
-              {(!isChild || isCollapsed) && (
-                <Icon icon={item.icon} className={cn(
-                  "h-4 w-4 transition-colors duration-200",
-                  isActive ? "text-blue-600" : "text-gray-500"
-                )} />
-              )}
-              {(!isCollapsed || (isChild && !isCollapsed)) && (
-                <span className="text-sm font-medium tracking-tight">{item.label}</span>
-              )}
-            </Link>
-          </TooltipTrigger>
-          {isCollapsed && !isChild && (
-            <TooltipContent side="right">
-              {item.label}
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
-    )
-  }, [activePath, isCollapsed, openGroups, handleNavigation, toggleGroup, selectedGroup])
-
-  const menuItems = [
+  // Memoize the entire menu items array
+  const menuItems = useMemo(() => [
     { 
-      label: 'Overview',
-      icon: 'ph:squares-four-bold',
+      label: 'Dashboard',
+      icon: 'lucide:layout-dashboard',
       to: '/admin'
     },
     {
@@ -293,243 +153,206 @@ export function AdminLayout() {
       icon: 'ph:gear-six-bold',
       to: '/admin/settings'
     }
-  ]
+  ], [])
+
+  // Memoize NavItem component
+  const NavItem = useCallback(({ item, isChild }) => {
+    const isActive = item.to ? isActiveLink(item.to) : false
+    const isChildActive = item.children?.some(child => isActiveLink(child.to))
+    const isOpen = openGroups[item.label]
+    const isSelected = selectedGroup === item.label
+
+    if (item.children) {
+      return (
+        <Collapsible
+          open={isOpen}
+          onOpenChange={() => toggleGroup(item.label, true)}
+        >
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CollapsibleTrigger
+                  onClick={(e) => {
+                    e.preventDefault()
+                    toggleGroup(item.label, true)
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-lg px-3 py-2",
+                    "transition-colors duration-200 ease-in-out",
+                    (isChildActive)
+                      ? "bg-white/10 text-white"
+                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  )}
+                >
+                  <div className={cn(
+                    "flex items-center gap-2",
+                    isCollapsed && "justify-center w-full"
+                  )}>
+                    <Icon icon={item.icon} className={cn(
+                      "shrink-0",
+                      isCollapsed ? "h-5 w-5" : "h-4 w-4"
+                    )} />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </div>
+                  {!isCollapsed && (
+                    <Icon
+                      icon={isOpen ? "lucide:chevron-down" : "lucide:chevron-right"}
+                      className="h-4 w-4 shrink-0"
+                    />
+                  )}
+                </CollapsibleTrigger>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right" sideOffset={10}>
+                  {item.label}
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+          <CollapsibleContent className="pl-4">
+            {item.children.map((child) => (
+              <NavItem key={child.to} item={child} isChild />
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )
+    }
+
+    return (
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to={item.to}
+              onClick={(e) => {
+                e.preventDefault()
+                handleNavigation(item.to)
+              }}
+              className={cn(
+                "flex items-center rounded-lg px-3 py-2",
+                "transition-colors duration-200 ease-in-out",
+                isActive
+                  ? "bg-white/10 text-white"
+                  : "text-gray-300 hover:bg-white/10 hover:text-white",
+                isCollapsed && "justify-center",
+                isChild && "mt-1"
+              )}
+            >
+              <Icon icon={item.icon} className={cn(
+                "shrink-0",
+                isCollapsed ? "h-5 w-5" : "h-4 w-4"
+              )} />
+              {!isCollapsed && <span className="ml-2">{item.label}</span>}
+            </Link>
+          </TooltipTrigger>
+          {isCollapsed && (
+            <TooltipContent side="right" sideOffset={10}>
+              {item.label}
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }, [activePath, handleNavigation, isCollapsed, openGroups, toggleGroup, isActiveLink])
+
+  useEffect(() => {
+    // Reset selected group when navigating to a new path
+    if (!location.pathname.includes(selectedGroup?.toLowerCase() || '')) {
+      setSelectedGroup(null)
+    }
+  }, [location.pathname, selectedGroup])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleLogout = () => {
     // TODO: Implement logout logic
     navigate('/login')
   }
 
-  const Sidebar = () => (
-    <aside 
-      className={cn(
-        "fixed inset-y-0 left-0 z-20 flex flex-col border-r bg-white transition-all duration-300",
-        isCollapsed ? "w-[72px]" : "w-64",
-        isMobile && "hidden"
-      )}
-    >
-      {/* Header with Logo */}
-      <div className={cn(
-        "flex h-14 items-center justify-between border-b",
-        isCollapsed ? "px-2" : "px-4"
-      )}>
-        <Link to="/" className={cn(
-          "flex items-center",
-          isCollapsed ? "justify-center" : "space-x-2"
-        )}>
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-500">
-            <Icon icon="ph:currency-circle-dollar-bold" className="h-4 w-4 text-blue-50" />
-          </div>
-          {!isCollapsed && (
-            <span className="font-display text-lg font-bold tracking-tight">
-              Zillionaire
-            </span>
-          )}
-        </Link>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn(
-            "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg",
-            "transition-colors duration-200 ease-in-out",
-            "hover:bg-gray-100"
-          )}
-        >
-          <Icon icon="ph:x-bold" className={cn(
-            "h-5 w-5 text-gray-500 transition-transform duration-200",
-            isCollapsed && "rotate-180"
-          )} />
-        </button>
-      </div>
-
-      {/* Profile Section */}
-      <div className={cn(
-        "flex items-center gap-2 border-b p-4",
-        isCollapsed && "justify-center"
-      )}>
-        <Avatar className="h-8 w-8">
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>AD</AvatarFallback>
-        </Avatar>
-        {!isCollapsed && (
-          <div className="flex flex-col">
-            <span className="text-sm font-medium leading-none">Admin User</span>
-            <span className="text-xs text-gray-500">admin@zillionaire.com</span>
-          </div>
-        )}
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        <TooltipProvider delayDuration={0}>
-          {menuItems.map((item) => (
-            <NavItem key={item.label} item={item} />
-          ))}
-        </TooltipProvider>
-      </nav>
-
-      {/* Footer Actions */}
-      <div className="border-t p-3 space-y-1">
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "flex w-full cursor-pointer items-center rounded-lg px-3 py-2",
-                  "transition-colors duration-200 ease-in-out",
-                  isCollapsed ? "justify-center" : "justify-start",
-                  "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-                onClick={() => navigate('/admin/settings')}
-              >
-                <Icon icon="ph:gear-six-bold" className="h-5 w-5 text-gray-500" />
-                {!isCollapsed && <span className="ml-2">Settings</span>}
-              </div>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">Settings</TooltipContent>
-            )}
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "flex w-full cursor-pointer items-center rounded-lg px-3 py-2",
-                  "transition-colors duration-200 ease-in-out",
-                  isCollapsed ? "justify-center" : "justify-start",
-                  "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-                onClick={() => navigate('/admin/support')}
-              >
-                <Icon icon="ph:life-support-bold" className="h-5 w-5 text-gray-500" />
-                {!isCollapsed && <span className="ml-2">Support</span>}
-              </div>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">Support</TooltipContent>
-            )}
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "flex w-full cursor-pointer items-center rounded-lg px-3 py-2",
-                  "transition-colors duration-200 ease-in-out",
-                  isCollapsed ? "justify-center" : "justify-start",
-                  "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-                onClick={handleLogout}
-              >
-                <Icon icon="ph:sign-out-bold" className="h-5 w-5 text-gray-500" />
-                {!isCollapsed && <span className="ml-2">Logout</span>}
-              </div>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">Logout</TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </aside>
-  )
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Sidebar */}
-      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-        <SheetContent side="left" className="w-80 p-0">
-          <SheetHeader className="border-b p-4">
-            <SheetTitle className="flex items-center gap-2">
-              <Icon icon="ph:currency-circle-dollar-bold" className="h-5 w-5 text-blue-500" />
-              <span className="font-display text-lg font-bold tracking-tight">Zillionaire</span>
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex items-center gap-2 border-b p-4">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium leading-none">Admin User</span>
-              <span className="text-xs text-gray-500">admin@zillionaire.com</span>
-            </div>
-          </div>
-          <nav className="space-y-1 p-4">
-            {menuItems.map((item) => (
-              <NavItem key={item.label} item={item} />
-            ))}
-          </nav>
-          <div className="border-t p-4 space-y-1">
-            <div
-              className={cn(
-                "flex w-full cursor-pointer items-center rounded-lg px-3 py-2",
-                "transition-colors duration-200 ease-in-out",
-                "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}
-              onClick={() => navigate('/admin/settings')}
-            >
-              <Icon icon="ph:gear-six-bold" className="h-5 w-5 text-gray-500" />
-              <span className="ml-2">Settings</span>
-            </div>
-            <div
-              className={cn(
-                "flex w-full cursor-pointer items-center rounded-lg px-3 py-2",
-                "transition-colors duration-200 ease-in-out",
-                "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}
-              onClick={() => navigate('/admin/support')}
-            >
-              <Icon icon="ph:life-support-bold" className="h-5 w-5 text-gray-500" />
-              <span className="ml-2">Support</span>
-            </div>
-            <div
-              className={cn(
-                "flex w-full cursor-pointer items-center rounded-lg px-3 py-2",
-                "transition-colors duration-200 ease-in-out",
-                "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}
-              onClick={handleLogout}
-            >
-              <Icon icon="ph:sign-out-bold" className="h-5 w-5 text-gray-500" />
-              <span className="ml-2">Logout</span>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Mobile Menu Button */}
+      {isMobile && (
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gradient-to-r from-yellow-500 to-purple-500 text-white"
+        >
+          <Icon icon="lucide:menu" className="h-6 w-6" />
+        </button>
+      )}
 
-      {/* Desktop Sidebar */}
-      <Sidebar />
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 border-r transition-all duration-300 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-800",
+          isCollapsed ? "w-16" : "w-64",
+          isMobile && "hidden"
+        )}
+      >
+        {/* Logo */}
+        <div className={cn(
+          "flex h-14 items-center border-b border-white/10 px-6",
+          isCollapsed && "justify-center px-0"
+        )}>
+          {!isCollapsed && (
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="font-bold text-white">Admin Panel</span>
+            </Link>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="p-4 space-y-2">
+          {menuItems.map((item) => (
+            <NavItem key={item.to || item.label} item={item} />
+          ))}
+        </nav>
+
+        {/* Collapse Toggle Button */}
+        {!isMobile && (
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-20 p-1.5 rounded-full bg-gradient-to-r from-yellow-500 to-purple-500 text-white border border-white/20 shadow-lg hover:from-yellow-600 hover:to-purple-600 transition-all"
+          >
+            <Icon
+              icon={isCollapsed ? "lucide:chevron-right" : "lucide:chevron-left"}
+              className="h-3 w-3"
+            />
+          </button>
+        )}
+      </aside>
+
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+          <SheetContent
+            side="left"
+            className="w-64 p-0 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-800"
+          >
+            <SheetHeader className="h-14 border-b border-white/10 px-6">
+              <SheetTitle className="text-white">Admin Panel</SheetTitle>
+            </SheetHeader>
+            <nav className="p-4 space-y-2">
+              {menuItems.map((item) => (
+                <NavItem key={item.to || item.label} item={item} />
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* Main Content */}
       <main className={cn(
-        "min-h-screen transition-all duration-300",
-        isMobile ? "ml-0" : (isCollapsed ? "ml-10" : "ml-64"),
-        "bg-gray-50"
+        "transition-all duration-300",
+        !isMobile && (isCollapsed ? "pl-16" : "pl-64"),
+        isMobile && "pl-0"
       )}>
-        {/* Mobile Header */}
-        {isMobile && (
-          <div className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-gray-50 px-4">
-            <div
-              className={cn(
-                "h-8 w-8 cursor-pointer rounded-lg p-2",
-                "transition-all duration-200 ease-in-out",
-                "hover:bg-gray-100"
-              )}
-              onClick={() => setIsMobileOpen(true)}
-            >
-              <Icon icon="ph:menu-bold" className="h-5 w-5 text-gray-500" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Icon icon="ph:currency-circle-dollar-bold" className="h-5 w-5 text-blue-500" />
-              <span className="font-bold">Zillionaire</span>
-            </div>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-          </div>
-        )}
-        
-        {/* Content */}
         <div className="container py-6">
           <Outlet />
         </div>

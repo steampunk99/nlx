@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { validateRegistration, validateLogin } = require('../middleware/validate');
-const { isActive } = require('../middleware/auth');
+const { isActive, auth } = require('../middleware/auth');
 const authController = require('../controllers/auth.controller');
 
 /**
@@ -121,6 +121,26 @@ router.post('/logout', isActive, authController.logout);
 
 /**
  * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ */
+router.post('/refresh', authController.refreshToken);
+
+/**
+ * @swagger
  * /auth/forgot-password:
  *   post:
  *     summary: Request password reset
@@ -156,7 +176,7 @@ router.post('/change-password', [
  *     summary: Get user profile
  *     tags: [Profile]
  */
-router.get('/profile', isActive, authController.getProfile);
+router.get('/profile', [auth, isActive], authController.getProfile);
 
 /**
  * @swagger

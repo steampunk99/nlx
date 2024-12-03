@@ -7,6 +7,7 @@ const commissionService = require('../services/commission.service');
 const { validatePayment } = require('../middleware/validate');
 const { calculateCommissions } = require('../utils/commission.utils');
 const { PrismaClient } = require('@prisma/client');
+const UgandaMobileMoneyUtil = require('../utils/ugandaMobileMoney.util');
 
 const prisma = new PrismaClient();
 
@@ -18,15 +19,12 @@ class PaymentController {
      */
     async processPackagePayment(req, res) {
         try {
-            const { error } = validatePayment(req.body);
-            if (error) {
-                return res.status(400).json({
-                    success: false,
-                    message: error.details[0].message
-                });
-            }
-
-            const { packageId, paymentMethod, paymentReference } = req.body;
+            const { 
+                packageId, 
+                paymentMethod, 
+                paymentReference, 
+                phoneNumber 
+            } = req.body;
             const userId = req.user.id;
 
             // Get package details
@@ -47,53 +45,102 @@ class PaymentController {
                 });
             }
 
+            // Mobile money specific validation
+            if (paymentMethod === 'MTN_MOBILE_MONEY' || paymentMethod === 'AIRTEL_MONEY') {
+                if (!phoneNumber) {
+                    return res.status(400).json({
+                        success: false,
+                        mobileMoneyError: 'Phone number is required for mobile money payment'
+                    });
+                }
+
+                // Validate phone number format
+                const ugandaPhoneRegex = /^(0|\+?256)?(7[0-9]{8})$/;
+                if (!ugandaPhoneRegex.test(phoneNumber)) {
+                    return res.status(400).json({
+                        success: false,
+                        mobileMoneyError: 'Invalid Ugandan mobile number'
+                    });
+                }
+            }
+
             // Process payment in a transaction
             const result = await prisma.$transaction(async (tx) => {
+                // Initiate mobile money payment for specific providers
+                let mobileMoneyResponse = null;
+                if (paymentMethod === 'MTN_MOBILE_MONEY') {
+                    const mobileMoneyUtil = new UgandaMobileMoneyUtil('mtn');
+                    mobileMoneyResponse = await mobileMoneyUtil.initiateMtnPayment(
+                        phoneNumber, 
+                        pkg.price, 
+                        `PKG_${node.id}_${packageId}`
+                    );
+                } else if (paymentMethod === 'AIRTEL_MONEY') {
+                    const mobileMoneyUtil = new UgandaMobileMoneyUtil('airtel');
+                    mobileMoneyResponse = await mobileMoneyUtil.initiateAirtelPayment(
+                        phoneNumber, 
+                        pkg.price, 
+                        `PKG_${node.id}_${packageId}`
+                    );
+                }
+
                 // Create payment record
                 const payment = await nodePaymentService.create({
                     nodeId: node.id,
-                    packageId: pkg.id,
                     amount: pkg.price,
-                    paymentMethod,
-                    paymentReference,
-                    status: 'COMPLETED'
+                    reference: `${paymentMethod}_${mobileMoneyResponse?.data?.referenceId || paymentReference}`,
+                    status: mobileMoneyResponse ? 'PENDING' : 'COMPLETED',
+                    type: 'PACKAGE_PURCHASE'
                 }, tx);
 
-                // Create or update node package
-                const nodePackage = await nodePackageService.create({
-                    nodeId: node.id,
-                    packageId: pkg.id,
-                    status: 'ACTIVE'
-                }, tx);
-
-                // Create statement record
-                const statement = await nodeStatementService.create({
-                    nodeId: node.id,
-                    amount: pkg.price,
-                    type: 'DEBIT',
-                    description: `Package purchase: ${pkg.name}`,
-                    status: 'COMPLETED',
-                    referenceType: 'PACKAGE',
-                    referenceId: nodePackage.id
-                }, tx);
-
-                // Calculate and create commissions
-                const commissions = await calculateCommissions(node.id, pkg.price);
-                await Promise.all(commissions.map(commission => 
-                    commissionService.create({
-                        ...commission,
+                // For non-mobile money or successful mobile money initiation
+                if (!mobileMoneyResponse || mobileMoneyResponse.success) {
+                    // Create or update node package
+                    const nodePackage = await nodePackageService.create({
+                        nodeId: node.id,
                         packageId: pkg.id,
-                        status: 'PENDING'
-                    }, tx)
-                ));
+                        status: mobileMoneyResponse ? 'PENDING' : 'ACTIVE'
+                    }, tx);
 
-                return {
-                    payment,
-                    nodePackage,
-                    statement
-                };
+                    // Create statement record
+                    const statement = await nodeStatementService.create({
+                        nodeId: node.id,
+                        amount: pkg.price,
+                        type: 'DEBIT',
+                        description: `Package purchase: ${pkg.name}`,
+                        status: mobileMoneyResponse ? 'PENDING' : 'COMPLETED',
+                        referenceType: 'PACKAGE',
+                        referenceId: nodePackage.id
+                    }, tx);
+
+                    // Calculate and create commissions if not a pending mobile money payment
+                    if (!mobileMoneyResponse) {
+                        const commissions = await calculateCommissions(node.id, pkg.price);
+                        await Promise.all(commissions.map(commission => 
+                            commissionService.create({
+                                ...commission,
+                                packageId: pkg.id,
+                                status: 'PENDING'
+                            }, tx)
+                        ));
+                    }
+
+                    return {
+                        payment,
+                        nodePackage,
+                        statement,
+                        ...(mobileMoneyResponse && { 
+                            paymentUrl: mobileMoneyResponse.data.paymentUrl,
+                            referenceId: mobileMoneyResponse.data.referenceId 
+                        })
+                    };
+                }
+
+                // Mobile money payment initiation failed
+                throw new Error('Mobile money payment initiation failed');
             });
 
+            // Successful response
             res.status(201).json({
                 success: true,
                 message: 'Payment processed successfully',
@@ -104,7 +151,7 @@ class PaymentController {
             console.error('Payment processing error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error processing payment'
+                mobileMoneyError: error.message || 'Error processing payment'
             });
         }
     }
@@ -172,7 +219,6 @@ class PaymentController {
                     nodeId: node.id,
                     packageId: newPackageId,
                     amount: upgradeCost,
-                    paymentMethod,
                     paymentReference,
                     status: 'COMPLETED',
                     isUpgrade: true,
@@ -184,7 +230,7 @@ class PaymentController {
                     node.id,
                     newPackageId,
                     currentPackageId,
-                    { paymentMethod, phoneNumber: paymentReference }
+                    { paymentReference }
                 );
 
                 // Create statement record

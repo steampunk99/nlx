@@ -20,7 +20,7 @@ const paymentController = require('../controllers/payment.controller');
  *           type: number
  *         paymentMethod:
  *           type: string
- *           enum: [MPESA, BANK, CRYPTO]
+ *           enum: [MPESA, BANK, CRYPTO, MTN_MOBILE_MONEY, AIRTEL_MONEY]
  *         paymentReference:
  *           type: string
  *         status:
@@ -40,8 +40,15 @@ const paymentController = require('../controllers/payment.controller');
  */
 router.post('/package', [
     isActive,
-    body('packageId').isString(),
-    body('paymentMethod').isIn(['MPESA', 'BANK', 'CRYPTO']),
+    body('packageId').isInt().toInt(),
+    body('paymentMethod').isIn([
+        'MPESA', 
+        'BANK', 
+        'CRYPTO', 
+        'MTN_MOBILE_MONEY', 
+        'AIRTEL_MONEY'
+    ]),
+    body('phoneNumber').optional().matches(/^(0|\+?256)?(7[0-9]{8})$/).withMessage('Invalid Ugandan phone number'),
     body('paymentReference').isString(),
     validate
 ], paymentController.processPackagePayment);
@@ -57,8 +64,15 @@ router.post('/upgrade', [
     isActive,
     body('currentPackageId').isString(),
     body('newPackageId').isString(),
-    body('paymentMethod').isIn(['MPESA', 'BANK', 'CRYPTO']),
+    body('paymentMethod').isIn([
+        'MPESA', 
+        'BANK', 
+        'CRYPTO', 
+        'MTN_MOBILE_MONEY', 
+        'AIRTEL_MONEY'
+    ]),
     body('paymentReference').isString(),
+    body('phoneNumber').optional().isString().matches(/^(0|\+?256)?(7[0-9]{8})$/),
     validate
 ], paymentController.processUpgradePayment);
 

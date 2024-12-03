@@ -5,7 +5,7 @@ class PackageService {
     async findAll() {
         return prisma.package.findMany({
             include: {
-                nodes: {
+                nodePackages: {
                     include: {
                         node: {
                             include: {
@@ -13,7 +13,8 @@ class PackageService {
                             }
                         }
                     }
-                }
+                },
+                commissions: true
             }
         });
     }
@@ -22,7 +23,7 @@ class PackageService {
         return prisma.package.findUnique({
             where: { id },
             include: {
-                nodes: {
+                nodePackages: {
                     include: {
                         node: {
                             include: {
@@ -30,7 +31,8 @@ class PackageService {
                             }
                         }
                     }
-                }
+                },
+                commissions: true
             }
         });
     }

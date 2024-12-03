@@ -82,15 +82,6 @@ class NodePaymentService {
             data: {
                 ...paymentData,
                 createdAt: new Date()
-            },
-            include: {
-                node: {
-                    include: {
-                        user: true
-                    }
-                },
-                package: true,
-                previousPackage: true
             }
         });
     }
@@ -420,6 +411,51 @@ class NodePaymentService {
             status,
             description: response.data.reason || response.data.message
         };
+    }
+
+    async findByReferenceId(referenceId, tx = prisma) {
+        return tx.nodePayment.findUnique({
+            where: { referenceId },
+            include: {
+                node: {
+                    include: {
+                        user: true
+                    }
+                },
+                package: true,
+                previousPackage: true
+            }
+        });
+    }
+
+    async updateStatusByReferenceId(referenceId, status, transactionId = null, tx = prisma) {
+        const payment = await this.findByReferenceId(referenceId, tx);
+        
+        if (!payment) {
+            throw new Error(`Payment not found for reference ID: ${referenceId}`);
+        }
+
+        return this.updateStatus(
+            payment.id, 
+            status, 
+            transactionId ? `Transaction ID: ${transactionId}` : null, 
+            tx
+        );
+    }
+
+    async updateStatus(paymentId, status, transactionId, tx = prisma) {
+        return tx.nodePayment.update({
+          where: { id: paymentId },
+          data: {
+            status,
+            transactionId,
+            updatedAt: new Date()
+          },
+          include: {
+            node: true,
+            package: true
+          }
+        });
     }
 }
 

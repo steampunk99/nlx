@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isActive } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const { query, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const networkController = require('../controllers/network.controller');
@@ -42,7 +42,7 @@ const networkController = require('../controllers/network.controller');
  *     summary: Get direct referrals
  *     tags: [Network]
  */
-router.get('/referrals', isActive, networkController.getDirectReferrals);
+router.get('/referrals', auth, networkController.getDirectReferrals);
 
 /**
  * @swagger
@@ -51,7 +51,7 @@ router.get('/referrals', isActive, networkController.getDirectReferrals);
  *     summary: Get direct children in binary tree
  *     tags: [Network]
  */
-router.get('/children', isActive, networkController.getDirectChildren);
+router.get('/children', auth, networkController.getDirectChildren);
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ router.get('/children', isActive, networkController.getDirectChildren);
  *     tags: [Network]
  */
 router.get('/binary-tree', [
-    isActive,
+    auth,
     query('maxLevel').optional().isInt({ min: 1, max: 10 }).default(3),
     validate
 ], networkController.getBinaryTree);
@@ -70,12 +70,12 @@ router.get('/binary-tree', [
  * @swagger
  * /network/genealogy:
  *   get:
- *     summary: Get genealogy tree
+ *     summary: Get genealogy tree with ternary structure
  *     tags: [Network]
  */
 router.get('/genealogy', [
-    isActive,
-    query('depth').optional().isInt({ min: 1, max: 10 }).default(3),
+    auth,
+    query('depth').optional().isInt({ min: 1, max: 10 }).default(5),
     validate
 ], networkController.getGenealogyTree);
 
@@ -86,7 +86,7 @@ router.get('/genealogy', [
  *     summary: Get network statistics
  *     tags: [Network]
  */
-router.get('/stats', isActive, networkController.getNetworkStats);
+router.get('/stats', auth, networkController.getNetworkStats);
 
 /**
  * @swagger
@@ -96,7 +96,7 @@ router.get('/stats', isActive, networkController.getNetworkStats);
  *     tags: [Network]
  */
 router.get('/team-performance', [
-    isActive,
+    auth,
     query('startDate').optional().isISO8601(),
     query('endDate').optional().isISO8601(),
     validate
@@ -110,7 +110,7 @@ router.get('/team-performance', [
  *     tags: [Network]
  */
 router.get('/business-volume', [
-    isActive,
+    auth,
     query('startDate').optional().isISO8601(),
     query('endDate').optional().isISO8601(),
     validate
@@ -123,7 +123,7 @@ router.get('/business-volume', [
  *     summary: Get rank qualification status
  *     tags: [Network]
  */
-router.get('/rank-qualification', isActive, networkController.getRankQualification);
+router.get('/rank-qualification', auth, networkController.getRankQualification);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.get('/rank-qualification', isActive, networkController.getRankQualificati
  *     tags: [Network]
  */
 router.get('/team-structure', [
-    isActive,
+    auth,
     query('view').optional().isIn(['binary', 'unilevel', 'matrix']).default('binary'),
     validate
 ], networkController.getTeamStructure);
@@ -146,10 +146,73 @@ router.get('/team-structure', [
  *     tags: [Network]
  */
 router.get('/search', [
-    isActive,
+    auth,
     query('query').notEmpty(),
     query('type').optional().isIn(['username', 'name', 'email']).default('username'),
     validate
 ], networkController.searchNetwork);
+
+/**
+ * @swagger
+ * /network/network-stats:
+ *   get:
+ *     summary: Get network stats
+ *     tags: [Network]
+ */
+router.get('/network-stats', auth, networkController.getNetworkStats);
+
+/**
+ * @swagger
+ * /network/referral-link:
+ *   get:
+ *     summary: Generate unique referral link
+ *     tags: [Network]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/referral-link', auth, networkController.generateReferralLink);
+
+/**
+ * @swagger
+ * /network/referral/{code}/track:
+ *   get:
+ *     summary: Track referral link click
+ *     tags: [Network]
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Referral code to track
+ */
+router.get('/referral/:code/track', networkController.trackReferralClick);
+
+/**
+ * @swagger
+ * /network/fix-relationships:
+ *   post:
+ *     summary: Fix relationships
+ *     tags: [Network]
+ */
+router.post('/fix-relationships', auth, networkController.fixRelationships);
+
+/**
+ * @swagger
+ * /network/fix-all-relationships:
+ *   post:
+ *     summary: Fix all relationships
+ *     tags: [Network]
+ */
+router.post('/fix-all-relationships', auth, networkController.fixAllRelationships);
+
+/**
+ * @swagger
+ * /network/levels:
+ *   get:
+ *     summary: Get network levels
+ *     tags: [Network]
+ */
+router.get('/levels', auth, networkController.getNetworkLevels);
 
 module.exports = router;

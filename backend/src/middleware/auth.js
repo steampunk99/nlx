@@ -1,15 +1,18 @@
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/environment');
-const prisma = require('../config/prisma');
-
+const { prisma } = require('../config/prisma');
 
 /**
  * Middleware to verify JWT token
  */
 const auth = async (req, res, next) => {
     try {
+        console.log(' Auth Middleware - Start');
         const authHeader = req.header('Authorization');
+        console.log(' Auth Header:', authHeader);
+        
         if (!authHeader) {
+            console.log(' No auth header provided');
             return res.status(401).json({
                 success: false,
                 message: 'No authentication token provided'
@@ -17,16 +20,42 @@ const auth = async (req, res, next) => {
         }
 
         const token = authHeader.replace('Bearer ', '');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(' Token:', token.substring(0, 20) + '...');
         
+        console.log(' JWT_SECRET from env:', process.env.JWT_SECRET ? ' Present' : ' Missing');
+        console.log(' JWT_SECRET from config:', JWT_SECRET ? ' Present' : ' Missing');
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+            console.log(' Decoded token:', { ...decoded, iat: undefined, exp: undefined });
+        } catch (error) {
+            console.log(' Token verification failed:', error.message);
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired token'
+            });
+        }
+        
+        if (!decoded.userId) {
+            console.log(' No userId in token');
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token format'
+            });
+        }
+
+        const userId = parseInt(decoded.userId, 10);
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: userId },
             include: {
                 node: true
             }
         });
+        console.log(' User found:', user ? ' Yes' : ' No');
 
         if (!user) {
+            console.log(' User not found in database');
             return res.status(401).json({
                 success: false,
                 message: 'User not found'
@@ -35,33 +64,30 @@ const auth = async (req, res, next) => {
 
         // Check if session is valid
         if (decoded.sessionId) {
+            console.log(' Checking session:', decoded.sessionId);
             const session = await prisma.session.findUnique({
                 where: { id: decoded.sessionId }
             });
 
             if (!session) {
+                console.log(' Session not found');
                 return res.status(401).json({
                     success: false,
-                    message: 'Session expired'
+                    message: 'Invalid session'
                 });
             }
-
-            // Update last active timestamp
-            await prisma.session.update({
-                where: { id: decoded.sessionId },
-                data: { lastActive: new Date() }
-            });
         }
 
         req.user = user;
         req.token = token;
         req.sessionId = decoded.sessionId;
+        
         next();
     } catch (error) {
-        console.error('Auth middleware error:', error);
-        res.status(401).json({
+        console.log(' Auth Middleware Error:', error);
+        return res.status(401).json({
             success: false,
-            message: 'Invalid authentication token'
+            message: 'Authentication failed'
         });
     }
 };

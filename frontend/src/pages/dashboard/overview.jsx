@@ -1,116 +1,100 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Icon } from '@iconify/react'
-import { DollarSign, Users, Package, ArrowUpRight } from 'lucide-react'
-
-// Sample data - replace with actual API calls
-const stats = [
-  {
-    title: "Total Earnings",
-    value: "$12,345",
-    description: "Total earnings from all sources",
-    icon: DollarSign,
-    trend: "+12.5%",
-    color: "text-green-500"
-  },
-  {
-    title: "Network Size",
-    value: "156",
-    description: "Total members in your network",
-    icon: Users,
-    trend: "+5.2%",
-    color: "text-blue-500"
-  },
-  {
-    title: "Active Packages",
-    value: "3",
-    description: "Currently active investment packages",
-    icon: Package,
-    trend: "0%",
-    color: "text-purple-500"
-  }
-]
-
-const recentActivities = [
-  {
-    type: "commission",
-    description: "Earned commission from referral",
-    amount: "+$250",
-    date: "2 hours ago",
-    icon: "ph:money"
-  },
-  {
-    type: "network",
-    description: "New member joined your network",
-    amount: "Level 2",
-    date: "5 hours ago",
-    icon: "ph:users"
-  },
-  {
-    type: "package",
-    description: "Investment package activated",
-    amount: "Gold Package",
-    date: "1 day ago",
-    icon: "ph:package"
-  }
-]
+import { DollarSign, Users, Package, Loader2 } from 'lucide-react'
+import { useDashboardStats, useRecentActivities } from "../../hooks/useDashboard"
+import { formatDistanceToNow } from 'date-fns'
 
 export default function DashboardOverview() {
-  return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Dashboard Overview</h1>
-        <p className="text-sm text-muted-foreground">
-          Last updated: {new Date().toLocaleString()}
-        </p>
-      </div>
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: activities, isLoading: activitiesLoading } = useRecentActivities();
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat, index) => (
+  const statCards = [
+    {
+      title: "Total Earnings",
+      value: stats?.totalEarnings || "$0",
+      description: "Total earnings from all sources",
+      icon: DollarSign,
+      trend: stats?.earningsTrend || "0%",
+      color: "text-green-500"
+    },
+    {
+      title: "Network Size",
+      value: stats?.networkSize || "0",
+      description: "Total members in your network",
+      icon: Users,
+      trend: stats?.networkTrend || "0%",
+      color: "text-blue-500"
+    },
+    {
+      title: "Active Packages",
+      value: stats?.activePackages || "0",
+      description: "Currently active investment packages",
+      icon: Package,
+      trend: stats?.packagesTrend || "0%",
+      color: "text-purple-500"
+    }
+  ];
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {statCards.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold">
+                {statsLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  stat.value
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stat.description}
               </p>
-              <div className={`mt-2 flex items-center text-sm ${stat.color}`}>
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                {stat.trend}
-              </div>
+              {stat.trend && (
+                <div className={`text-xs mt-1 ${stat.color}`}>
+                  {stat.trend}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Your latest transactions and network updates</CardDescription>
+          <CardTitle>Recent Activities</CardTitle>
+          <CardDescription>Your latest network and earning activities</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-muted p-2">
+          {activitiesLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activities?.map((activity, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <div className="p-2 rounded-full bg-muted">
                     <Icon icon={activity.icon} className="h-4 w-4" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">{activity.description}</p>
-                    <p className="text-xs text-muted-foreground">{activity.date}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
+                    </p>
                   </div>
+                  <div className="text-sm font-medium">{activity.amount}</div>
                 </div>
-                <div className="font-medium">{activity.amount}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

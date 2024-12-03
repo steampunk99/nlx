@@ -424,6 +424,121 @@ class NodeService {
 
         return movableNodes;
     }
+
+    async findTernaryPosition(sponsorId) {
+        try {
+            // Get the sponsor's direct children
+            const sponsorChildren = await prisma.node.findMany({
+                where: { sponsorId },
+                orderBy: {
+                    position: 'asc'
+                }
+            });
+
+            // Find the first available position
+            const usedPositions = sponsorChildren.map(child => child.position);
+            const positions = ['ONE', 'TWO', 'THREE'];
+            for (const pos of positions) {
+                if (!usedPositions.includes(pos)) {
+                    return pos;
+                }
+            }
+
+            // If sponsor already has 3 direct children, find the next available position
+            // in the first incomplete node's downline
+            const queue = [...sponsorChildren];
+            while (queue.length > 0) {
+                const current = queue.shift();
+                
+                const children = await prisma.node.findMany({
+                    where: { sponsorId: current.id }
+                });
+
+                if (children.length < 3) {
+                    // Found a node with less than 3 children
+                    const usedChildPositions = children.map(child => child.position);
+                    for (const pos of positions) {
+                        if (!usedChildPositions.includes(pos)) {
+                            return {
+                                sponsorId: current.id,
+                                position: pos
+                            };
+                        }
+                    }
+                }
+
+                queue.push(...children);
+            }
+
+            throw new Error('No available positions found in the network');
+        } catch (error) {
+            console.error('Error finding ternary position:', error);
+            throw error;
+        }
+    }
+
+    async optimizeTernaryPlacement(sponsorId) {
+        try {
+            // If no sponsorId provided, return default position
+            if (!sponsorId) {
+                return {
+                    recommendedPosition: 'ONE',
+                    sponsorId: null,
+                    reason: 'No sponsor provided'
+                };
+            }
+
+            const sponsorNode = await prisma.node.findUnique({
+                where: { id: sponsorId },
+                include: {
+                    children: true
+                }
+            });
+
+            if (!sponsorNode) {
+                return {
+                    recommendedPosition: 'ONE',
+                    sponsorId: null,
+                    reason: 'Sponsor node not found'
+                };
+            }
+
+            // Check direct placement under sponsor
+            if (sponsorNode.children.length < 3) {
+                const usedPositions = sponsorNode.children.map(child => child.position);
+                const positions = ['ONE', 'TWO', 'THREE'];
+                const availablePosition = positions.find(pos => !usedPositions.includes(pos));
+                
+                return {
+                    recommendedPosition: availablePosition,
+                    sponsorId: sponsorNode.id,
+                    reason: 'Direct placement available'
+                };
+            }
+
+            // If sponsor's positions are full, analyze the network
+            const networkAnalysis = await this.analyzeNetwork(sponsorId);
+            const { optimalNode, recommendedPosition } = networkAnalysis;
+
+            return {
+                recommendedPosition,
+                sponsorId: optimalNode.id,
+                reason: 'Optimal placement based on network analysis'
+            };
+        } catch (error) {
+            console.error('Error optimizing ternary placement:', error);
+            throw error;
+        }
+    }
+
+    async analyzeNetwork(sponsorId) {
+        // TO DO: implement network analysis logic
+        // For now, just return a dummy result
+        return {
+            optimalNode: { id: sponsorId },
+            recommendedPosition: 'ONE'
+        };
+    }
 }
 
 module.exports = new NodeService();

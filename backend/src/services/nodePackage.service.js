@@ -181,6 +181,20 @@ class NodePackageService {
             }
         });
     }
+
+    async updateStatus(nodePackageId, status, tx = prisma) {
+        return tx.nodePackage.update({
+          where: { id: nodePackageId },
+          data: {
+            status,
+            updatedAt: new Date()
+          },
+          include: {
+            node: true,
+            package: true
+          }
+        });
+    }
 }
 
 module.exports = new NodePackageService();

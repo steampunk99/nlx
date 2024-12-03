@@ -16,6 +16,7 @@ const mobileMoneyRoutes = require('./routes/mobileMoney.routes');
 const adminRoutes = require('./routes/admin.routes');
 const announcementRoutes = require('./routes/announcement.routes');
 const paymentRoutes = require('./routes/payment.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 // const reportRoutes = require('./routes/report.routes')
 const notificationRoutes = require('./routes/notification.routes')
 
@@ -29,7 +30,14 @@ const app = express();
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
+// CORS configuration
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(helmet({
     contentSecurityPolicy: false // Required for Swagger UI
 }));
@@ -45,6 +53,16 @@ const limiter = rateLimit({
     max: 100 // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
+
+// Health check endpoint (before other routes)
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        service: 'Zillionaires API',
+        version: 'v1'
+    });
+});
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -83,24 +101,18 @@ app.get('/api-docs.json', (req, res) => {
     res.send(swaggerSpec);
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // API Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/admin',auth, adminRoutes);
-app.use('/api/v1/announcement',auth, announcementRoutes);
-app.use('/api/v1/network',auth, networkRoutes);
-app.use('/api/v1/packages',auth, packageRoutes);
-// app.use('/api/v1/report',auth, reportRoutes);
-app.use('/api/v1/finance',auth, financeRoutes);
-app.use('/api/v1/payment',auth, paymentRoutes);
-app.use('/api/v1/withdrawals',auth, withdrawalRoutes);
-app.use('/api/v1/mobile-money',auth, mobileMoneyRoutes);
-app.use('/api/v1/notifications',auth, notificationRoutes);
-
+app.use('/api/v1/network', networkRoutes);
+app.use('/api/v1/packages', packageRoutes);
+app.use('/api/v1/finance', financeRoutes);
+app.use('/api/v1/withdrawals', withdrawalRoutes);
+app.use('/api/v1/mobile-money', mobileMoneyRoutes);
+app.use('/api/v1/admin', auth, adminRoutes);
+app.use('/api/v1/announcements', auth, announcementRoutes);
+app.use('/api/v1/payments', auth, paymentRoutes);
+app.use('/api/v1/dashboard', auth, dashboardRoutes);
+app.use('/api/v1/notifications', auth, notificationRoutes);
 
 // Error handling
 app.use(errorHandler);

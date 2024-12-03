@@ -17,13 +17,12 @@ const validate = (req, res, next) => {
 // Validation schemas
 const registrationSchema = Joi.object({
     email: Joi.string().email().required().trim(),
-    password: Joi.string().min(6).required(),
+    password: Joi.string().min(8).required(),
     firstName: Joi.string().required().trim(),
     lastName: Joi.string().required().trim(),
-    phone: Joi.string().optional().trim(),
+    phone: Joi.string().required().trim(),
     country: Joi.string().optional().trim(),
-    sponsorId: Joi.string().optional().trim(),
-    placementId: Joi.string().optional().trim(),
+    referralCode: Joi.string().optional().trim(),
     position: Joi.number().valid(1, 2).optional()
 });
 
@@ -41,12 +40,10 @@ const packageSchema = Joi.object({
 });
 
 const paymentSchema = Joi.object({
-    amount: Joi.number().required().min(0),
-    currency: Joi.string().required().length(3),
-    phoneNumber: Joi.string().required().trim(),
-    provider: Joi.string().required().valid('mtn', 'airtel'),
-    type: Joi.string().required().valid('mobile_money'),
-    description: Joi.string().optional()
+    packageId: Joi.string().required(),
+    paymentMethod: Joi.string().required().valid('MTN_MOBILE_MONEY', 'AIRTEL_MONEY'),
+    phoneNumber: Joi.string().required().pattern(/^(0|\+?256)?(7[0-9]{8})$/),
+    paymentReference: Joi.string().required()
 });
 
 const withdrawalSchema = Joi.object({

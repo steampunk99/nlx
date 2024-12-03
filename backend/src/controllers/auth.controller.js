@@ -1,11 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const userService = require('../services/user.service');
-const prisma = new PrismaClient();
+const { prisma } = require('../config/prisma');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodeService = require('../services/node.service');
 const { generateUsername } = require('../utils/userUtils');
 const crypto = require('crypto');
+const { JWT_SECRET } = require('../config/environment');
 
 class AuthController {
   /**
@@ -15,44 +16,128 @@ class AuthController {
    */
   async register(req, res) {
     try {
+      console.log('Registration started with data:', { ...req.body, password: '[REDACTED]' });
+      
       const { 
-        email,
-        password,
-        firstName,
+        email, 
+        password, 
+        firstName, 
         lastName, 
-        phone,
+        phone, 
         country,
-        position
+        referralCode
       } = req.body;
 
-      // Check if email already exists
+      const requiredFields = ['email', 'password', 'firstName', 'lastName', 'phone'];
+      const missingFields = requiredFields.filter(field => !req.body[field]);
+      
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required fields: ${missingFields.join(', ')}`
+        });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please enter a valid email address'
+        });
+      }
+
       const existingUser = await prisma.user.findUnique({
         where: { email }
       });
 
       if (existingUser) {
-        return res.status(400).json({
+        return res.status(409).json({
           success: false,
-          message: 'Email already registered'
+          message: 'An account with this email already exists'
         });
       }
 
-      // Generate username from first and last name
+      if (password.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password must be at least 8 characters long'
+        });
+      }
+
       const baseUsername = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
       let username = baseUsername;
       let counter = 1;
 
-      // Check username availability and append number if needed
       while (await prisma.user.findUnique({ where: { username } })) {
         username = `${baseUsername}${counter}`;
         counter++;
       }
 
-      // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create user
+      let sponsorNode = null;
+      let nodePosition = null;
+      
+      if (referralCode) {
+        console.log('Looking up referral code:', referralCode);
+        const referralLink = await prisma.referralLink.findUnique({
+          where: { code: referralCode },
+          include: {
+            user: {
+              include: { 
+                node: true
+              }
+            }
+          }
+        });
+
+        if (!referralLink) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid referral code'
+          });
+        }
+
+        if (referralLink.status !== 'ACTIVE') {
+          return res.status(400).json({
+            success: false,
+            message: 'This referral code has expired or is no longer active'
+          });
+        }
+
+        sponsorNode = referralLink.user.node;
+        
+        // Increment referral link conversions
+        await prisma.referralLink.update({
+          where: { id: referralLink.id },
+          data: { conversions: { increment: 1 } }
+        });
+      }
+
+      // Placement optimization logic
+      try {
+        const placement = await nodeService.optimizeTernaryPlacement(sponsorNode?.id);
+        nodePosition = placement.recommendedPosition;
+        console.log('Optimized placement:', placement);
+      } catch (error) {
+        console.error('Error finding position:', error);
+        // Fallback to finding any available position
+        try {
+          const result = await nodeService.findTernaryPosition(sponsorNode?.id);
+          nodePosition = result.position || 'ONE';
+          sponsorNode = result.sponsorId ? { id: result.sponsorId } : sponsorNode;
+          console.log('Fallback position found:', { nodePosition, sponsorNode });
+        } catch (error) {
+          console.error('Error finding fallback position:', error);
+          return res.status(400).json({
+            success: false,
+            message: 'No available positions under this sponsor'
+          });
+        }
+      }
+
+      // Create user without package association
       const user = await prisma.user.create({
         data: {
           email,
@@ -61,64 +146,98 @@ class AuthController {
           firstName,
           lastName,
           phone,
-          position,
-          country,
+          country: country || 'UG',
           status: 'ACTIVE',
-          role: 'USER',
+          role: 'USER'
         }
       });
 
-      // Generate tokens
+      // Create node with inactive status
+      const node = await prisma.node.create({
+        data: {
+          userId: user.id,
+          position: nodePosition || 'ONE', // Default to position ONE if no sponsor
+          status: 'ACTIVE',
+          level: sponsorNode ? sponsorNode.level + 1 : 1,
+          sponsorId: sponsorNode?.id || null
+        }
+      });
+
+      console.log('Created node with relationship:', node);
+
+      const sessionId = crypto.randomBytes(32).toString('hex');
       const accessToken = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET,
-        { expiresIn: '15m' }
+        { userId: user.id, sessionId, type: 'access' },
+        JWT_SECRET, 
+        { expiresIn: '30d' }
       );
 
       const refreshToken = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_REFRESH_SECRET,
+        { userId: user.id, sessionId, type: 'refresh' },
+        JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      // Create session
-      await prisma.session.create({
-        data: {
-          id: crypto.randomBytes(32).toString('hex'),
-          userId: user.id,
-          userAgent: req.headers['user-agent'],
-          ipAddress: req.ip,
-        }
-      });
+      // Create user session
+      try {
+        await prisma.session.create({
+          data: {
+            id: sessionId,
+            userId: user.id,
+            userAgent: req.headers['user-agent'],
+            ipAddress: req.ip
+          }
+        });
 
-      res.status(201).json({
-        success: true,
-        message: 'Registration successful',
-        data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            phone: user.phone,
-            position:user.position,
-            country: user.country,
-            isVerified: user.isVerified,
-            createdAt: user.createdAt
-          },
-          tokens: {
+        return res.status(201).json({
+          success: true,
+          message: 'Registration successful',
+          data: {
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              phone: user.phone,
+              country: user.country,
+              isVerified: user.isVerified,
+              createdAt: user.createdAt
+            },
             accessToken,
             refreshToken
           }
-        }
-      });
-
+        });
+      } catch (error) {
+        // If session creation fails, we should still return the tokens
+        // but log the error for monitoring
+        console.error('Session creation error:', error);
+        
+        return res.status(201).json({
+          success: true,
+          message: 'Registration successful (session creation failed)',
+          data: {
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              phone: user.phone,
+              country: user.country,
+              isVerified: user.isVerified,
+              createdAt: user.createdAt
+            },
+            accessToken,
+            refreshToken
+          }
+        });
+      }
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
-        message: 'An error occurred during registration'
+        message: 'Registration failed. Please try again later.'
       });
     }
   }
@@ -130,31 +249,54 @@ class AuthController {
    */
   async login(req, res) {
     try {
+      console.log('🔐 Login attempt:', { email: req.body.email });
       const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email and password are required'
+        });
+      }
 
       // Find user
       const user = await prisma.user.findUnique({
-        where: { email }
+        where: { email },
+        include: { node: true }
       });
+      console.log('👤 User found:', user ? '✓ Yes' : '❌ No');
 
       if (!user) {
+        console.log('❌ User not found');
         return res.status(401).json({
           success: false,
-          message: 'Invalid credentials'
+          message: 'Invalid email or password'
+        });
+      }
+
+      // Check if user is active
+      if (user.status !== 'ACTIVE') {
+        return res.status(403).json({
+          success: false,
+          message: 'Your account has been deactivated. Please contact support.'
         });
       }
 
       // Check password
       const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log('🔑 Password valid:', isValidPassword ? '✓ Yes' : '❌ No');
+      
       if (!isValidPassword) {
+        console.log('❌ Invalid password');
         return res.status(401).json({
           success: false,
-          message: 'Invalid credentials'
+          message: 'Invalid email or password'
         });
       }
 
       // Generate session ID
       const sessionId = crypto.randomBytes(32).toString('hex');
+      console.log('📍 Generated session ID:', sessionId.substring(0, 10) + '...');
 
       // Create new session
       await prisma.session.create({
@@ -165,6 +307,7 @@ class AuthController {
           ipAddress: req.ip,
         }
       });
+      console.log('💾 Session created');
 
       // Generate tokens
       const accessToken = jwt.sign(
@@ -173,9 +316,10 @@ class AuthController {
           sessionId,
           type: 'access'
         },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: '15m' }
       );
+      console.log('🎟️ Access token generated');
 
       const refreshToken = jwt.sign(
         { 
@@ -183,19 +327,13 @@ class AuthController {
           sessionId,
           type: 'refresh'
         },
-        process.env.JWT_REFRESH_SECRET,
+        JWT_SECRET,
         { expiresIn: '7d' }
       );
+      console.log('🔄 Refresh token generated');
 
-      // Set HTTP-only cookie for refresh token
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
-
-      res.json({
+      // Return success response
+      return res.status(200).json({
         success: true,
         message: 'Login successful',
         data: {
@@ -204,20 +342,19 @@ class AuthController {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            phone: user.phone,
-            country: user.country,
-            isVerified: user.isVerified,
-            createdAt: user.createdAt
+            role: user.role,
+            node: user.node
           },
-          accessToken
+          accessToken,
+          refreshToken
         }
       });
 
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
-        message: 'An error occurred during login'
+        message: 'An error occurred during login. Please try again later.'
       });
     }
   }
@@ -245,7 +382,7 @@ class AuthController {
       if (accessToken) {
         try {
           // Verify and decode access token
-          const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+          const decoded = jwt.verify(accessToken, JWT_SECRET);
           
           // Remove session
           if (decoded.sessionId) {
@@ -260,7 +397,7 @@ class AuthController {
       if (refreshToken) {
         try {
           // Verify and decode refresh token
-          const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+          const decoded = jwt.verify(refreshToken, JWT_SECRET);
           
           // Remove session
           if (decoded.sessionId) {
@@ -308,7 +445,7 @@ class AuthController {
       }
 
       // Verify refresh token
-      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+      const decoded = jwt.verify(refreshToken, JWT_SECRET);
       
       // Generate new access token
       const accessToken = jwt.sign(
@@ -317,7 +454,7 @@ class AuthController {
           sessionId: decoded.sessionId,
           type: 'access'
         },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: '15m' }
       );
 
@@ -348,7 +485,7 @@ class AuthController {
       const { token } = req.params;
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_EMAIL_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       
       // Update user
       await userService.update(decoded.userId, { isVerified: true });
@@ -395,7 +532,7 @@ class AuthController {
       // Generate verification token
       const verificationToken = jwt.sign(
         { userId: user.id },
-        process.env.JWT_EMAIL_SECRET,
+        JWT_SECRET,
         { expiresIn: '24h' }
       );
 
@@ -518,7 +655,7 @@ class AuthController {
       const hashedPassword = await bcrypt.hash(newPassword, salt);
 
       // Update password
-      await userService.update(userId, hashedPassword);
+      await userService.update(userId, { password: hashedPassword });
 
       res.json({
         success: true,

@@ -1,164 +1,160 @@
-import { motion } from "framer-motion"
-import { useState } from "react"
-import { ChevronRight } from 'lucide-react'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { ChevronRight, Mail, Lock } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { useNavigate, Link } from "react-router-dom"
+import { useAuth } from '../../hooks/useAuth'
 
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
 
 const LoginPage = () => {
-  const [accountType, setAccountType] = useState("distributor")
   const navigate = useNavigate()
+  const { login, isLoading, isError, error } = useAuth()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Add login logic here
-    navigate('/dashboard')
+    const formData = new FormData(e.target)
+    
+    try {
+      await login({
+        email: formData.get('email'),
+        password: formData.get('password')
+      })
+    } catch (err) {
+      console.error('Login failed:', err)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       <div className="container relative min-h-screen grid lg:grid-cols-2 items-center gap-8 pt-16 pb-8">
-        {/* Form Section */}
+        {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
+          className="hidden lg:block"
+        >
+          <div className="relative">
+            <div className="space-y-6">
+              <div className="relative">
+                <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-transparent bg-clip-text">
+                  <h1 className="text-6xl font-bold">Welcome Back!</h1>
+                </div>
+                <p className="mt-4 text-xl text-zinc-400">Sign in to continue your journey with Zillionaires</p>
+              </div>
+              <div className="space-y-4 text-zinc-400">
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-1 rounded-full bg-violet-500" />
+                  <p>Access your personalized dashboard</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-1 rounded-full bg-violet-500" />
+                  <p>Track your earnings and network growth</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-1 rounded-full bg-violet-500" />
+                  <p>Connect with your team members</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Form Section */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
           className="relative"
         >
-          <div className="mx-auto w-full max-w-md space-y-6">
-            <div className="space-y-2 text-center">
-              <h1 className="text-3xl font-bold">Welcome Back</h1>
-              <p className="text-zinc-400">Choose your account type to continue</p>
+          <div className="mx-auto w-full max-w-md space-y-8 bg-gray-900/50 p-8 rounded-2xl backdrop-blur-sm border border-gray-800">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold tracking-tight">Sign In</h2>
+              <p className="text-zinc-400">Enter your credentials to continue</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <RadioGroup
-                defaultValue={accountType}
-                onValueChange={setAccountType}
-                className="grid grid-cols-2 gap-4"
+            {isError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/10 border border-red-500 text-red-500 rounded-md p-3 text-sm"
               >
-                <div>
-                  <RadioGroupItem
-                    value="distributor"
-                    id="distributor"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="distributor"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mb-3 h-6 w-6"
-                    >
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                    Distributor
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem
-                    value="customer"
-                    id="customer"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="customer"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mb-3 h-6 w-6"
-                    >
-                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    Customer
-                  </Label>
-                </div>
-              </RadioGroup>
+                {error?.message || 'Login failed. Please try again.'}
+              </motion.div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  placeholder="m@example.com"
-                  required
-                  type="email"
-                  className="bg-transparent"
-                />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-2.5 h-5 w-5 text-zinc-400" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      required
+                      className="pl-10 bg-gray-900/50 border-gray-800 focus:border-violet-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 h-5 w-5 text-zinc-400" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      required
+                      className="pl-10 bg-gray-900/50 border-gray-800 focus:border-violet-500"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  required
-                  type="password"
-                  className="bg-transparent"
-                />
-              </div>
-
-              <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300"
-                type="submit"
-              >
-                Sign In
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-
-              <div className="mt-4 text-center text-sm">
-                <Link to="/forgot-password" className="text-blue-400 hover:text-blue-300">
+              <div className="flex items-center justify-between">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-violet-500 hover:text-violet-400"
+                >
                   Forgot password?
                 </Link>
               </div>
 
-              <div className="mt-6 text-center text-sm">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
+              >
+                {isLoading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  />
+                ) : (
+                  <>
+                    Sign In
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center text-sm text-zinc-400">
                 Don't have an account?{" "}
-                <Link to="/register" className="text-blue-400 hover:text-blue-300">
+                <Link
+                  to="/register"
+                  className="text-violet-500 hover:text-violet-400"
+                >
                   Sign up
                 </Link>
               </div>
             </form>
-          </div>
-        </motion.div>
-
-        {/* Testimonial/Info Section */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="hidden lg:block relative"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-lg opacity-10 blur-xl" />
-          <div className="relative bg-zinc-900 rounded-lg p-8 space-y-6">
-            <blockquote className="text-lg font-medium">
-              "Join our thriving community of successful entrepreneurs and unlock your potential in the world of network marketing."
-            </blockquote>
-            <div className="flex items-center space-x-4">
-              <div className="h-12 w-12 rounded-full bg-zinc-800" />
-              <div>
-                <div className="font-medium">Sarah Johnson</div>
-                <div className="text-zinc-400 text-sm">Top Distributor</div>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>

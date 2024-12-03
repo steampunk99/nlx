@@ -1,89 +1,217 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
-import { useAtom } from 'jotai'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { api } from '../lib/axios'
-import { userAtom, setAuthTokens, clearAuthTokens } from '../lib/auth'
+import { clearAuthTokens } from '../lib/auth'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAtom } from 'jotai'
+import { userAtom, setAuthTokens } from '../lib/auth'
 
 export function useAuth() {
   const [user, setUser] = useAtom(userAtom)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+
+  const getErrorMessage = (error) => {
+    // Network or server errors
+    if (!error.response) {
+      return 'Unable to connect to server. Please check your internet connection.'
+    }
+
+    // Get message from server response
+    const serverMessage = error.response?.data?.message
+
+    // Handle specific status codes
+    switch (error.response.status) {
+      case 400:
+        return serverMessage || 'Please check your input and try again.'
+      case 401:
+        return serverMessage || 'Invalid credentials. Please try again.'
+      case 403:
+        return 'You do not have permission to perform this action.'
+      case 404:
+        return 'Resource not found.'
+      case 409:
+        return serverMessage || 'This email is already registered.'
+      case 422:
+        return serverMessage || 'Invalid input data. Please check your information.'
+      case 429:
+        return 'Too many attempts. Please try again later.'
+      case 500:
+        return 'Server error. Please try again later.'
+      default:
+        return serverMessage || 'An unexpected error occurred. Please try again.'
+    }
+  }
 
   const loginMutation = useMutation({
     mutationFn: async (credentials) => {
       const response = await api.post('/auth/login', credentials)
+      const { accessToken, refreshToken, user } = response.data.data
+      // Set tokens first
+      setAuthTokens(accessToken, refreshToken)
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+      // Then update user state
+      setUser(user)
       return response.data
     },
-    onSuccess: (data) => {
-      const { user, accessToken, refreshToken } = data.data
-      setUser(user)
-      setAuthTokens(accessToken, refreshToken)
-      navigate({ to: '/dashboard' })
+    onMutate: () => {
+      setLoading(true)
+      toast('Signing in...')
     },
+    onSuccess: (data) => {
+      if (data?.data?.user) {
+        toast.success('Welcome back!')
+        navigate('/dashboard')
+      } else {
+        toast.error('Login failed: Invalid response format')
+        clearAuthTokens()
+        setUser(null)
+      }
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error)
+      toast.error(errorMessage)
+      console.error('Login error:', error)
+      clearAuthTokens()
+      setUser(null)
+    },
+    onSettled: () => {
+      setLoading(false)
+    }
   })
 
   const registerMutation = useMutation({
-    mutationFn: async (userData) => {
-      const response = await api.post('/auth/register', userData)
-      return response.data
+    mutationFn: (userData) => {
+      console.log('Registration data:', userData); // Debug log
+      
+      if (userData.password.length < 8) {
+        throw new Error('Password must be at least 8 characters long')
+      }
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(userData.email)) {
+        throw new Error('Please enter a valid email address')
+      }
+
+      // Prepare registration data with trimming
+      const registrationData = {
+        email: userData.email.trim(),
+        password: userData.password,
+        firstName: userData.firstName.trim(),
+        lastName: userData.lastName.trim(),
+        phone: userData.phone.trim(),
+        country: (userData.country || 'UG').trim(),
+        ...(userData.position && { position: Number(userData.position) }),
+        ...(userData.referralCode?.trim() && { referralCode: userData.referralCode.trim() })
+      };
+
+      console.log('Exact Registration Payload:', JSON.stringify(registrationData, null, 2));
+      
+      return api.post('/auth/register', registrationData).then(response => {
+        console.log('Registration successful:', response.data);
+        const { accessToken, refreshToken } = response.data.data
+        localStorage.setItem('accessToken', accessToken)
+        localStorage.setItem('refreshToken', refreshToken)
+        setUser(response.data.data.user)
+        setAuthTokens(accessToken, refreshToken)
+        return response.data
+      })
     },
-    onSuccess: (data) => {
-      const { user, tokens } = data.data
-      setUser(user)
-      setAuthTokens(tokens.accessToken, tokens.refreshToken)
-      navigate({ to: '/dashboard' })
+    onMutate: () => {
+      setLoading(true)
+      toast('Creating your account...')
     },
+    onSuccess: () => {
+      toast('Account created successfully!')
+      navigate('/dashboard')
+    },
+    onError: (error) => {
+      console.group('Registration Error Details');
+      console.error('Full Error Object:', error);
+      console.error('Error Response:', error.response?.data);
+      console.error('Validation Errors:', error.response?.data?.errors);
+      console.error('Error Status:', error.response?.status);
+      console.error('Error Headers:', error.response?.headers);
+      console.groupEnd();
+
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
+    },
+    onSettled: () => {
+      setLoading(false)
+    }
   })
 
   const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await api.post('/auth/logout')
+    mutationFn: () => {
+      return api.post('/auth/logout').then(() => {
+        clearAuthTokens()
+        setUser(null)
+        return true
+      })
+    },
+    onMutate: () => {
+      toast('Signing out...')
     },
     onSuccess: () => {
-      setUser(null)
+      toast('Signed out successfully')
+      navigate('/login')
+    },
+    onError: (error) => {
+      // Even if the server call fails, we should still clear local storage and redirect
       clearAuthTokens()
-      queryClient.clear()
-      navigate({ to: '/login' })
-    },
-  })
-
-  const forgotPasswordMutation = useMutation({
-    mutationFn: async (email) => {
-      const response = await api.post('/auth/forgot-password', { email })
-      return response.data
-    },
+      toast('Error signing out. Please try again.')
+      console.error('Logout error:', error)
+      setUser(null)
+      navigate('/login')
+    }
   })
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async ({ token, newPassword }) => {
-      const response = await api.post('/auth/reset-password', {
-        token,
-        newPassword,
-      })
-      return response.data
+    mutationFn: ({ token, password }) => {
+      return api.post('/auth/reset-password', { token, password }).then(response => response.data)
     },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error)
+      toast(errorMessage)
+    }
+  })
+
+  const forgotPasswordMutation = useMutation({
+    mutationFn: (email) => {
+      return api.post('/auth/forgot-password', { email }).then(response => response.data)
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error)
+      toast(errorMessage)
+    }
   })
 
   const { data: profile } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      if (!user) return null
+      const token = localStorage.getItem('accessToken')
+      if (!token) return null
       const response = await api.get('/auth/profile')
       return response.data.data
     },
-    enabled: !!user,
+    enabled: !!localStorage.getItem('accessToken'),
+    retry: false,
+    staleTime: 1000 * 60 * 5 // 5 minutes
   })
 
   return {
-    user: profile || user,
-    isAuthenticated: !!user,
+    user,
+    loading,
     login: loginMutation.mutate,
     register: registerMutation.mutate,
     logout: logoutMutation.mutate,
-    forgotPassword: forgotPasswordMutation.mutate,
     resetPassword: resetPasswordMutation.mutate,
-    isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending,
-    isError: loginMutation.isError || registerMutation.isError || logoutMutation.isError,
-    error: loginMutation.error || registerMutation.error || logoutMutation.error,
+    forgotPassword: forgotPasswordMutation.mutate,
+    profile,
+    isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending
   }
 }

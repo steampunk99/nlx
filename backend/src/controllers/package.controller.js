@@ -5,6 +5,7 @@ const nodeService = require('../services/node.service');
 const commissionService = require('../services/commission.service');
 const { validatePackagePurchase, validatePackageCreate } = require('../middleware/package.validate');
 const { calculateCommissions } = require('../utils/commission.utils');
+const prisma = require('../config/prisma');
 
 class PackageController {
   /**
@@ -82,6 +83,20 @@ class PackageController {
       const { packageId, paymentMethod, phoneNumber } = req.body;
       const userId = req.user.id;
 
+      // Get user details with node
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { node: true }
+      });
+
+      // Check if user is in REGISTERED status
+      if (user.status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          message: 'Your account is not eligible for package purchase'
+        });
+      }
+
       // Get package details
       const pkg = await packageService.findById(packageId);
       if (!pkg) {
@@ -91,49 +106,71 @@ class PackageController {
         });
       }
 
-      // Get node details
-      const node = await nodeService.findByUserId(userId);
+      // Validate node
+      const node = user.node;
       if (!node) {
         return res.status(404).json({
           success: false,
-          message: 'Node not found for user'
+          message: 'Network node not found'
         });
       }
 
-      // Check if node already has this package
-      const existingPackage = await nodePackageService.findActivePackagesByNodeId(node.id);
-      if (existingPackage.some(p => p.packageId === packageId)) {
+      // Check if node is already active
+      if (node.status === 'ACTIVE') {
         return res.status(400).json({
           success: false,
-          message: 'You already have this package'
+          message: 'Your network node is already active'
+        });
+      }
+
+      // Validate first package purchase
+      const existingPackages = await nodePackageService.findActivePackagesByNodeId(node.id);
+      if (existingPackages.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already purchased a package'
         });
       }
 
       // Create package purchase in a transaction
-      const nodePurchase = await nodePackageService.create({
-        nodeId: node.id,
-        packageId,
-        status: 'PENDING',
-        paymentMethod,
-        paymentPhone: phoneNumber
-      });
-
-      // Calculate and create commissions
-      const commissions = await calculateCommissions(node.id, pkg.price);
-      await Promise.all(commissions.map(commission => 
-        commissionService.create({
-          ...commission,
+      const nodePurchase = await prisma.$transaction(async (tx) => {
+        // Create node package
+        const purchase = await nodePackageService.create({
+          nodeId: node.id,
           packageId,
-          status: 'PENDING'
-        })
-      ));
+          status: 'PENDING',
+          paymentMethod,
+          paymentPhone: phoneNumber
+        }, tx);
+
+        // Update user status
+        await tx.user.update({
+          where: { id: userId },
+          data: { status: 'ACTIVE' }
+        });
+
+        // Activate node
+        await tx.node.update({
+          where: { id: node.id },
+          data: { 
+            status: 'ACTIVE',
+            activatedAt: new Date()
+          }
+        });
+
+        // Calculate and distribute commissions
+        await calculateCommissions(user, pkg, tx);
+
+        return purchase;
+      });
 
       res.status(201).json({
         success: true,
-        message: 'Package purchase initiated',
+        message: 'Package purchase successful. Your network node is now active.',
         data: {
           purchase: nodePurchase,
-          package: pkg
+          package: pkg,
+          nodeStatus: 'ACTIVE'
         }
       });
 

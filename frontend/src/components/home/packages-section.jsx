@@ -166,7 +166,7 @@ export function PackagesSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-12"
         >
           {packages.map((pkg) => (
             <motion.div
@@ -244,7 +244,7 @@ export function PackagesSection() {
           viewport={{ once: true }}
           className="mt-12 text-center"
         >
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 ">
             All packages include access to our member dashboard and support.
           </p>
         </motion.div>

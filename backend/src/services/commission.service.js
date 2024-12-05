@@ -238,29 +238,176 @@ class CommissionService {
     }
 
     async getUserCommissionStats(userId) {
-        const [total, pending, processed] = await Promise.all([
-            prisma.commission.count({ where: { userId } }),
-            prisma.commission.count({ where: { userId, status: 'PENDING' } }),
-            prisma.commission.count({ where: { userId, status: 'PROCESSED' } })
+        // Validate user
+        const user = await prisma.user.findUnique({ 
+            where: { id: userId },
+            include: { node: true }
+        });
+        if (!user) throw new Error('User not found');
+
+        // Aggregate commission statistics
+        const [
+            totalCommissions,
+            directCommissions,
+            matchingCommissions,
+            levelCommissions,
+            pendingCommissions,
+            processedCommissions
+        ] = await Promise.all([
+            prisma.commission.aggregate({
+                where: { userId },
+                _sum: { amount: true }
+            }),
+            prisma.commission.aggregate({
+                where: { 
+                    userId, 
+                    type: 'DIRECT' 
+                },
+                _sum: { amount: true }
+            }),
+            prisma.commission.aggregate({
+                where: { 
+                    userId, 
+                    type: 'MATCHING' 
+                },
+                _sum: { amount: true }
+            }),
+            prisma.commission.aggregate({
+                where: { 
+                    userId, 
+                    type: 'LEVEL' 
+                },
+                _sum: { amount: true }
+            }),
+            prisma.commission.aggregate({
+                where: { 
+                    userId, 
+                    status: 'PENDING' 
+                },
+                _sum: { amount: true }
+            }),
+            prisma.commission.aggregate({
+                where: { 
+                    userId, 
+                    status: 'PROCESSED' 
+                },
+                _sum: { amount: true }
+            })
         ]);
 
-        const totalAmount = await prisma.commission.aggregate({
-            where: { 
-                userId,
-                status: 'PROCESSED'
-            },
-            _sum: {
-                amount: true
-            }
-        });
+        return {
+            totalCommissions: totalCommissions._sum.amount || 0,
+            directCommissions: directCommissions._sum.amount || 0,
+            matchingCommissions: matchingCommissions._sum.amount || 0,
+            levelCommissions: levelCommissions._sum.amount || 0,
+            pendingCommissions: pendingCommissions._sum.amount || 0,
+            processedCommissions: processedCommissions._sum.amount || 0,
+            availableBalance: pendingCommissions._sum.amount || 0
+        };
+    }
+
+    async getUserCommissions({ 
+        userId, 
+        page = 1, 
+        limit = 10, 
+        type = null, 
+        status = null 
+    }) {
+        const where = { userId };
+        
+        // Add type filter if not 'All'
+        if (type && type !== 'All') {
+            where.type = type;
+        }
+        
+        // Add status filter if not 'All'
+        if (status && status !== 'All') {
+            where.status = status;
+        }
+
+        const [commissions, total] = await Promise.all([
+            prisma.commission.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true
+                        }
+                    },
+                    sourceUser: {
+                        select: {
+                            id: true,
+                            username: true
+                        }
+                    },
+                    package: {
+                        select: {
+                            id: true,
+                            name: true,
+                            price: true
+                        }
+                    }
+                }
+            }),
+            prisma.commission.count({ where })
+        ]);
 
         return {
+            commissions,
             total,
-            pending,
-            processed,
-            totalAmount: totalAmount._sum.amount || 0,
-            processing_rate: total > 0 ? (processed / total) * 100 : 0
+            pages: Math.ceil(total / limit)
         };
+    }
+
+    async withdrawCommissions(userId, amount) {
+        return await prisma.$transaction(async (tx) => {
+            // Get user's processed commissions
+            const userStats = await this.getUserCommissionStats(userId);
+            
+            if (amount > userStats.availableBalance) {
+                throw new Error('Insufficient commission balance');
+            }
+
+            // Create withdrawal record
+            const withdrawal = await tx.withdrawal.create({
+                data: {
+                    userId,
+                    amount,
+                    status: 'PENDING',
+                    type: 'COMMISSION'
+                }
+            });
+
+            // Update commission status to WITHDRAWN
+            await tx.commission.updateMany({
+                where: { 
+                    userId, 
+                    status: 'PROCESSED' 
+                },
+                data: { 
+                    status: 'WITHDRAWN' 
+                }
+            });
+
+            // Create notification
+            await tx.notification.create({
+                data: {
+                    userId,
+                    title: 'Commission Withdrawal',
+                    message: `Withdrawal of $${amount} initiated`,
+                    type: 'WITHDRAWAL'
+                }
+            });
+
+            return withdrawal;
+        });
     }
 
     async calculateDirectCommission(packagePrice, level) {

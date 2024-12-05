@@ -7,7 +7,7 @@ const commissionService = require('../services/commission.service');
 const { validatePayment } = require('../middleware/validate');
 const { calculateCommissions } = require('../utils/commission.utils');
 const { PrismaClient } = require('@prisma/client');
-const UgandaMobileMoneyUtil = require('../utils/ugandaMobileMoney.util');
+const UgandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 
 const prisma = new PrismaClient();
 

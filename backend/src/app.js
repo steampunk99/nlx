@@ -19,6 +19,7 @@ const paymentRoutes = require('./routes/payment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 // const reportRoutes = require('./routes/report.routes')
 const notificationRoutes = require('./routes/notification.routes')
+const commissionRoutes = require('./routes/commission.routes');
 
 const { auth } = require('./middleware/auth');
 
@@ -113,6 +114,7 @@ app.use('/api/v1/announcements', auth, announcementRoutes);
 app.use('/api/v1/payments', auth, paymentRoutes);
 app.use('/api/v1/dashboard', auth, dashboardRoutes);
 app.use('/api/v1/notifications', auth, notificationRoutes);
+app.use('/api/v1/commissions', auth, commissionRoutes);
 
 // Error handling
 app.use(errorHandler);

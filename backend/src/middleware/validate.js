@@ -55,6 +55,16 @@ const withdrawalSchema = Joi.object({
     description: Joi.string().optional()
 });
 
+const commissionSchema = Joi.object({
+    userId: Joi.number().required(),
+    amount: Joi.number().required().min(0),
+    type: Joi.string().required().valid('DIRECT', 'MATCHING', 'BINARY'),
+    status: Joi.string().required().valid('PENDING', 'PROCESSED', 'WITHDRAWN'),
+    sourceUserId: Joi.number().optional(),
+    packageId: Joi.number().optional(),
+    description: Joi.string().optional()
+});
+
 // Validation middleware functions
 const validateSchema = (schema) => {
     return (req, res, next) => {
@@ -80,5 +90,6 @@ module.exports = {
     validateLogin: validateSchema(loginSchema),
     validatePackage: validateSchema(packageSchema),
     validatePayment: validateSchema(paymentSchema),
-    validateWithdrawal: validateSchema(withdrawalSchema)
+    validateWithdrawal: validateSchema(withdrawalSchema),
+    validateCommission: validateSchema(commissionSchema)
 };

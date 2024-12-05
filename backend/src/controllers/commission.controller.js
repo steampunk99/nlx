@@ -237,6 +237,91 @@ class CommissionController {
             });
         }
     }
+
+    // Get user's commission history
+    async getUserCommissions(req, res) {
+        try {
+            const userId = req.user.id;
+            const { 
+                page = 1, 
+                limit = 10, 
+                type, 
+                status 
+            } = req.query;
+
+            const result = await commissionService.getUserCommissions({
+                userId,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                type,
+                status
+            });
+
+            res.json({
+                success: true,
+                data: result.commissions,
+                total: result.total,
+                pages: result.pages
+            });
+        } catch (error) {
+            console.error('Get user commissions error:', error);
+            res.status(500).json({
+                success: false,
+                error: error.message || 'Failed to fetch commission history'
+            });
+        }
+    }
+
+    // Get user commission statistics
+    async getUserCommissionStats(req, res) {
+        try {
+            const userId = parseInt(req.params.userId || req.user.id);
+            const stats = await commissionService.getUserCommissionStats(userId);
+
+            res.json({
+                success: true,
+                data: stats
+            });
+        } catch (error) {
+            console.error('Get user commission stats error:', error);
+            res.status(500).json({
+                success: false,
+                error: error.message || 'Failed to fetch commission statistics'
+            });
+        }
+    }
+
+    // Withdraw commissions
+    async withdrawCommissions(req, res) {
+        try {
+            const userId = req.user.id;
+            const { amount } = req.body;
+
+            if (!amount || amount <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid withdrawal amount'
+                });
+            }
+
+            const withdrawal = await commissionService.withdrawCommissions(
+                userId, 
+                parseFloat(amount)
+            );
+
+            res.status(201).json({
+                success: true,
+                data: withdrawal,
+                message: 'Withdrawal initiated successfully'
+            });
+        } catch (error) {
+            console.error('Commission withdrawal error:', error);
+            res.status(500).json({
+                success: false,
+                error: error.message || 'Failed to process withdrawal'
+            });
+        }
+    }
 }
 
 module.exports = new CommissionController();

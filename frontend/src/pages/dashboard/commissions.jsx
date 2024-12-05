@@ -1,79 +1,296 @@
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-import { Icon } from '@iconify/react'
-import { DollarSign, Users, ArrowUpRight, Download } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { Button } from "../../components/ui/button"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
 } from "../../components/ui/select"
-
-// Sample data - replace with actual API calls
-const commissionStats = [
-  {
-    title: "Total Commissions",
-    value: "$5,240",
-    description: "Lifetime earnings from commissions",
-    icon: DollarSign,
-    trend: "+$850 this month",
-    color: "text-green-500"
-  },
-  {
-    title: "Direct Commissions",
-    value: "$3,120",
-    description: "Earnings from direct referrals",
-    icon: Users,
-    trend: "+$420 this month",
-    color: "text-blue-500"
-  },
-  {
-    title: "Binary Commissions",
-    value: "$2,120",
-    description: "Earnings from binary structure",
-    icon: DollarSign,
-    trend: "+$330 this month",
-    color: "text-purple-500"
-  }
-]
-
-const commissionHistory = [
-  {
-    id: "COM001",
-    type: "Direct Referral",
-    amount: "+$250",
-    from: "John Doe",
-    package: "Gold Package",
-    date: "2024-01-15",
-    status: "paid"
-  },
-  {
-    id: "COM002",
-    type: "Binary Bonus",
-    amount: "+$180",
-    from: "Network Growth",
-    package: "Weekly Payout",
-    date: "2024-01-14",
-    status: "paid"
-  },
-  {
-    id: "COM003",
-    type: "Direct Referral",
-    amount: "+$150",
-    from: "Jane Smith",
-    package: "Silver Package",
-    date: "2024-01-13",
-    status: "pending"
-  }
-]
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "../../components/ui/table"
+import { 
+  DollarSign, 
+  Users, 
+  ArrowUpRight,
+  Download, 
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Filter
+} from 'lucide-react'
+import { useCommissions } from '../../hooks/useCommissions';
+import { Skeleton } from '../../components/ui/skeleton';
+import { Badge } from '../../components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Alert, AlertDescription } from "../../components/ui/alert";
 
 export default function CommissionsPage() {
+  // State management
+  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('all-time');
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [itemsPerPage] = useState(10);
+
+  // Hook integration with filters
+  const { 
+    commissionStats, 
+    commissionHistory,
+    totalCommissions,
+    totalPages,
+    statsLoading, 
+    historyLoading,
+    isWithdrawing,
+    refetchHistory,
+    withdraw 
+  } = useCommissions({
+    page: currentPage,
+    limit: itemsPerPage,
+    type: filterType || null,
+    status: filterStatus || null
+  });
+
+  const handleWithdrawal = () => {
+    if (!withdrawalAmount || isNaN(withdrawalAmount)) {
+      return;
+    }
+    
+    const amount = parseFloat(withdrawalAmount);
+    if (amount <= 0) {
+      return;
+    }
+
+    withdraw({ amount });
+    setWithdrawalModalOpen(false);
+    setWithdrawalAmount('');
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleFilterChange = (type, value) => {
+    if (type === 'type') setFilterType(value);
+    if (type === 'status') setFilterStatus(value);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const renderCommissionStats = () => {
+    if (statsLoading) {
+      return (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(item => (
+            <Skeleton key={item} className="h-40 w-full" />
+          ))}
+        </div>
+      );
+    }
+
+    const statsData = [
+      {
+        title: "Total Commissions",
+        value: commissionStats?.totalCommissions || "$0",
+        description: "Lifetime earnings from commissions",
+        icon: DollarSign,
+        color: "text-green-500"
+      },
+      {
+        title: "Direct Commissions",
+        value: commissionStats?.directCommissions || "$0",
+        description: "Earnings from direct referrals",
+        icon: Users,
+        color: "text-blue-500"
+      },
+      {
+        title: "Matching Commissions",
+        value: commissionStats?.matchingCommissions || "$0",
+        description: "Earnings from team matching",
+        icon: ArrowUpRight,
+        color: "text-purple-500"
+      },
+      {
+        title: "Level Commissions",
+        value: commissionStats?.levelCommissions || "$0",
+        description: "Earnings from level bonuses",
+        icon: DollarSign,
+        color: "text-green-500"
+      }
+    ];
+
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {statsData.map((stat, index) => (
+          <Card key={index}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <div className="rounded-full p-2 bg-muted">
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderCommissionHistory = () => {
+    if (historyLoading) {
+      return (
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map(item => (
+            <Skeleton key={item} className="h-12 w-full" />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Commission History</CardTitle>
+            <CardDescription>
+              Showing {commissionHistory.length} of {totalCommissions} transactions
+            </CardDescription>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Select 
+              value={filterType} 
+              onValueChange={(value) => handleFilterChange('type', value)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Filter Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Types</SelectItem>
+                <SelectItem value="DIRECT">Direct</SelectItem>
+                <SelectItem value="MATCHING">Matching</SelectItem>
+                <SelectItem value="LEVEL">Level</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select 
+              value={filterStatus} 
+              onValueChange={(value) => handleFilterChange('status', value)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Filter Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="PROCESSED">Processed</SelectItem>
+                <SelectItem value="WITHDRAWN">Withdrawn</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetchHistory()}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>From</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {commissionHistory.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4">
+                    No commission records found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                commissionHistory.map((commission) => (
+                  <TableRow key={commission.id}>
+                    <TableCell>{commission.type}</TableCell>
+                    <TableCell className="font-medium text-green-600">
+                      +${commission.amount}
+                    </TableCell>
+                    <TableCell>{commission.sourceUser?.username || 'System'}</TableCell>
+                    <TableCell>{new Date(commission.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          commission.status === 'PROCESSED' ? 'success' : 
+                          commission.status === 'PENDING' ? 'secondary' : 
+                          'destructive'
+                        }
+                      >
+                        {commission.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between py-4">
+              <div className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">My Commissions</h1>
         <div className="flex items-center space-x-4">
-          <Select defaultValue="all-time">
+          <Select 
+            value={selectedPeriod} 
+            onValueChange={setSelectedPeriod}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
@@ -84,82 +301,64 @@ export default function CommissionsPage() {
               <SelectItem value="this-year">This Year</SelectItem>
             </SelectContent>
           </Select>
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </button>
+          <Button 
+            variant="outline" 
+            onClick={() => setWithdrawalModalOpen(true)}
+          >
+            <DollarSign className="mr-2 h-4 w-4" /> Withdraw
+          </Button>
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" /> Export
+          </Button>
         </div>
       </div>
 
-      {/* Commission Stats */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {commissionStats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
-              <div className={`mt-2 flex items-center text-sm ${stat.color}`}>
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                {stat.trend}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {renderCommissionStats()}
+      {renderCommissionHistory()}
 
-      {/* Commission History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Commission History</CardTitle>
-          <CardDescription>Detailed history of your commission earnings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="relative overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-muted">
-                <tr>
-                  <th className="px-6 py-3">ID</th>
-                  <th className="px-6 py-3">Type</th>
-                  <th className="px-6 py-3">From</th>
-                  <th className="px-6 py-3">Package</th>
-                  <th className="px-6 py-3">Date</th>
-                  <th className="px-6 py-3">Amount</th>
-                  <th className="px-6 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {commissionHistory.map((commission) => (
-                  <tr key={commission.id} className="border-b">
-                    <td className="px-6 py-4 font-medium">{commission.id}</td>
-                    <td className="px-6 py-4">{commission.type}</td>
-                    <td className="px-6 py-4">{commission.from}</td>
-                    <td className="px-6 py-4">{commission.package}</td>
-                    <td className="px-6 py-4">{commission.date}</td>
-                    <td className="px-6 py-4 text-green-500 font-medium">{commission.amount}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        commission.status === 'paid' 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {commission.status.charAt(0).toUpperCase() + commission.status.slice(1)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <Dialog 
+        open={withdrawalModalOpen} 
+        onOpenChange={setWithdrawalModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Withdraw Commissions</DialogTitle>
+            <DialogDescription>
+              Enter the amount you want to withdraw from your available balance.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Withdrawal Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Enter amount"
+                value={withdrawalAmount}
+                onChange={(e) => setWithdrawalAmount(e.target.value)}
+              />
+            </div>
+            
+            {commissionStats?.availableBalance && (
+              <Alert>
+                <AlertDescription>
+                  Available Balance: ${commissionStats.availableBalance}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <Button 
+              onClick={handleWithdrawal}
+              disabled={isWithdrawing || !withdrawalAmount || parseFloat(withdrawalAmount) <= 0}
+              className="w-full"
+            >
+              {isWithdrawing ? 'Processing...' : 'Confirm Withdrawal'}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
+  );
 }

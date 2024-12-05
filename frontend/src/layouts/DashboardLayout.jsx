@@ -23,6 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '../components/ui/sheet'
+import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 
 export function DashboardLayout() {
   const navigate = useNavigate()
@@ -216,6 +217,7 @@ export function DashboardLayout() {
       )}>
         <div className="container py-6">
           <Outlet />
+          <DashboardFooter />
         </div>
       </main>
     </div>

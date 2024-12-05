@@ -129,7 +129,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-black text-white">
+    <div className="min-h-screen bg-white text-gray-900">
       <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col lg:flex-row items-center justify-center gap-12">
         {/* Left side - Welcome text */}
         <motion.div 
@@ -138,22 +138,22 @@ export default function RegisterPage() {
           transition={{ delay: 0.2 }}
           className="lg:w-1/2 text-center lg:text-left"
         >
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl lg:text-6xl font-bold mb-6 text-gray-900">
             Join Zillionaires
           </h1>
-          <p className="text-lg text-gray-400 mb-8">
+          <p className="text-lg text-gray-600 mb-8">
             Start your journey to financial freedom. Join our community of successful entrepreneurs and build your network marketing empire.
           </p>
           <div className="grid grid-cols-2 gap-6 max-w-md mx-auto lg:mx-0">
-            <div className="bg-gray-800/50 p-4 rounded-lg backdrop-blur-sm">
-              <Building2 className="w-8 h-8 mb-2 text-blue-400" />
-              <h3 className="font-semibold mb-1">Global Network</h3>
-              <p className="text-sm text-gray-400">Connect with partners worldwide</p>
+            <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+              <Building2 className="w-8 h-8 mb-2 text-[#0095E7]" />
+              <h3 className="font-semibold mb-1 text-gray-900">Global Network</h3>
+              <p className="text-sm text-gray-600">Connect with partners worldwide</p>
             </div>
-            <div className="bg-gray-800/50 p-4 rounded-lg backdrop-blur-sm">
-              <User2 className="w-8 h-8 mb-2 text-teal-400" />
-              <h3 className="font-semibold mb-1">Personal Growth</h3>
-              <p className="text-sm text-gray-400">Learn and earn together</p>
+            <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+              <User2 className="w-8 h-8 mb-2 text-[#0095E7]" />
+              <h3 className="font-semibold mb-1 text-gray-900">Personal Growth</h3>
+              <p className="text-sm text-gray-600">Learn and earn together</p>
             </div>
           </div>
         </motion.div>
@@ -165,11 +165,11 @@ export default function RegisterPage() {
           transition={{ delay: 0.4 }}
           className="lg:w-1/2 w-full max-w-md"
         >
-          <div className="bg-gray-800/30 p-8 rounded-2xl backdrop-blur-sm border border-gray-700">
-            <h2 className="text-2xl font-bold mb-6 text-center">Create Your Account</h2>
+          <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">Create Your Account</h2>
             
             {(isError || submitError) && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500 rounded-lg text-red-500 text-sm">
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                 {submitError || error?.message || 'Registration failed. Please try again.'}
               </div>
             )}
@@ -177,7 +177,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="text-gray-700">First Name</Label>
                   <Input
                     id="firstName"
                     name="firstName"
@@ -186,16 +186,16 @@ export default function RegisterPage() {
                     placeholder="John"
                     required
                     className={cn(
-                      "bg-gray-900/50 border-gray-700 focus:border-blue-500",
-                      formErrors.firstName && "border-red-500"
+                      "bg-white border-gray-200 focus:border-[#0095E7] text-gray-900",
+                      formErrors.firstName && "border-red-300"
                     )}
                   />
                   {formErrors.firstName && (
-                    <p className="text-sm text-red-500 mt-1">{formErrors.firstName}</p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.firstName}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-gray-700">Last Name</Label>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -204,38 +204,52 @@ export default function RegisterPage() {
                     placeholder="Doe"
                     required
                     className={cn(
-                      "bg-gray-900/50 border-gray-700 focus:border-blue-500",
-                      formErrors.lastName && "border-red-500"
+                      "bg-white border-gray-200 focus:border-[#0095E7] text-gray-900",
+                      formErrors.lastName && "border-red-300"
                     )}
                   />
                   {formErrors.lastName && (
-                    <p className="text-sm text-red-500 mt-1">{formErrors.lastName}</p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.lastName}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-700">Email</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="john@example.com"
+                  placeholder="john.doe@example.com"
                   required
                   className={cn(
-                    "bg-gray-900/50 border-gray-700 focus:border-blue-500",
-                    formErrors.email && "border-red-500"
+                    "bg-white border-gray-200 focus:border-[#0095E7] text-gray-900",
+                    formErrors.email && "border-red-300"
                   )}
                 />
                 {formErrors.email && (
-                  <p className="text-sm text-red-500 mt-1">{formErrors.email}</p>
+                  <p className="text-sm text-red-600 mt-1">{formErrors.email}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="phone" className="text-gray-700">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+256 700 000000"
+                  required
+                  className="bg-white border-gray-200 focus:border-[#0095E7] text-gray-900"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700">Password</Label>
                 <Input
                   id="password"
                   name="password"
@@ -245,20 +259,20 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                   className={cn(
-                    "bg-gray-900/50 border-gray-700 focus:border-blue-500",
-                    formErrors.password && "border-red-500"
+                    "bg-white border-gray-200 focus:border-[#0095E7] text-gray-900",
+                    formErrors.password && "border-red-300"
                   )}
                 />
-                {formData.password && (
+                {formErrors.password && Array.isArray(formErrors.password) && (
                   <div className="mt-2 space-y-1">
-                    {typeof formErrors.password === 'object' && formErrors.password.map((error, index) => (
-                      <div key={index} className="flex items-center text-sm">
-                        {validatePassword(formData.password).includes(error) ? (
-                          <X className="h-4 w-4 text-red-500 mr-2" />
+                    {formErrors.password.map((error, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        {error.includes('✓') ? (
+                          <Check className="w-4 h-4 text-green-500" />
                         ) : (
-                          <Check className="h-4 w-4 text-green-500 mr-2" />
+                          <X className="w-4 h-4 text-red-500" />
                         )}
-                        <span className={validatePassword(formData.password).includes(error) ? "text-red-500" : "text-green-500"}>
+                        <span className={error.includes('✓') ? 'text-green-500' : 'text-red-600'}>
                           {error}
                         </span>
                       </div>
@@ -268,7 +282,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -278,64 +292,25 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                   className={cn(
-                    "bg-gray-900/50 border-gray-700 focus:border-blue-500",
-                    formErrors.confirmPassword && "border-red-500"
+                    "bg-white border-gray-200 focus:border-[#0095E7] text-gray-900",
+                    formErrors.confirmPassword && "border-red-300"
                   )}
                 />
                 {formErrors.confirmPassword && (
-                  <p className="text-sm text-red-500 mt-1">{formErrors.confirmPassword}</p>
+                  <p className="text-sm text-red-600 mt-1">{formErrors.confirmPassword}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="referralCode" className="text-gray-700">Referral Code (Optional)</Label>
                 <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
+                  id="referralCode"
+                  name="referralCode"
+                  value={formData.referralCode}
                   onChange={handleChange}
-                  placeholder="+256 700 000000"
-                  className="bg-gray-900/50 border-gray-700 focus:border-blue-500"
+                  placeholder="Enter referral code"
+                  className="bg-white border-gray-200 focus:border-[#0095E7] text-gray-900"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Account Type</Label>
-                <RadioGroup
-                  defaultValue="1"
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, position: parseInt(value) }))}
-                  className="grid grid-cols-2 gap-4 pt-2"
-                >
-                  <div>
-                    <RadioGroupItem
-                      value="1"
-                      id="distributor"
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor="distributor"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-gray-700 bg-gray-900/50 p-4 hover:bg-gray-800/50 peer-data-[state=checked]:border-blue-500 [&:has([data-state=checked])]:border-blue-500 cursor-pointer"
-                    >
-                      <Building2 className="mb-2 h-6 w-6 text-blue-400" />
-                      <span>Distributor</span>
-                    </Label>
-                  </div>
-                  <div>
-                    <RadioGroupItem
-                      value="2"
-                      id="customer"
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor="customer"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-gray-700 bg-gray-900/50 p-4 hover:bg-gray-800/50 peer-data-[state=checked]:border-teal-500 [&:has([data-state=checked])]:border-teal-500 cursor-pointer"
-                    >
-                      <User2 className="mb-2 h-6 w-6 text-teal-400" />
-                      <span>Customer</span>
-                    </Label>
-                  </div>
-                </RadioGroup>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -346,42 +321,40 @@ export default function RegisterPage() {
                   onCheckedChange={(checked) => 
                     handleChange({ target: { name: 'acceptTerms', type: 'checkbox', checked }})
                   }
-                  className={cn(
-                    formErrors.acceptTerms && "border-red-500"
-                  )}
+                  className="border-gray-200 data-[state=checked]:bg-[#0095E7] data-[state=checked]:border-[#0095E7]"
                 />
-                <Label htmlFor="acceptTerms" className="text-sm text-gray-400">
-                  I accept the{' '}
-                  <Link to="/terms" className="text-blue-400 hover:text-blue-300">
-                    terms and conditions
-                  </Link>
-                </Label>
+                <label
+                  htmlFor="acceptTerms"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-700"
+                >
+                  I accept the <Link to="/terms" className="text-[#0095E7] hover:text-[#33ABED]">terms and conditions</Link>
+                </label>
               </div>
               {formErrors.acceptTerms && (
-                <p className="text-sm text-red-500 mt-1">{formErrors.acceptTerms}</p>
+                <p className="text-sm text-red-600">{formErrors.acceptTerms}</p>
               )}
 
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200"
+                className="w-full bg-[#0095E7] hover:bg-[#33ABED] text-white transition-colors"
               >
                 {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
                     Create Account
-                    <ChevronRight className="ml-2 h-5 w-5" />
+                    <ChevronRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
 
-              <p className="text-center text-sm text-gray-400">
-                Already have an account?{' '}
-                <Link to="/login" className="text-blue-400 hover:text-blue-300">
+              <div className="text-center text-sm text-gray-600">
+                Already have an account?{" "}
+                <Link to="/login" className="text-[#0095E7] hover:text-[#33ABED]">
                   Sign in
                 </Link>
-              </p>
+              </div>
             </form>
           </div>
         </motion.div>

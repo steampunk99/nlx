@@ -2,20 +2,43 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, ChevronDown } from "lucide-react"
 import { cn } from "../../lib/utils"
 
 const navigation = [
-  { name: "Home", href: "/" },
-  { name: "Features", href: "/#features" },
-  { name: "Packages", href: "/#packages" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { 
+    name: "Features", 
+    href: "/#features",
+    submenu: [
+      { name: "Earn More", href: "/#features" },
+      { name: "Build Teams", href: "/#features" },
+      { name: "Track Growth", href: "/#features" },
+      { name: "Secure Platform", href: "/#features" },
+    ]
+  },
+  { 
+    name: "Packages", 
+    href: "/#packages",
+    submenu: [
+      { name: "Starter Package", href: "/#packages" },
+      { name: "Professional Package", href: "/#packages" },
+      { name: "Enterprise Package", href: "/#packages" },
+    ]
+  },
+  { 
+    name: "About", 
+    href: "/about",
+    submenu: [
+      { name: "Our Company", href: "/about" },
+      { name: "Contact Us", href: "/contact" },
+    ]
+  },
 ]
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeSubmenu, setActiveSubmenu] = useState(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,22 +54,22 @@ export function Header() {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className={cn(
-        "fixed inset-x-0 top-0 z-50 backdrop-blur-lg transition-all duration-500",
+        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
         isScrolled
-          ? "bg-gradient-to-r from-white/90 via-white/95 to-white/90 shadow-lg shadow-black/[0.03]"
+          ? "bg-white shadow-lg shadow-black/[0.03]"
           : "bg-transparent"
       )}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+      <nav className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3 lg:px-8" aria-label="Global">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ duration: 0.5 }}
           className="flex lg:flex-1"
         >
           <Link to="/" className="-m-1.5 p-1.5 transition duration-300 hover:opacity-80">
             <span className="sr-only">Zillionaire</span>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-[#0095E7]">
               Zillionaire
             </h1>
           </Link>
@@ -57,7 +80,7 @@ export function Header() {
           <motion.button
             whileTap={{ scale: 0.95 }}
             type="button"
-            className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 hover:text-teal-600 transition-colors"
+            className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <span className="sr-only">Toggle menu</span>
@@ -73,36 +96,58 @@ export function Header() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="hidden lg:flex lg:gap-x-12"
+          transition={{ duration: 0.5 }}
+          className="hidden lg:flex lg:gap-x-8"
         >
           {navigation.map((item) => (
-            <Link
+            <div
               key={item.name}
-              to={item.href}
-              className="relative text-sm font-semibold leading-6 text-gray-900 transition-all duration-300 hover:-translate-y-0.5"
+              onMouseEnter={() => setActiveSubmenu(item.name)}
+              onMouseLeave={() => setActiveSubmenu(null)}
+              className="relative"
             >
-              <span className="relative z-10">{item.name}</span>
-              <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-teal-500 to-orange-500 scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100" />
-            </Link>
+              <Link
+                to={item.href}
+                className="flex items-center gap-1 text-sm font-medium text-gray-900 hover:text-[#0095E7] transition-colors py-2"
+              >
+                {item.name}
+                <ChevronDown className="h-4 w-4" />
+              </Link>
+              
+              {activeSubmenu === item.name && (
+                <div className="absolute top-full left-0 w-64 bg-white shadow-lg rounded-lg py-2 mt-1">
+                  {item.submenu.map((subItem) => (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.href}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#0095E7]"
+                      onClick={() => setActiveSubmenu(null)}
+                    >
+                      {subItem.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4"
+          transition={{ duration: 0.5 }}
+          className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-x-6"
         >
           <Button 
-            variant="ghost" 
-            className="text-gray-700 hover:text-teal-600 hover:bg-teal-50 transition-colors duration-300"
+            variant="ghost"
+            className="text-gray-900 hover:text-[#0095E7] font-medium"
             asChild
           >
-            <Link to="/login">Log in</Link>
+            <Link to="/login">Log In</Link>
           </Button>
-          <Button
-            className="bg-gradient-to-r from-teal-500 to-orange-500 text-white shadow-md shadow-teal-500/20 hover:shadow-lg hover:shadow-teal-500/30 hover:from-teal-600 hover:to-orange-600 transition-all duration-300"
+          
+          <Button 
+            className="bg-[#0095E7] text-white hover:bg-[#0077B6] transition-colors"
             asChild
           >
             <Link to="/register">Get Started</Link>
@@ -113,44 +158,71 @@ export function Header() {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="fixed inset-x-0 top-[73px] z-50 bg-white/95 backdrop-blur-lg shadow-lg shadow-black/[0.03] lg:hidden"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed inset-0 top-[57px] z-50 bg-white lg:hidden"
             >
-              <div className="flex flex-col space-y-4 p-6">
+              <div className="flex flex-col p-4 space-y-4">
                 {navigation.map((item) => (
-                  <motion.div
-                    key={item.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Link
-                      to={item.href}
-                      className="block text-base font-semibold leading-7 text-gray-900 hover:text-teal-600 transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
+                  <div key={item.name} className="space-y-2">
+                    <button
+                      className="flex items-center justify-between w-full text-left text-gray-900 font-medium"
+                      onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
                     >
                       {item.name}
-                    </Link>
-                  </motion.div>
+                      <ChevronDown className={cn(
+                        "h-4 w-4 transition-transform",
+                        activeSubmenu === item.name ? "rotate-180" : ""
+                      )} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {activeSubmenu === item.name && (
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: "auto" }}
+                          exit={{ height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-4 space-y-2">
+                            {item.submenu.map((subItem) => (
+                              <Link
+                                key={subItem.name}
+                                to={subItem.href}
+                                className="block text-sm text-gray-700"
+                                onClick={() => {
+                                  setMobileMenuOpen(false)
+                                  setActiveSubmenu(null)
+                                }}
+                              >
+                                {subItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 ))}
-                <div className="flex flex-col space-y-3 pt-4">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-center text-gray-700 hover:text-teal-600 hover:bg-teal-50"
-                    asChild
-                  >
-                    <Link to="/login">Log in</Link>
-                  </Button>
-                  <Button
-                    className="w-full justify-center bg-gradient-to-r from-teal-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-shadow"
-                    asChild
-                  >
-                    <Link to="/register">Get Started</Link>
-                  </Button>
+                
+                <div className="pt-4 border-t">
+                  <div className="space-y-2">
+                    <Button 
+                      variant="ghost"
+                      className="w-full justify-center text-gray-900"
+                      asChild
+                    >
+                      <Link to="/login">Log In</Link>
+                    </Button>
+                    
+                    <Button 
+                      className="w-full justify-center bg-[#0095E7] text-white hover:bg-[#0077B6]"
+                      asChild
+                    >
+                      <Link to="/register">Get Started</Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </motion.div>

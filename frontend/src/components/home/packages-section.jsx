@@ -1,65 +1,117 @@
 import { motion } from "framer-motion"
-import { Check, Sparkles, TrendingUp, Users, Clock, Shield } from "lucide-react"
+import { Check, Users, Network, Percent } from "lucide-react"
 import { Button } from "../ui/button"
+import { Link } from "react-router-dom"
+
+const animatedBorderStyles = `
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .hover-card::before,
+  .popular-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 2px;
+    background: linear-gradient(
+      45deg,
+      #0095E7,
+      #33ABED,
+      #0095E7
+    );
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-size: 200% 200%;
+    animation: gradient 4s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .hover-card:hover::before {
+    opacity: 1;
+  }
+
+  .popular-card::before {
+    opacity: 1;
+  }
+`
+
+const style = document.createElement('style')
+style.textContent = animatedBorderStyles
+document.head.appendChild(style)
 
 const packages = [
   {
-    name: "Starter",
-    price: "$199",
-    period: "One-time investment",
+    name: "Starter Package",
+    price: "UGX 50,000",
+    period: "One-time",
     highlight: "Perfect for beginners",
     stats: {
-      returns: "Up to 15%",
-      support: "Community",
-      users: "1000+"
+      depth: "2 Levels",
+      commission: "5%",
+      referrals: "5 max"
     },
     features: [
-      "Basic investment tools",
-      "Community access",
-      "Weekly market insights",
-      "Email support"
-    ],
-    icon: TrendingUp
+      "5% Direct Commission",
+      "2% Indirect Commission",
+      "Basic Support"
+    ]
   },
   {
-    name: "Growth",
-    price: "$499",
-    period: "One-time investment",
-    highlight: "Most Popular",
+    name: "Bronze Package",
+    price: "UGX 100,000",
+    period: "One-time",
+    highlight: "Most popular choice",
     popular: true,
     stats: {
-      returns: "Up to 25%",
-      support: "Priority",
-      users: "5000+"
+      depth: "3 Levels",
+      commission: "10%",
+      referrals: "10 max"
     },
     features: [
-      "Advanced investment tools",
-      "Priority community access",
-      "Daily market insights",
-      "24/7 chat support",
-      "1-on-1 monthly call"
-    ],
-    icon: Sparkles
+      "10% Direct Commission",
+      "5% Indirect Commission",
+      "Priority Support"
+    ]
   },
   {
-    name: "Elite",
-    price: "$999",
-    period: "One-time investment",
-    highlight: "For serious investors",
+    name: "Silver Package",
+    price: "UGX 250,000",
+    period: "One-time",
+    highlight: "For serious networkers",
     stats: {
-      returns: "Up to 40%",
-      support: "Dedicated",
-      users: "500+"
+      depth: "4 Levels",
+      commission: "15%",
+      referrals: "20 max"
     },
     features: [
-      "Premium investment suite",
-      "VIP community access",
-      "Real-time market alerts",
-      "Dedicated account manager",
-      "Weekly strategy calls",
-      "Custom portfolio analysis"
-    ],
-    icon: Shield
+      "15% Direct Commission",
+      "8% Indirect Commission",
+      "VIP Support"
+    ]
+  },
+  {
+    name: "Gold Package",
+    price: "UGX 500,000",
+    period: "One-time",
+    highlight: "Maximum benefits",
+    stats: {
+      depth: "5 Levels",
+      commission: "20%",
+      referrals: "50 max"
+    },
+    features: [
+      "20% Direct Commission",
+      "10% Indirect Commission",
+      "Premium Support"
+    ]
   }
 ]
 
@@ -86,30 +138,25 @@ const cardVariants = {
 
 export function PackagesSection() {
   return (
-    <section className="relative py-24 overflow-hidden" id="packages">
-      {/* Enhanced background with multiple gradients and patterns */}
+    <section className="relative py-20 overflow-hidden bg-[#F5F9FF]" id="packages">
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-orange-50/30" />
-        <div className="absolute inset-0 bg-[linear-gradient(30deg,transparent_85%,rgba(59,130,246,0.08)_95%,transparent_98%),linear-gradient(45deg,transparent_85%,rgba(236,72,153,0.08)_95%,transparent_98%)]" />
-        <div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,#F5F9FF_100%)]" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0095E7_1px,transparent_1px)] [background-size:16px_16px]" />
       </div>
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
+        <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="flex flex-col items-center gap-4"
           >
-            <span className="px-4 py-1.5 rounded-full border-teal-600 border text-sm font-medium bg-gradient-to-r from-teal-500/10 to-orange-500/10 text-black">
+            <h2 className="text-4xl font-bold text-gray-900">
               Investment Packages
-            </span>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
-              Choose Your Investment Path
             </h2>
             <p className="mt-4 text-gray-600 max-w-2xl">
-              Select the perfect investment package that aligns with your financial goals and experience level
+              Choose the perfect investment package that aligns with your goals
             </p>
           </motion.div>
         </div>
@@ -119,96 +166,89 @@ export function PackagesSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="flex space-x-6 pb-8 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {packages.map((pkg) => (
             <motion.div
               key={pkg.name}
               variants={cardVariants}
-              className={`flex-none w-[85%] sm:w-[45%] lg:w-[32%] snap-center ${
-                pkg.popular ? 'relative z-10 scale-105' : ''
-              }`}
+              className={`relative group ${pkg.popular ? 'lg:-mt-4' : ''}`}
             >
-              <div className={`h-full rounded-2xl p-8 backdrop-blur-sm ${
-                pkg.popular
-                  ? 'bg-gradient-to-b from-white to-teal-50/50 ring-2 ring-teal-500'
-                  : 'bg-white/80 ring-1 ring-gray-200'
-              }`}>
+              <div 
+                className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-[#0095E7] via-[#33ABED] to-[#0095E7] bg-[length:400%_400%] animate-gradient ${pkg.popular ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-500`} 
+              />
+              
+              <div className="relative rounded-2xl bg-white m-[2px] h-full">
                 {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-teal-500 to-orange-500 px-3 py-1 text-sm font-medium text-white">
-                      <Sparkles className="w-4 h-4" />
-                      Most Popular
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className="inline-flex items-center rounded-full bg-[#0095E7] px-3 py-0.5 text-xs font-semibold text-white shadow-lg">
+                      Popular Choice
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">{pkg.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{pkg.highlight}</p>
+                <div className="p-6">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">{pkg.name}</h3>
+                    <p className="text-sm text-gray-500">{pkg.highlight}</p>
                   </div>
-                  <pkg.icon className={`w-8 h-8 ${
-                    pkg.popular ? 'text-teal-500' : 'text-gray-400'
-                  }`} />
+
+                  <div className="mb-6">
+                    <span className="text-2xl font-bold text-[#0095E7]">{pkg.price}</span>
+                    <span className="text-sm text-gray-500"> / {pkg.period}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 p-3 mb-6 rounded-lg bg-gray-50">
+                    <div className="text-center">
+                      <Network className="w-4 h-4 mx-auto mb-1 text-[#0095E7]" />
+                      <p className="text-xs font-medium text-gray-900">{pkg.stats.depth}</p>
+                    </div>
+                    <div className="text-center">
+                      <Percent className="w-4 h-4 mx-auto mb-1 text-[#0095E7]" />
+                      <p className="text-xs font-medium text-gray-900">{pkg.stats.commission}</p>
+                    </div>
+                    <div className="text-center">
+                      <Users className="w-4 h-4 mx-auto mb-1 text-[#0095E7]" />
+                      <p className="text-xs font-medium text-gray-900">{pkg.stats.referrals}</p>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2 mb-6">
+                    {pkg.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
+                        <Check className="w-4 h-4 text-[#0095E7]" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    className={`w-full ${
+                      pkg.popular
+                        ? 'bg-[#0095E7] hover:bg-[#0077B6] text-white'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-900 border border-gray-200'
+                    } transition-colors duration-200`}
+                    asChild
+                  >
+                    <Link to="/register">Get Started</Link>
+                  </Button>
                 </div>
-
-                <div className="mb-8">
-                  <div className="flex items-baseline">
-                    <span className="text-4xl font-bold text-gray-900">{pkg.price}</span>
-                    <span className="ml-2 text-sm text-gray-500">{pkg.period}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="text-center p-3 rounded-lg bg-gray-50">
-                    <TrendingUp className="w-5 h-5 mx-auto mb-1 text-teal-500" />
-                    <p className="text-sm font-medium text-gray-900">{pkg.stats.returns}</p>
-                    <p className="text-xs text-gray-500">Returns</p>
-                  </div>
-                  <div className="text-center p-3 rounded-lg bg-gray-50">
-                    <Users className="w-5 h-5 mx-auto mb-1 text-orange-500" />
-                    <p className="text-sm font-medium text-gray-900">{pkg.stats.users}</p>
-                    <p className="text-xs text-gray-500">Active Users</p>
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {pkg.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-3">
-                      <Check className={`w-5 h-5 ${
-                        pkg.popular ? 'text-teal-500' : 'text-gray-400'
-                      }`} />
-                      <span className="text-sm text-gray-600">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  className={`w-full relative group overflow-hidden ${
-                    pkg.popular
-                      ? 'bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600'
-                      : 'bg-gray-900 hover:bg-gray-800'
-                  }`}
-                >
-                  <span className="absolute inset-0 bg-white/10 group-hover:scale-x-100 scale-x-0 origin-left transition-transform duration-500" />
-                  <span className="relative inline-flex items-center gap-2 text-white">
-                    Get Started
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
-                </Button>
               </div>
             </motion.div>
           ))}
         </motion.div>
-      </div>
 
-      {/* Enhanced decorative elements */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 w-[40rem] h-[40rem] bg-gradient-to-br from-teal-500/20 via-teal-500/5 to-transparent rounded-full blur-3xl" />
-      <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-gradient-to-bl from-orange-500/20 via-orange-500/5 to-transparent rounded-full blur-3xl" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[40rem] h-[20rem] bg-gradient-to-b from-teal-500/10 via-orange-500/5 to-transparent rounded-full blur-3xl" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-12 text-center"
+        >
+          <p className="text-sm text-gray-500">
+            All packages include access to our member dashboard and support.
+          </p>
+        </motion.div>
+      </div>
     </section>
   )
 }

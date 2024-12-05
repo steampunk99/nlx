@@ -11,7 +11,7 @@ async function seedPackages() {
                 name: 'Starter Package',
                 description: 'Entry-level package for new members',
                 price: 50000.00,
-                level: 1,
+                level: 2,
                 status: 'ACTIVE',
                 benefits: JSON.stringify({
                     'Network Depth': 2,
@@ -26,7 +26,7 @@ async function seedPackages() {
                 name: 'Bronze Package',
                 description: 'Intermediate package with more benefits',
                 price: 100000.00,
-                level: 2,
+                level: 3,
                 status: 'ACTIVE',
                 benefits: JSON.stringify({
                     'Network Depth': 3,
@@ -41,7 +41,7 @@ async function seedPackages() {
                 name: 'Silver Package',
                 description: 'Advanced package with enhanced earning potential',
                 price: 250000.00,
-                level: 3,
+                level: 4,
                 status: 'ACTIVE',
                 benefits: JSON.stringify({
                     'Network Depth': 4,
@@ -56,7 +56,7 @@ async function seedPackages() {
                 name: 'Gold Package',
                 description: 'Premium package with maximum benefits',
                 price: 500000.00,
-                level: 4,
+                level: 5,
                 status: 'ACTIVE',
                 benefits: JSON.stringify({
                     'Network Depth': 5,

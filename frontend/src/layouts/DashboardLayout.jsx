@@ -71,8 +71,8 @@ export function DashboardLayout() {
     { to: '/dashboard/commissions', icon: DollarSign, label: 'Commissions' },
     { to: '/dashboard/packages', icon: Package, label: 'Packages' },
     { to: '/dashboard/withdrawals', icon: Wallet, label: 'Withdrawals' },
-    { to: '/dashboard/profile', icon: Users, label: 'Profile' },
-    { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+    
+    { to: '/dashboard/profile', icon: Settings, label: 'Settings' },
   ]
 
   const SidebarContent = ({ isMobileView = false }) => (

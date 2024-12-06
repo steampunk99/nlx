@@ -59,11 +59,15 @@ app.use(limiter);
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
+        uptime: process.uptime(),
+        version: process.env.npm_package_version || 'v1',
+        environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString(),
-        service: 'Zillionaires API',
-        version: 'v1'
+        service: 'Zillionaires API'
     });
 });
+
+
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

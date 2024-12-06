@@ -68,14 +68,7 @@ export function Footer() {
                 <ChevronRight className="h-4 w-4" />
                 Terms of Service
               </Link>
-              <Link to="/refund" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                Refund Policy
-              </Link>
-              <Link to="/compliance" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                Compliance
-              </Link>
+             
             </div>
           </div>
 
@@ -93,10 +86,10 @@ export function Footer() {
         {/* Legal Information */}
         <div className="border-t border-gray-200 pt-8 space-y-8">
           <div className="prose prose-sm max-w-none text-gray-600 space-y-4">
-            <p>
+            {/* <p>
               Zillionaire Limited is a registered company in Uganda with registration number UC-123456. 
               The company is authorized by the Uganda Registration Services Bureau (URSB) with license number MLM/2024/001.
-            </p>
+            </p> */}
             
             <p>
               <strong className="text-gray-900">Risk Warning:</strong> Network marketing and investment activities involve 

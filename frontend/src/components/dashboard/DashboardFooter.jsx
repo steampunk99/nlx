@@ -39,11 +39,11 @@ export function DashboardFooter() {
               </span>
             </span>
           </div>
-          {health?.uptime && (
+          {/* {health?.uptime && (
             <div className="text-sm text-muted-foreground">
               Uptime: {Math.floor(health.uptime / 86400)}d {Math.floor((health.uptime % 86400) / 3600)}h {Math.floor((health.uptime % 3600) / 60)}m
             </div>
-          )}
+          )} */}
         </div>
         <div className="flex items-center space-x-4">
           {health?.version && (

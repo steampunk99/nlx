@@ -209,7 +209,7 @@ export default function PackagesPage() {
         animate="visible"
       >
         {availablePackages.map((pkg, index) => {
-          const benefits = JSON.parse(pkg.benefits)
+          const benefits = typeof pkg.benefits === 'string' ? JSON.parse(pkg.benefits) : pkg.benefits || {};
           return (
             <motion.div
               key={pkg.id}
@@ -219,14 +219,12 @@ export default function PackagesPage() {
             >
               {pkg.level === 4 && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0">
-                    Most Popular
-                  </Badge>
+                  <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                    Premium
+                  </span>
                 </div>
               )}
-              <Card className={`h-full overflow-hidden ${
-                pkg.level === 4 ? 'border-yellow-500/50 shadow-xl shadow-yellow-500/10' : ''
-              }`}>
+              <Card className={`h-full border-2 ${pkg.level === 4 ? 'border-primary' : 'border-border'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>{pkg.name}</span>
@@ -235,39 +233,44 @@ export default function PackagesPage() {
                   <CardDescription>{pkg.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-primary">
+                  <div>
+                    <div className="text-3xl font-bold">
                       {formatCurrency(pkg.price)}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">One-time investment</p>
+                    <p className="text-sm text-muted-foreground">One-time payment</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {benefits.features?.map((feature, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary mt-1" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-primary">
-                      <TrendingUp className="h-5 w-5" />
-                      {benefits.referralBonusPercentage}% Referral Bonus
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                      <span>Level {pkg.level} Package</span>
                     </div>
-                    
-                    <div className="space-y-3">
-                      {Object.entries(benefits).map(([key, value]) => {
-                        if (key === 'referralBonusPercentage') return null
-                        return (
-                          <div key={key} className="flex items-center gap-2">
-                            <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Check className="h-3 w-3 text-primary" />
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {key}: {value}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
+                    {pkg.maxNodes && (
+                      <div className="flex items-center gap-2">
+                        <Network className="h-4 w-4 text-muted-foreground" />
+                        <span>Up to {pkg.maxNodes} nodes</span>
+                      </div>
+                    )}
+                    {pkg.duration && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>{pkg.duration} days validity</span>
+                      </div>
+                    )}
                   </div>
 
                   <Button 
-                    className="w-full bg-gradient-to-r from-primary to-primary/80 hover:to-primary"
-                    size="lg"
+                    className="w-full" 
+                    variant={pkg.level === 4 ? 'default' : 'outline'}
                     onClick={() => handlePackagePurchase(pkg)}
                     disabled={activePackages && activePackages.length > 0}
                   >
@@ -276,7 +279,7 @@ export default function PackagesPage() {
                 </CardContent>
               </Card>
             </motion.div>
-          )
+          );
         })}
       </motion.div>
 

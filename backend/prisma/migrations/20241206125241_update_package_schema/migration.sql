@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `packages` ADD COLUMN `duration` INTEGER NOT NULL DEFAULT 30,
+    ADD COLUMN `features` TEXT NULL,
+    ADD COLUMN `maxNodes` INTEGER NOT NULL DEFAULT 1;

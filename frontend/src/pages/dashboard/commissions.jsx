@@ -44,6 +44,13 @@ export default function CommissionsPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [itemsPerPage] = useState(10);
 
+  // Format currency in UGX
+  const formatCurrency = (amount) => {
+    const value = Number(amount);
+    if (!amount || isNaN(value)) return "UGX 0";
+    return `UGX ${value.toLocaleString('en-US')}`;
+  };
+
   // Hook integration with filters
   const { 
     commissionStats, 
@@ -101,28 +108,28 @@ export default function CommissionsPage() {
     const statsData = [
       {
         title: "Total Commissions",
-        value: commissionStats?.totalCommissions || "$0",
+        value: formatCurrency(commissionStats?.totalCommissions || 0),
         description: "Lifetime earnings from commissions",
         icon: DollarSign,
         color: "text-green-500"
       },
       {
         title: "Direct Commissions",
-        value: commissionStats?.directCommissions || "$0",
+        value: formatCurrency(commissionStats?.directCommissions || 0),
         description: "Earnings from direct referrals",
         icon: Users,
         color: "text-blue-500"
       },
       {
         title: "Matching Commissions",
-        value: commissionStats?.matchingCommissions || "$0",
+        value: formatCurrency(commissionStats?.matchingCommissions || 0),
         description: "Earnings from team matching",
         icon: ArrowUpRight,
         color: "text-purple-500"
       },
       {
         title: "Level Commissions",
-        value: commissionStats?.levelCommissions || "$0",
+        value: formatCurrency(commissionStats?.levelCommissions || 0),
         description: "Earnings from level bonuses",
         icon: DollarSign,
         color: "text-green-500"
@@ -229,8 +236,8 @@ export default function CommissionsPage() {
                 commissionHistory.map((commission) => (
                   <TableRow key={commission.id}>
                     <TableCell>{commission.type}</TableCell>
-                    <TableCell className="font-medium text-green-600">
-                      +${commission.amount}
+                    <TableCell className="font-medium">
+                      {formatCurrency(commission.amount)}
                     </TableCell>
                     <TableCell>{commission.sourceUser?.username || 'System'}</TableCell>
                     <TableCell>{new Date(commission.createdAt).toLocaleDateString()}</TableCell>
@@ -344,7 +351,7 @@ export default function CommissionsPage() {
             {commissionStats?.availableBalance && (
               <Alert>
                 <AlertDescription>
-                  Available Balance: ${commissionStats.availableBalance}
+                  Available Balance: {formatCurrency(commissionStats.availableBalance)}
                 </AlertDescription>
               </Alert>
             )}

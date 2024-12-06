@@ -387,6 +387,118 @@ class PackageService {
             }))
         };
     }
+
+    async adminFindAll() {
+        return prisma.package.findMany({
+            orderBy: {
+                level: 'asc'
+            }
+        });
+    }
+
+    async adminFindById(id) {
+        return prisma.package.findUnique({
+            where: { id }
+        });
+    }
+
+    async adminCreate(data) {
+        return prisma.package.create({
+            data: {
+                name: data.name,
+                description: data.description,
+                price: data.price,
+                level: data.level,
+                benefits: data.benefits || null,
+                features: Array.isArray(data.features) ? JSON.stringify(data.features) : data.features,
+                maxNodes: data.maxNodes || 1,
+                duration: data.duration || 30,
+                status: data.status || 'ACTIVE'
+            }
+        });
+    }
+
+    async adminUpdate(id, data) {
+        return prisma.package.update({
+            where: { id: Number(id) },
+            data: {
+                ...(data.name && { name: data.name }),
+                ...(data.description && { description: data.description }),
+                ...(data.price && { price: data.price }),
+                ...(data.level && { level: data.level }),
+                ...(data.benefits && { benefits: data.benefits }),
+                ...(data.features && { features: Array.isArray(data.features) ? JSON.stringify(data.features) : data.features }),
+                ...(data.maxNodes && { maxNodes: data.maxNodes }),
+                ...(data.duration && { duration: data.duration }),
+                ...(data.status && { status: data.status }),
+                updatedAt: new Date()
+            }
+        });
+    }
+
+    async adminToggleStatus(id) {
+        const pkg = await this.adminFindById(id);
+        return prisma.package.update({
+            where: { id },
+            data: {
+                isActive: !pkg.isActive,
+                updatedAt: new Date()
+            }
+        });
+    }
+
+    async adminGetStats() {
+        const [
+            totalCount,
+            activeCount,
+            packageStats
+        ] = await prisma.$transaction([
+            // Total packages count
+            prisma.package.count(),
+            
+            // Active packages count
+            prisma.package.count({
+                where: { isActive: true }
+            }),
+            
+            // Package usage and revenue stats
+            prisma.nodePackage.groupBy({
+                by: ['packageId'],
+                _count: {
+                    _all: true
+                },
+                _sum: {
+                    price: true
+                }
+            })
+        ]);
+
+        // Get package details for each stat
+        const packagesWithStats = await Promise.all(
+            packageStats.map(async (stat) => {
+                const pkg = await this.adminFindById(stat.packageId);
+                return {
+                    ...pkg,
+                    userCount: stat._count._all,
+                    totalRevenue: stat._sum.price
+                };
+            })
+        );
+
+        return {
+            totalPackages: totalCount,
+            activePackages: activeCount,
+            packageStats: packagesWithStats,
+            totalRevenue: packageStats.reduce((sum, stat) => sum + (stat._sum.price || 0), 0),
+            totalUsers: packageStats.reduce((sum, stat) => sum + stat._count._all, 0)
+        };
+    }
+
+    async adminDelete(id) {
+        return prisma.package.delete({
+            where: { id }
+        });
+    }
 }
 
 module.exports = new PackageService();

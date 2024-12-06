@@ -67,6 +67,9 @@ model Package {
   level        Int
   status       String        @default("ACTIVE")
   benefits     Json?
+  maxNodes     Int           @default(1)
+  duration     Int           @default(30)
+  features     String?       @db.Text
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   commissions  Commission[]

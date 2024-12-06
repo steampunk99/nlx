@@ -190,27 +190,39 @@ class PackageController {
    */
   async createPackage(req, res) {
     try {
-      const { error } = validatePackageCreate(req.body);
-      if (error) {
-        return res.status(400).json({
-          success: false,
-          message: error.details[0].message
-        });
-      }
+      const { 
+        name,
+        description,
+        price,
+        level,
+        features,
+        benefits,
+        maxNodes,
+        duration,
+        status
+      } = req.body;
 
-      const pkg = await packageService.create(req.body);
+      const newPackage = await packageService.adminCreate({
+        name,
+        description,
+        price: Number(price),
+        level: Number(level),
+        features,
+        benefits,
+        maxNodes: Number(maxNodes),
+        duration: Number(duration),
+        status
+      });
 
       res.status(201).json({
         success: true,
-        message: 'Package created successfully',
-        data: pkg
+        data: newPackage
       });
-
     } catch (error) {
       console.error('Create package error:', error);
       res.status(500).json({
         success: false,
-        message: 'Error creating package'
+        message: error.message || 'Error creating package'
       });
     }
   }
@@ -223,61 +235,70 @@ class PackageController {
   async updatePackage(req, res) {
     try {
       const { id } = req.params;
+      const updateData = { ...req.body };
+      
+      // Convert numeric fields
+      if (updateData.price) updateData.price = Number(updateData.price);
+      if (updateData.level) updateData.level = Number(updateData.level);
+      if (updateData.maxNodes) updateData.maxNodes = Number(updateData.maxNodes);
+      if (updateData.duration) updateData.duration = Number(updateData.duration);
 
-      const pkg = await packageService.findById(id);
-      if (!pkg) {
-        return res.status(404).json({
-          success: false,
-          message: 'Package not found'
-        });
-      }
-
-      const updatedPkg = await packageService.update(id, req.body);
-
+      const updatedPackage = await packageService.adminUpdate(id, updateData);
+      
       res.json({
         success: true,
-        message: 'Package updated successfully',
-        data: updatedPkg
+        data: updatedPackage
       });
-
     } catch (error) {
       console.error('Update package error:', error);
       res.status(500).json({
         success: false,
-        message: 'Error updating package'
+        message: error.message || 'Error updating package'
       });
     }
   }
 
   /**
-   * Delete package (Admin only)
+   * Toggle package status (Admin only)
    * @param {Request} req 
    * @param {Response} res 
    */
-  async deletePackage(req, res) {
+  async togglePackageStatus(req, res) {
     try {
       const { id } = req.params;
-
-      const pkg = await packageService.findById(id);
-      if (!pkg) {
-        return res.status(404).json({
-          success: false,
-          message: 'Package not found'
-        });
-      }
-
-      await packageService.delete(id);
-
+      const togglePackageStatus = await packageService.adminToggleStatus(id);
+      
       res.json({
         success: true,
-        message: 'Package deleted successfully'
+        data: togglePackageStatus
       });
-
     } catch (error) {
-      console.error('Delete package error:', error);
+      console.error('Toggle package status error:', error);
       res.status(500).json({
         success: false,
-        message: 'Error deleting package'
+        message: 'Error toggling package status'
+      });
+    }
+  }
+
+  /**
+   * Get package statistics (Admin only)
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async getPackageStats(req, res) {
+    try {
+      const stats = await packageService.adminGetStats();
+      
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('Get package stats error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving package statistics'
       });
     }
   }
@@ -400,6 +421,39 @@ class PackageController {
       res.status(500).json({
         success: false,
         message: 'Error retrieving upgrade history'
+      });
+    }
+  }
+
+  /**
+   * Delete package (Admin only)
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async deletePackage(req, res) {
+    try {
+      const { id } = req.params;
+
+      const pkg = await packageService.findById(id);
+      if (!pkg) {
+        return res.status(404).json({
+          success: false,
+          message: 'Package not found'
+        });
+      }
+
+      await packageService.delete(id);
+
+      res.json({
+        success: true,
+        message: 'Package deleted successfully'
+      });
+
+    } catch (error) {
+      console.error('Delete package error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error deleting package'
       });
     }
   }

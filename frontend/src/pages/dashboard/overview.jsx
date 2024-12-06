@@ -5,16 +5,16 @@ import { useAuth } from '../../hooks/useAuth'
 import { ArrowUpRight, Users, DollarSign, Package, Activity, ChevronRight, TrendingUp } from 'lucide-react'
 import { Skeleton } from "../../components/ui/skeleton"
 import { useDashboardStats, useRecentActivities } from "../../hooks/useDashboard"
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts'
+import { motion } from "framer-motion"
+import { ResponsiveContainer,LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { cn } from "../../lib/utils"
+
+// Format currency in UGX
+const formatCurrency = (amount) => {
+  const value = Number(amount);
+  if (!amount || isNaN(value)) return "UGX 0";
+  return `UGX ${value.toLocaleString('en-US')}`;
+};
 
 function DashboardOverview() {
   const navigate = useNavigate()
@@ -54,37 +54,31 @@ function DashboardOverview() {
       title: "Total Network",
       value: dashboardStats?.networkSize || "0",
       description: "Active members in your network",
-      trend: dashboardStats?.networkTrend || "+0% from last month",
       icon: Users,
       color: "text-blue-500",
-      bgColor: "bg-blue-500/10"
+      bgColor: "bg-blue-500/10",
+      secondaryValue: dashboardStats?.networkSize || "0",
+      secondaryLabel: "New this month"
     },
     {
       title: "Total Earnings",
-      value: dashboardStats?.totalEarnings || "$0",
+      value: formatCurrency(dashboardStats?.totalEarnings || 0),
       description: "Lifetime earnings",
-      trend: dashboardStats?.earningsTrend || "+0% from last month",
       icon: DollarSign,
       color: "text-green-500",
-      bgColor: "bg-green-500/10"
+      bgColor: "bg-green-500/10",
+      secondaryValue: formatCurrency(dashboardStats?.monthlyEarnings || 0),
+      secondaryLabel: "This month"
     },
     {
       title: "Active Packages",
       value: dashboardStats?.activePackages || "0",
       description: "Current investment packages",
-      trend: dashboardStats?.packagesTrend || "+0% from last month",
       icon: Package,
       color: "text-yellow-500",
-      bgColor: "bg-yellow-500/10"
-    },
-    {
-      title: "Performance",
-      value: dashboardStats?.performance || "0%",
-      description: "Overall network growth",
-      trend: dashboardStats?.performanceTrend || "+0% from last month",
-      icon: TrendingUp,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10"
+      bgColor: "bg-yellow-500/10",
+      secondaryValue: formatCurrency(dashboardStats?.totalPackageValue || 0),
+      secondaryLabel: "Total value"
     }
   ]
 
@@ -137,23 +131,42 @@ function DashboardOverview() {
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
-          <Card key={index} className="overflow-hidden">
+          <Card 
+            key={index} 
+            className={cn(
+              "overflow-hidden transition-all hover:shadow-lg",
+              "bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50"
+            )}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              <div className={`rounded-full p-2 ${stat.bgColor}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className={cn(
+                "rounded-full p-2.5 transition-transform hover:scale-110",
+                stat.bgColor
+              )}>
+                <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
-              </p>
-              <div className={`mt-4 flex items-center text-sm font-medium ${stat.color}`}>
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                {stat.trend}
+              <div className="space-y-3">
+                <div>
+                  <div className="text-2xl font-bold tracking-tight">
+                    {stat.value}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between border-t pt-3 text-sm">
+                  <span className="text-muted-foreground">
+                    {stat.secondaryLabel}
+                  </span>
+                  <span className={cn("font-medium", stat.color)}>
+                    {stat.secondaryValue}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -209,39 +222,77 @@ function DashboardOverview() {
         </Card>
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates from your network</CardDescription>
+        <Card className="overflow-hidden bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+          <CardHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5 text-yellow-500" />
+                  <span>Recent Activity</span>
+                </CardTitle>
+                <CardDescription>Latest updates from your network</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/dashboard/activity')}>
+                View All
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+          <CardContent className="p-0">
+            <div className="divide-y">
               {recentActivities?.map((activity, index) => {
                 const ActivityIcon = getActivityIcon(activity.type)
+                const colorClass = getActivityColor(activity.type)
+                const isNew = index === 0 // Assuming first item is newest
+                
                 return (
                   <div 
                     key={index} 
-                    className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0"
+                    className={cn(
+                      "relative p-4 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                      "animate-in fade-in slide-in-from-bottom-2 duration-500",
+                      { "delay-100": index === 0 },
+                      { "delay-200": index === 1 },
+                      { "delay-300": index === 2 }
+                    )}
                   >
-                    <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500/20 to-purple-500/20 ring-1 ring-white/10 flex items-center justify-center">
-                        <ActivityIcon className="h-5 w-5 text-yellow-500" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{activity.title || activity.description}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {activity.time || activity.date}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">{activity.value || activity.amount}</p>
-                      <span className={cn(
-                        "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-                        getActivityColor(activity.type)
-                      )}>
-                        {activity.status}
+                    {isNew && (
+                      <span className="absolute right-4 top-4 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
                       </span>
+                    )}
+                    <div className="flex items-start space-x-4">
+                      <div className={cn(
+                        "flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105",
+                        colorClass.replace("text-", "bg-").replace("/10", "/20")
+                      )}>
+                        <ActivityIcon className={cn("h-6 w-6", colorClass)} />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium">
+                            {activity.title || activity.description}
+                          </p>
+                          <p className={cn(
+                            "font-medium",
+                            activity.type === 'earning' && "text-green-600 dark:text-green-400"
+                          )}>
+                            {activity.value || activity.amount}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">
+                            {activity.time || activity.date}
+                          </p>
+                          <span className={cn(
+                            "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+                            colorClass
+                          )}>
+                            {activity.status}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )

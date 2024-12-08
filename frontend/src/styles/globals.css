@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.auth-layout {
+  @apply bg-gray-950;
+}
+
+.auth-layout input {
+  @apply bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500;
+}
+
+.auth-layout label {
+  @apply text-gray-300;
+}
+
+.auth-layout p {
+  @apply text-gray-400;
+}
+
+.auth-layout .premium-text-gradient {
+  @apply bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent;
+}
+
+.auth-layout .auth-gradient {
+  @apply bg-gradient-to-r from-emerald-600/90 to-cyan-600/90;
+}
+
+.auth-layout .premium-button {
+  @apply bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 hover:from-emerald-500 hover:to-cyan-500 transition-all duration-300 font-medium;
+}
+
+.auth-layout button:not(:disabled):hover {
+  @apply transform scale-[1.02] transition-transform duration-200;
+}
+
+.auth-layout button:not(:disabled):active {
+  @apply transform scale-[0.98] transition-transform duration-75;
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply text-gray-100;
+  }
+}
+
+.auth-gradient {
+  background: linear-gradient(to bottom right, rgba(16, 185, 129, 0.05), rgba(6, 182, 212, 0.05));
+}
+
+.premium-text-gradient {
+  @apply bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent;
+}
+
+.premium-overlay {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
+}

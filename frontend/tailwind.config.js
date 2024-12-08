@@ -15,6 +15,9 @@ export default {
   		}
   	},
   	extend: {
+  		fontFamily: {
+  			sans: ['Inter', 'system-ui', 'sans-serif'],
+  		},
   		keyframes: {
   			'accordion-down': {
   				from: {

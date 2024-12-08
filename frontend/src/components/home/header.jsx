@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../ui/button"
 import { Menu, X, ChevronDown } from "lucide-react"
 import { cn } from "../../lib/utils"
+import logo from '@/assets/logo.png'
 
 const navigation = [
   { 
@@ -42,193 +43,237 @@ export function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
+      setIsScrolled(window.scrollY > 20)
     }
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
-        isScrolled
-          ? "bg-white shadow-lg shadow-black/[0.03]"
-          : "bg-transparent"
-      )}
-    >
-      <nav className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3 lg:px-8" aria-label="Global">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex lg:flex-1"
-        >
-          <Link to="/" className="-m-1.5 p-1.5 transition duration-300 hover:opacity-80">
-            <span className="sr-only">Zillionaire</span>
-            <h1 className="text-2xl font-bold text-[#0095E7]">
-              Zillionaire
-            </h1>
-          </Link>
-        </motion.div>
-        
-        {/* Mobile menu button */}
-        <div className="flex lg:hidden">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <span className="sr-only">Toggle menu</span>
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" aria-hidden="true" />
-            ) : (
-              <Menu className="h-6 w-6" aria-hidden="true" />
-            )}
-          </motion.button>
-        </div>
-
-        {/* Desktop navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="hidden lg:flex lg:gap-x-8"
-        >
-          {navigation.map((item) => (
-            <div
-              key={item.name}
-              onMouseEnter={() => setActiveSubmenu(item.name)}
-              onMouseLeave={() => setActiveSubmenu(null)}
-              className="relative"
-            >
-              <Link
-                to={item.href}
-                className="flex items-center gap-1 text-sm font-medium text-gray-900 hover:text-[#0095E7] transition-colors py-2"
-              >
-                {item.name}
-                <ChevronDown className="h-4 w-4" />
-              </Link>
-              
-              {activeSubmenu === item.name && (
-                <div className="absolute top-full left-0 w-64 bg-white shadow-lg rounded-lg py-2 mt-1">
-                  {item.submenu.map((subItem) => (
-                    <Link
-                      key={subItem.name}
-                      to={subItem.href}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#0095E7]"
-                      onClick={() => setActiveSubmenu(null)}
-                    >
-                      {subItem.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-x-6"
-        >
-          <Button 
-            variant="ghost"
-            className="text-gray-900 hover:text-[#0095E7] font-medium"
-            asChild
-          >
-            <Link to="/login">Log In</Link>
-          </Button>
-          
-          <Button 
-            className="bg-[#0095E7] text-white hover:bg-[#0077B6] transition-colors"
-            asChild
-          >
-            <Link to="/register">Get Started</Link>
-          </Button>
-        </motion.div>
-
-        {/* Mobile menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed inset-0 top-[57px] z-50 bg-white lg:hidden"
-            >
-              <div className="flex flex-col p-4 space-y-4">
-                {navigation.map((item) => (
-                  <div key={item.name} className="space-y-2">
-                    <button
-                      className="flex items-center justify-between w-full text-left text-gray-900 font-medium"
-                      onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
-                    >
-                      {item.name}
-                      <ChevronDown className={cn(
-                        "h-4 w-4 transition-transform",
-                        activeSubmenu === item.name ? "rotate-180" : ""
-                      )} />
-                    </button>
-                    
-                    <AnimatePresence>
-                      {activeSubmenu === item.name && (
-                        <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: "auto" }}
-                          exit={{ height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pl-4 space-y-2">
-                            {item.submenu.map((subItem) => (
-                              <Link
-                                key={subItem.name}
-                                to={subItem.href}
-                                className="block text-sm text-gray-700"
-                                onClick={() => {
-                                  setMobileMenuOpen(false)
-                                  setActiveSubmenu(null)
-                                }}
-                              >
-                                {subItem.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
-                
-                <div className="pt-4 border-t">
-                  <div className="space-y-2">
-                    <Button 
-                      variant="ghost"
-                      className="w-full justify-center text-gray-900"
-                      asChild
-                    >
-                      <Link to="/login">Log In</Link>
-                    </Button>
-                    
-                    <Button 
-                      className="w-full justify-center bg-[#0095E7] text-white hover:bg-[#0077B6]"
-                      asChild
-                    >
-                      <Link to="/register">Get Started</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+    <div className="fixed inset-x-0 top-0 z-50 px-4 py-4">
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className={cn(
+          "mx-auto max-w-6xl rounded-md transition-all duration-500",
+          isScrolled
+            ? "bg-gray-900/90 backdrop-blur-md shadow-lg"
+            : "bg-gray-900/75"
+        )}
+      >
+        <nav 
+          className={cn(
+            "mx-auto flex items-center justify-between transition-all duration-300",
+            isScrolled ? "h-12 px-4" : "h-14 px-6"
           )}
-        </AnimatePresence>
-      </nav>
-    </motion.header>
+          aria-label="Global"
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex lg:flex-1"
+          >
+            {/* Logo */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-2"
+            >
+              <Link to="/">
+                <img src={logo} alt="Zillionaire" className="h-12 w-12" />
+              </Link>
+            </motion.div>
+            <Link
+              to="/"
+              className="flex items-center gap-2 transition duration-300 hover:opacity-80"
+            >
+              <span className="sr-only">Zillionaire</span>
+              <h1 className={cn(
+                "font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-300",
+                isScrolled ? "text-lg" : "text-xl"
+              )}>
+                Zillionaire
+              </h1>
+            </Link>
+          </motion.div>
+          
+          {/* Mobile menu button */}
+          <div className="flex lg:hidden">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              className="inline-flex items-center justify-center rounded-md p-2 text-gray-100"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <span className="sr-only">Toggle menu</span>
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              )}
+            </motion.button>
+          </div>
+
+          {/* Desktop navigation */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="hidden lg:flex lg:gap-x-6"
+          >
+            {navigation.map((item) => (
+              <div key={item.name} className="relative group">
+                <Link
+                  to={item.href}
+                  className="text-sm font-medium text-gray-100 hover:text-emerald-400 transition-colors duration-200"
+                  onMouseEnter={() => setActiveSubmenu(item.name)}
+                  onMouseLeave={() => setActiveSubmenu(null)}
+                >
+                  <span className="flex items-center gap-1">
+                    {item.name}
+                    {item.submenu && (
+                      <ChevronDown className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-200",
+                        activeSubmenu === item.name && "rotate-180"
+                      )} />
+                    )}
+                  </span>
+                </Link>
+
+                {/* Submenu */}
+                {item.submenu && (
+                  <AnimatePresence>
+                    {activeSubmenu === item.name && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute left-0 top-full mt-1 w-48 rounded-lg bg-gray-900/95 backdrop-blur-md shadow-lg ring-1 ring-white/10"
+                        onMouseEnter={() => setActiveSubmenu(item.name)}
+                        onMouseLeave={() => setActiveSubmenu(null)}
+                      >
+                        <div className="p-1">
+                          {item.submenu.map((subitem) => (
+                            <Link
+                              key={subitem.name}
+                              to={subitem.href}
+                              className="block rounded-md px-3 py-2 text-sm text-gray-100 hover:bg-gray-800/50 hover:text-emerald-400"
+                            >
+                              {subitem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4"
+          >
+            <Button variant="ghost" className="hover:bg-transparent transition-ease duration-300 hover:border hover:border-emerald-400">
+            <Link 
+              to="/login"
+              className="text-sm font-medium text-emerald-400  transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+            </Button>
+            <Button 
+              asChild
+              className="bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-500 hover:to-cyan-500 text-gray-900 font-medium transition-all duration-300"
+            >
+              <Link to="/register">Get Started</Link>
+            </Button>
+          </motion.div>
+
+          {/* Mobile menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-x-0 top-[65px] p-4 mx-4 rounded-xl bg-gray-900/95 backdrop-blur-md shadow-lg ring-1 ring-white/10 lg:hidden"
+              >
+                <div className="flex flex-col p-4 space-y-4">
+                  {navigation.map((item) => (
+                    <div key={item.name} className="space-y-2">
+                      <button
+                        className="flex items-center justify-between w-full text-left text-gray-100 font-medium"
+                        onClick={() => setActiveSubmenu(activeSubmenu === item.name ? null : item.name)}
+                      >
+                        {item.name}
+                        <ChevronDown className={cn(
+                          "h-4 w-4 transition-transform",
+                          activeSubmenu === item.name ? "rotate-180" : ""
+                        )} />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {activeSubmenu === item.name && (
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: "auto" }}
+                            exit={{ height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-4 space-y-2">
+                              {item.submenu.map((subItem) => (
+                                <Link
+                                  key={subItem.name}
+                                  to={subItem.href}
+                                  className="block text-sm text-gray-100"
+                                  onClick={() => {
+                                    setMobileMenuOpen(false)
+                                    setActiveSubmenu(null)
+                                  }}
+                                >
+                                  {subItem.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                  
+                  <div className="pt-4 border-t">
+                    <div className="space-y-2">
+                      <Button 
+                        variant="ghost"
+                        className="w-full justify-center text-gray-100"
+                        asChild
+                      >
+                        <Link to="/login">Log In</Link>
+                      </Button>
+                      
+                      <Button 
+                        className="w-full justify-center bg-[#0095E7] text-white hover:bg-[#0077B6]"
+                        asChild
+                      >
+                        <Link to="/register">Get Started</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </nav>
+      </motion.header>
+    </div>
   )
 }

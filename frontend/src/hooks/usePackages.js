@@ -188,7 +188,12 @@ export function usePackages() {
   // Package purchase mutation
   const purchasePackageMutation = useMutation({
     mutationFn: async ({ packageId, paymentMethod, phoneNumber = '' }) => {
-      console.log('Package Purchase - Authentication Check')
+      console.group('Package Purchase Debug')
+      console.log('Authentication Status:', isAuthenticated())
+      console.log('Package ID:', packageId)
+      console.log('Payment Method:', paymentMethod)
+      console.log('Phone Number:', phoneNumber)
+
       if (!isAuthenticated()) {
         console.warn('Not authenticated - redirecting to login')
         navigate('/login')
@@ -197,11 +202,26 @@ export function usePackages() {
       
       try {
         console.log('Attempting package purchase', { packageId, paymentMethod, phoneNumber })
-        const { data } = await api.post('/packages/purchase', {
+        
+        // Validate inputs before making the request
+        if (!packageId) {
+          throw new Error('Package ID is required')
+        }
+        if (!paymentMethod) {
+          throw new Error('Payment method is required')
+        }
+
+        const purchasePayload = {
           packageId,
           paymentMethod,
           ...(phoneNumber && { phoneNumber })
-        })
+        }
+
+        console.log('Purchase Payload:', JSON.stringify(purchasePayload, null, 2))
+
+        const { data } = await api.post('/packages/purchase', purchasePayload)
+
+        console.log('Purchase Response:', data)
 
         // Handle different payment method scenarios
         switch (paymentMethod) {
@@ -228,9 +248,18 @@ export function usePackages() {
           variant: 'success'
         })
 
+        console.groupEnd()
         return data
       } catch (error) {
         console.error('Package purchase error', error)
+        
+        // Log detailed error information
+        console.group('Purchase Error Details')
+        console.log('Error Response:', error.response)
+        console.log('Error Status:', error.response?.status)
+        console.log('Error Data:', error.response?.data)
+        console.log('Error Message:', error.message)
+        console.groupEnd()
         
         // Detailed error handling for mobile money
         if (error.response?.data?.mobileMoneyError) {
@@ -243,6 +272,7 @@ export function usePackages() {
           handleAuthError(error, 'Package Purchase')
         }
         
+        console.groupEnd()
         throw error
       }
     },
@@ -251,7 +281,12 @@ export function usePackages() {
       console.log('Package purchase successful', data)
     },
     onError: (error) => {
-      console.error('Package purchase failed', error)
+      console.error('Package purchase mutation error', error)
+      toast({
+        title: 'Purchase Failed',
+        description: error.message || 'Unable to complete package purchase',
+        variant: 'destructive'
+      })
     }
   })
 

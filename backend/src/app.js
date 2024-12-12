@@ -12,7 +12,6 @@ const networkRoutes = require('./routes/network.routes');
 const packageRoutes = require('./routes/package.routes');
 const financeRoutes = require('./routes/finance.routes');
 const withdrawalRoutes = require('./routes/withdrawal.routes');
-const mobileMoneyRoutes = require('./routes/mobileMoney.routes');
 const adminRoutes = require('./routes/admin.routes');
 const announcementRoutes = require('./routes/announcement.routes');
 const paymentRoutes = require('./routes/payment.routes');
@@ -67,8 +66,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-
-
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
@@ -112,10 +109,9 @@ app.use('/api/v1/network', networkRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/finance', financeRoutes);
 app.use('/api/v1/withdrawals', withdrawalRoutes);
-app.use('/api/v1/mobile-money', mobileMoneyRoutes);
 app.use('/api/v1/admin', auth, adminRoutes);
 app.use('/api/v1/announcements', auth, announcementRoutes);
-app.use('/api/v1/payments', auth, paymentRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/dashboard', auth, dashboardRoutes);
 app.use('/api/v1/notifications', auth, notificationRoutes);
 app.use('/api/v1/commissions', auth, commissionRoutes);

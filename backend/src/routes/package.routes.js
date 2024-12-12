@@ -34,7 +34,7 @@ const packageController = require('../controllers/package.controller');
  *         maxNodes:
  *           type: integer
  *         duration:
- *           type: integer
+ *           type: integerrr
  *         imageUrl:
  *           type: string
  */
@@ -46,7 +46,7 @@ const packageController = require('../controllers/package.controller');
  *     summary: Get all available packages
  *     tags: [Packages]
  */
-router.get('/', [auth, ], packageController.getAllPackages);
+router.get('/',auth, packageController.getAllPackages);
 
 /**
  * @swagger
@@ -205,5 +205,44 @@ router.get('/upgrade/history', [
     query('endDate').optional().isISO8601(),
     validate
 ], packageController.getUpgradeHistory);
+
+/**
+ * @swagger
+ * /packages/purchase:
+ *   post:
+ *     summary: Purchase a new package
+ *     tags: [Packages]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - packageId
+ *               - paymentMethod
+ *               - phoneNumber
+ *             properties:
+ *               packageId:
+ *                 type: integer
+ *               paymentMethod:
+ *                 type: string
+ *                 enum: [MTN_MOBILE, AIRTEL_MONEY]
+ *               phoneNumber:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Package purchase successful
+ *       400:
+ *         description: Invalid request
+ *       404:
+ *         description: Package not found
+ */
+router.post('/purchase', [
+   
+    body('package_id').isInt(),
+    body('paymentMethod').isIn(['MTN_MOBILE_MONEY', 'AIRTEL_MONEY']),
+    body('phoneNumber').matches(/^(0|\+?256)?(7[0-9]{8})$/)
+], packageController.purchasePackage);
 
 module.exports = router;

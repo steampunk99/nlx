@@ -14,12 +14,12 @@ export function usePackages() {
     const tokens = getAuthTokens()
     const isAuth = !!tokens.accessToken
     
-    console.group('Authentication Check')
-    console.log('Access Token Present:', !!tokens.accessToken)
-    console.log('Refresh Token Present:', !!tokens.refreshToken)
-    console.log('Is Authenticated:', isAuth)
-    console.trace('Authentication Check Trace')
-    console.groupEnd()
+    // console.group('Authentication Check')
+    // console.log('Access Token Present:', !!tokens.accessToken)
+    // console.log('Refresh Token Present:', !!tokens.refreshToken)
+    // console.log('Is Authenticated:', isAuth)
+    // console.trace('Authentication Check Trace')
+    // console.groupEnd()
 
     return isAuth
   }
@@ -187,10 +187,10 @@ export function usePackages() {
 
   // Package purchase mutation
   const purchasePackageMutation = useMutation({
-    mutationFn: async ({ packageId, paymentMethod, phoneNumber = '' }) => {
+    mutationFn: async ({ package_id, paymentMethod, phoneNumber = '' }) => {
       console.group('Package Purchase Debug')
       console.log('Authentication Status:', isAuthenticated())
-      console.log('Package ID:', packageId)
+      console.log('Package ID:', package_id)
       console.log('Payment Method:', paymentMethod)
       console.log('Phone Number:', phoneNumber)
 
@@ -201,10 +201,10 @@ export function usePackages() {
       }
       
       try {
-        console.log('Attempting package purchase', { packageId, paymentMethod, phoneNumber })
+        console.log('Attempting package purchase', { package_id, paymentMethod, phoneNumber })
         
         // Validate inputs before making the request
-        if (!packageId) {
+        if (!package_id) {
           throw new Error('Package ID is required')
         }
         if (!paymentMethod) {
@@ -212,7 +212,7 @@ export function usePackages() {
         }
 
         const purchasePayload = {
-          packageId,
+          package_id,
           paymentMethod,
           ...(phoneNumber && { phoneNumber })
         }
@@ -226,6 +226,13 @@ export function usePackages() {
         // Handle different payment method scenarios
         switch (paymentMethod) {
           case 'MTN_MOBILE_MONEY':
+            // Mobile money specific handling
+            if (data.paymentUrl) {
+              // Redirect to mobile money payment page
+              window.location.href = data.paymentUrl
+              return data
+            }
+            break
           case 'AIRTEL_MONEY':
             // Mobile money specific handling
             if (data.paymentUrl) {

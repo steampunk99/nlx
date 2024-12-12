@@ -1,4 +1,43 @@
 -- CreateTable
+CREATE TABLE `users` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `password` VARCHAR(191) NOT NULL,
+    `firstName` VARCHAR(191) NOT NULL,
+    `lastName` VARCHAR(191) NOT NULL,
+    `phone` VARCHAR(191) NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'ACTIVE',
+    `role` ENUM('USER', 'ADMIN', 'MODERATOR') NOT NULL DEFAULT 'USER',
+    `isVerified` BOOLEAN NOT NULL DEFAULT false,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `country` VARCHAR(191) NOT NULL DEFAULT 'UG',
+
+    UNIQUE INDEX `users_username_key`(`username`),
+    UNIQUE INDEX `users_email_key`(`email`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `nodes` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `position` VARCHAR(191) NOT NULL DEFAULT 'ONE',
+    `status` VARCHAR(191) NOT NULL DEFAULT 'ACTIVE',
+    `level` INTEGER NOT NULL DEFAULT 1,
+    `sponsor_id` INTEGER NULL,
+    `placement_id` INTEGER NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `nodes_user_id_key`(`user_id`),
+    INDEX `nodes_placement_id_fkey`(`placement_id`),
+    INDEX `nodes_sponsor_id_fkey`(`sponsor_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `packages` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
@@ -7,6 +46,9 @@ CREATE TABLE `packages` (
     `level` INTEGER NOT NULL,
     `status` VARCHAR(191) NOT NULL DEFAULT 'ACTIVE',
     `benefits` JSON NULL,
+    `maxNodes` INTEGER NOT NULL DEFAULT 1,
+    `duration` INTEGER NOT NULL DEFAULT 30,
+    `features` TEXT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -30,15 +72,21 @@ CREATE TABLE `node_packages` (
 -- CreateTable
 CREATE TABLE `node_payments` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `node_id` INTEGER NOT NULL,
+    `nodeId` INTEGER NOT NULL,
     `amount` DECIMAL(10, 2) NOT NULL,
     `status` ENUM('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
     `type` VARCHAR(191) NOT NULL,
     `reference` VARCHAR(191) NULL,
+    `paymentMethod` VARCHAR(191) NOT NULL DEFAULT 'MTN_MOBILE',
+    `phoneNumber` VARCHAR(191) NULL,
+    `transactionDetails` JSON NULL,
+    `completedAt` DATETIME(3) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+    `packageId` INTEGER NULL,
+    `activatedAt` DATETIME(3) NULL,
 
-    INDEX `node_payments_node_id_fkey`(`node_id`),
+    INDEX `node_payments_node_id_fkey`(`nodeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -47,10 +95,16 @@ CREATE TABLE `node_statements` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `node_id` INTEGER NOT NULL,
     `amount` DECIMAL(10, 2) NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'PENDING',
     `type` VARCHAR(191) NOT NULL,
     `description` TEXT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+    `activatedAt` DATETIME(3) NULL,
+    `completedAt` DATETIME(3) NULL,
+    `balance_after` DECIMAL(10, 2) NULL DEFAULT 0,
+    `referenceType` VARCHAR(191) NOT NULL,
+    `referenceId` INTEGER NOT NULL,
 
     INDEX `node_statements_node_id_fkey`(`node_id`),
     PRIMARY KEY (`id`)
@@ -189,13 +243,25 @@ CREATE TABLE `referral_links` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
+ALTER TABLE `nodes` ADD CONSTRAINT `nodes_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `nodes` ADD CONSTRAINT `nodes_placement_id_fkey` FOREIGN KEY (`placement_id`) REFERENCES `nodes`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `nodes` ADD CONSTRAINT `nodes_sponsor_id_fkey` FOREIGN KEY (`sponsor_id`) REFERENCES `nodes`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `node_packages` ADD CONSTRAINT `node_packages_node_id_fkey` FOREIGN KEY (`node_id`) REFERENCES `nodes`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `node_packages` ADD CONSTRAINT `node_packages_package_id_fkey` FOREIGN KEY (`package_id`) REFERENCES `packages`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `node_payments` ADD CONSTRAINT `node_payments_node_id_fkey` FOREIGN KEY (`node_id`) REFERENCES `nodes`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `node_payments` ADD CONSTRAINT `node_payments_nodeId_fkey` FOREIGN KEY (`nodeId`) REFERENCES `nodes`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `node_payments` ADD CONSTRAINT `node_payments_packageId_fkey` FOREIGN KEY (`packageId`) REFERENCES `packages`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `node_statements` ADD CONSTRAINT `node_statements_node_id_fkey` FOREIGN KEY (`node_id`) REFERENCES `nodes`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

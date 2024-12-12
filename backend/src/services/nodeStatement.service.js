@@ -148,10 +148,10 @@ class NodeStatementService {
 
         // Get user's package withdrawal limits
         const packageLimits = node?.package?.package?.withdrawalLimits || {
-            daily: 1000,
-            weekly: 5000,
+            daily: 5000,
+            weekly: 1000,
             monthly: 20000,
-            minimum: 50
+            minimum: 15000
         };
 
         // Calculate remaining limits based on recent withdrawals

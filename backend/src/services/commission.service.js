@@ -104,6 +104,20 @@ class CommissionService {
         return commission;
     }
 
+    //find pending commissions
+    async findPendingByPayment(paymentId) {
+        return prisma.commission.findMany({
+            where: {
+                paymentId,
+                status: 'PENDING'
+            },
+            include: {
+                user: true,
+                sourceUser: true
+            }
+        });
+    }
+
     async create(commissionData) {
         return await prisma.$transaction(async (tx) => {
             // Create commission

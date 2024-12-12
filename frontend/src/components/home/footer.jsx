@@ -49,88 +49,76 @@ export function Footer() {
                 <ChevronRight className="h-4 w-4" />
                 Contact Us
               </Link>
+              <Link to="/terms" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Terms of Service
+              </Link>
+              <Link to="/privacy" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
+
+          {/* Services */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900">Services</h3>
+            <div className="flex flex-col space-y-2">
+              <Link to="/dashboard/network" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Network Marketing
+              </Link>
+              <Link to="/dashboard/commissions" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Commission Structure
+              </Link>
+              <Link to="/dashboard/packages" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Investment Plans
+              </Link>
+              <Link to="/dashboard/withdrawals" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Withdrawals
+              </Link>
+            </div>
+          </div>
+
+          {/* Support */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900">Support</h3>
+            <div className="flex flex-col space-y-2">
+              <Link to="/support" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Help Center
+              </Link>
+              <Link to="/support/tickets" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
+                <ChevronRight className="h-4 w-4" />
+                Support Tickets
+              </Link>
               <Link to="/faq" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
                 <ChevronRight className="h-4 w-4" />
                 FAQ
               </Link>
             </div>
           </div>
+        </div>
 
-          {/* Legal */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900">Legal</h3>
-            <div className="flex flex-col space-y-2">
-              <Link to="/privacy" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                Privacy Policy
+        {/* Footer Bottom */}
+        <div className="pt-8 mt-8 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-gray-600">
+              {new Date().getFullYear()} Zillionaire. All rights reserved.
+            </p>
+            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+              <Link to="/terms" className="text-sm text-gray-600 hover:text-[#0095E7]">
+                Terms
               </Link>
-              <Link to="/terms" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                Terms of Service
+              <span className="text-gray-300">•</span>
+              <Link to="/privacy" className="text-sm text-gray-600 hover:text-[#0095E7]">
+                Privacy
               </Link>
-             
             </div>
           </div>
-
-          {/* Office */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900">Office</h3>
-            <p className="text-sm text-gray-600">
-              Plot 32, Lumumba Avenue<br />
-              Nakasero, Kampala<br />
-              Uganda
-            </p>
-          </div>
-        </div>
-
-        {/* Legal Information */}
-        <div className="border-t border-gray-200 pt-8 space-y-8">
-          <div className="prose prose-sm max-w-none text-gray-600 space-y-4">
-            {/* <p>
-              Zillionaire Limited is a registered company in Uganda with registration number UC-123456. 
-              The company is authorized by the Uganda Registration Services Bureau (URSB) with license number MLM/2024/001.
-            </p> */}
-            
-            <p>
-              <strong className="text-gray-900">Risk Warning:</strong> Network marketing and investment activities involve 
-              risks and may not be suitable for everyone. Your capital is at risk, and past performance is not indicative 
-              of future results. Under no circumstances shall Zillionaire have any liability for any loss or damage resulting 
-              from reliance on the information contained herein.
-            </p>
-
-            <p>
-              The services offered by Zillionaire are not available to residents of certain jurisdictions where such services 
-              would be contrary to local laws and regulations. It is the responsibility of the user to ensure compliance with 
-              any local laws or regulations.
-            </p>
-
-            <p>
-              The information on this website does not constitute investment advice or a recommendation to join our network 
-              marketing program. Any interaction with this website constitutes an individual and voluntary operation.
-            </p>
-
-            <p>
-              Zillionaire maintains high standards of data security and privacy protection. We conduct regular security audits 
-              and implement industry-standard protection measures to safeguard your information.
-            </p>
-          </div>
-
-          <div className="text-xs text-gray-500 space-y-2">
-            <p>
-              ¹All withdrawal requests are processed within 24-48 hours of approval.
-            </p>
-            <p>
-              ²Commission rates and referral bonuses may vary based on package type and network level.
-            </p>
-            <p>
-              ³Package prices and features are subject to change with notice to members.
-            </p>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p> {new Date().getFullYear()} Zillionaire Limited. All rights reserved.</p>
         </div>
       </div>
     </motion.footer>

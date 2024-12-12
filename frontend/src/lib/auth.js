@@ -14,11 +14,11 @@ export function setAuthTokens(tokens) {
     ? tokens 
     : { accessToken: arguments[0], refreshToken: arguments[1] }
 
-  console.group('Setting Auth Tokens')
-  console.log('Access Token:', !!accessToken)
-  console.log('Refresh Token:', !!refreshToken)
-  console.trace('Token Setting Trace')
-  console.groupEnd()
+  // console.group('Setting Auth Tokens')
+  // console.log('Access Token:', !!accessToken)
+  // console.log('Refresh Token:', !!refreshToken)
+  // console.trace('Token Setting Trace')
+  // console.groupEnd()
 
   if (accessToken) {
     localStorage.setItem('accessToken', accessToken)
@@ -40,11 +40,11 @@ export function getAuthTokens() {
     refreshToken: localStorage.getItem('refreshToken'),
   }
 
-  console.group('Getting Auth Tokens')
-  console.log('Access Token Present:', !!tokens.accessToken)
-  console.log('Refresh Token Present:', !!tokens.refreshToken)
-  console.trace('Token Retrieval Trace')
-  console.groupEnd()
+  // console.group('Getting Auth Tokens')
+  // console.log('Access Token Present:', !!tokens.accessToken)
+  // console.log('Refresh Token Present:', !!tokens.refreshToken)
+  // console.trace('Token Retrieval Trace')
+  // console.groupEnd()
 
   return tokens
 }

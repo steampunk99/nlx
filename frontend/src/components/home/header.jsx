@@ -2,13 +2,14 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../ui/button"
+import { HoverLink } from "../ui/hover-link"
 import { Menu, X, ChevronDown } from "lucide-react"
 import { cn } from "../../lib/utils"
 import logo from '@/assets/logo.png'
 
 const navigation = [
   { 
-    name: "Features", 
+    name: "Features",
     href: "/#features",
     submenu: [
       { name: "Earn More", href: "/#features" },
@@ -18,7 +19,7 @@ const navigation = [
     ]
   },
   { 
-    name: "Packages", 
+    name: "Packages",
     href: "/#packages",
     submenu: [
       { name: "Starter Package", href: "/#packages" },
@@ -27,7 +28,7 @@ const navigation = [
     ]
   },
   { 
-    name: "About", 
+    name: "About",
     href: "/about",
     submenu: [
       { name: "Our Company", href: "/about" },
@@ -122,53 +123,40 @@ export function Header() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="hidden lg:flex lg:gap-x-6"
+            className="hidden lg:flex lg:gap-x-12"
           >
             {navigation.map((item) => (
-              <div key={item.name} className="relative group">
-                <Link
+              <div
+                key={item.name}
+                className="relative"
+                onMouseEnter={() => setActiveSubmenu(item.name)}
+                onMouseLeave={() => setActiveSubmenu(null)}
+              >
+                <HoverLink
                   to={item.href}
-                  className="text-sm font-medium text-gray-100 hover:text-emerald-400 transition-colors duration-200"
-                  onMouseEnter={() => setActiveSubmenu(item.name)}
-                  onMouseLeave={() => setActiveSubmenu(null)}
-                >
-                  <span className="flex items-center gap-1">
-                    {item.name}
-                    {item.submenu && (
-                      <ChevronDown className={cn(
-                        "h-3.5 w-3.5 transition-transform duration-200",
-                        activeSubmenu === item.name && "rotate-180"
-                      )} />
-                    )}
-                  </span>
-                </Link>
-
-                {/* Submenu */}
-                {item.submenu && (
+                  defaultText={item.name}
+                  className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-100 transition duration-300 hover:text-emerald-400"
+                />
+                
+                {item.submenu && activeSubmenu === item.name && (
                   <AnimatePresence>
-                    {activeSubmenu === item.name && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute left-0 top-full mt-1 w-48 rounded-lg bg-gray-900/95 backdrop-blur-md shadow-lg ring-1 ring-white/10"
-                        onMouseEnter={() => setActiveSubmenu(item.name)}
-                        onMouseLeave={() => setActiveSubmenu(null)}
-                      >
-                        <div className="p-1">
-                          {item.submenu.map((subitem) => (
-                            <Link
-                              key={subitem.name}
-                              to={subitem.href}
-                              className="block rounded-md px-3 py-2 text-sm text-gray-100 hover:bg-gray-800/50 hover:text-emerald-400"
-                            >
-                              {subitem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute left-0 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-gray-900/90 backdrop-blur-sm shadow-lg ring-1 ring-gray-900/5"
+                    >
+                      <div className="p-4">
+                        {item.submenu.map((subItem) => (
+                          <HoverLink
+                            key={subItem.name}
+                            to={subItem.href}
+                            defaultText={subItem.name}
+                            className="block rounded-lg px-3 py-2 text-sm font-semibold leading-6 text-gray-100 hover:bg-gray-800/50 hover:text-emerald-400"
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
                   </AnimatePresence>
                 )}
               </div>
@@ -181,19 +169,22 @@ export function Header() {
             transition={{ duration: 0.5 }}
             className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4"
           >
-            <Button variant="ghost" className="hover:bg-transparent transition-ease duration-300 hover:border hover:border-emerald-400">
-            <Link 
-              to="/login"
-              className="text-sm font-medium text-emerald-400  transition-colors duration-200"
-            >
-              Sign in
-            </Link>
+            <Button variant="ghost" className="hover:bg-transparent border border-emerald-400 transition-ease duration-300 hover:border hover:border-emerald-600">
+              <HoverLink 
+                to="/login"
+                defaultText="Sign in"
+                className="text-sm font-medium text-emerald-400 transition-colors duration-200"
+              />
             </Button>
             <Button 
               asChild
               className="bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-500 hover:to-cyan-500 text-gray-900 font-medium transition-all duration-300"
             >
-              <Link to="/register">Get Started</Link>
+              <HoverLink 
+                to="/register" 
+                defaultText="Get Started"
+                className="text-sm font-medium"
+              />
             </Button>
           </motion.div>
 

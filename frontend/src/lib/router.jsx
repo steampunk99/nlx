@@ -19,6 +19,10 @@ const PackagesPage = lazy(() => import('../pages/dashboard/packages'))
 const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))
 const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
 
+// Legal Pages
+const TermsPage = lazy(() => import('../pages/legal/terms'))
+const PrivacyPage = lazy(() => import('../pages/legal/privacy'))
+
 // Admin Pages
 const AdminDashboardPage = lazy(() => import('../pages/admin/index'))
 const UsersPage = lazy(() => import('../pages/admin/users'))
@@ -41,7 +45,7 @@ const TicketsPage = lazy(() => import('../pages/support/tickets'))
 // Loading component for Suspense
 const Loading = () => (
   <div className="flex h-screen items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
   </div>
 )
 
@@ -49,12 +53,14 @@ export function AppRouter() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        {/* Public routes */}
+        {/* Public Routes */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route index element={<HomePage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
 
-        {/* Auth routes */}
+        {/* Auth Routes */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -62,37 +68,37 @@ export function AppRouter() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
-        {/* Dashboard routes */}
-        <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/dashboard/network" element={<NetworkPage />} />
-          <Route path="/dashboard/commissions" element={<CommissionsPage />} />
-          <Route path="/dashboard/packages" element={<PackagesPage />} />
-          <Route path="/dashboard/withdrawals" element={<WithdrawalsPage />} />
-          <Route path="/dashboard/profile" element={<ProfilePage />} />
+        {/* Dashboard Routes */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="network" element={<NetworkPage />} />
+          <Route path="commissions" element={<CommissionsPage />} />
+          <Route path="packages" element={<PackagesPage />} />
+          <Route path="withdrawals" element={<WithdrawalsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
-        {/* Admin routes */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/users/roles" element={<UserRolesPage />} />
-          <Route path="/admin/users/permissions" element={<UserPermissionsPage />} />
-          <Route path="/admin/packages" element={<AdminPackagesPage />} />
-          <Route path="/admin/packages/categories" element={<PackageCategoriesPage />} />
-          <Route path="/admin/packages/pricing" element={<PackagePricingPage />} />
-          <Route path="/admin/withdrawals" element={<AdminWithdrawalsPage />} />
-          <Route path="/admin/commissions" element={<AdminCommissionsPage />} />
-          <Route path="/admin/transactions" element={<TransactionsPage />} />
-          <Route path="/admin/support/tickets" element={<SupportTicketsPage />} />
-          <Route path="/admin/support/faq" element={<FAQPage />} />
-          <Route path="/admin/support/kb" element={<KnowledgeBasePage />} />
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="users/roles" element={<UserRolesPage />} />
+          <Route path="users/permissions" element={<UserPermissionsPage />} />
+          <Route path="packages" element={<AdminPackagesPage />} />
+          <Route path="packages/categories" element={<PackageCategoriesPage />} />
+          <Route path="packages/pricing" element={<PackagePricingPage />} />
+          <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
+          <Route path="finance/transactions" element={<TransactionsPage />} />
+          <Route path="finance/commissions" element={<AdminCommissionsPage />} />
+          <Route path="support/tickets" element={<SupportTicketsPage />} />
+          <Route path="support/faq" element={<FAQPage />} />
+          <Route path="support/kb" element={<KnowledgeBasePage />} />
         </Route>
 
-        {/* Support routes */}
-        <Route element={<SupportLayout />}>
-          <Route path="/support" element={<SupportDashboardPage />} />
-          <Route path="/support/tickets" element={<TicketsPage />} />
+        {/* Support Routes */}
+        <Route path="/support" element={<SupportLayout />}>
+          <Route index element={<SupportDashboardPage />} />
+          <Route path="tickets" element={<TicketsPage />} />
         </Route>
       </Routes>
     </Suspense>

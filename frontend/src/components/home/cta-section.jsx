@@ -5,10 +5,9 @@ import { ArrowRight } from "lucide-react"
 
 export function CTASection() {
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32 bg-[#0095E7]">
+    <section className="relative overflow-hidden py-24 sm:py-32 bg-gray-950">
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,#0095E7_0%,#0077B6_100%)]" />
-        <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+
       </div>
 
       {/* Content */}
@@ -60,16 +59,6 @@ export function CTASection() {
                     Get Started Now
                     <ArrowRight className="w-4 h-4" />
                   </span>
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-black border-white hover:bg-white/10"
-                asChild
-              >
-                <Link to="/dashboard/packages">
-                  View Packages
                 </Link>
               </Button>
             </motion.div>

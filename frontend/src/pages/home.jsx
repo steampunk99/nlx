@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { HeroSection } from "../components/home/hero-section"
 import { FeaturesSection } from "../components/home/features-section"
-import { PackagesSection } from "../components/home/packages-section"
+
 import { CTASection } from "../components/home/cta-section"
 import { Header } from "../components/home/header"
 import { Footer } from "../components/home/footer"
@@ -86,7 +86,6 @@ function HomePage() {
     <div className="relative">
         <HeroSection />
         <FeaturesSection features={features} />
-        <PackagesSection packages={packages} />
         <CTASection />
     </div>
   )

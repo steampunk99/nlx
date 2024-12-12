@@ -44,26 +44,22 @@ export function ResetPasswordPage() {
     setIsSubmitted(true)
   }
 
-  if (isSubmitted) {
-    return (
-      <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Password reset successful
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Your password has been reset successfully. You can now login with your new password.
-          </p>
-        </div>
-        <Button asChild className="w-full">
-          <Link to="/login">Back to login</Link>
-        </Button>
+  const content = isSubmitted ? (
+    <div className="w-full max-w-[350px] space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Password reset successful
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Your password has been reset successfully. You can now login with your new password.
+        </p>
       </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
+      <Button asChild className="w-full">
+        <Link to="/login">Back to login</Link>
+      </Button>
+    </div>
+  ) : (
+    <div className="w-full max-w-[350px] space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
           Reset password
@@ -109,7 +105,7 @@ export function ResetPasswordPage() {
             )}
           />
           <Button type="submit" className="w-full">
-            Reset password
+            Reset Password
           </Button>
         </form>
       </Form>
@@ -121,6 +117,12 @@ export function ResetPasswordPage() {
           Back to login
         </Link>
       </div>
+    </div>
+  )
+
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      {content}
     </div>
   )
 }

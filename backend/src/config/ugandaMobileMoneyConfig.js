@@ -11,7 +11,7 @@ module.exports = {
             secondaryKey: process.env.MTN_COLLECTION_SECONDARY_KEY,
             userId: process.env.MTN_COLLECTION_USER_ID,
             apiKey: process.env.MTN_COLLECTION_API_KEY,
-            targetEnvironment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
+            targetEnvironment:'sandbox',
             callbackUrl: process.env.MTN_COLLECTION_CALLBACK_URL,
             notificationUrl: process.env.MTN_COLLECTION_NOTIFICATION_URL
         },

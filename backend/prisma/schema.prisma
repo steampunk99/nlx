@@ -74,6 +74,7 @@ model Package {
   updatedAt    DateTime      @updatedAt @map("updated_at")
   commissions  Commission[]
   nodePackages NodePackage[]
+  nodePayments NodePayment[]
 
   @@map("packages")
 }
@@ -87,23 +88,31 @@ model NodePackage {
   updatedAt DateTime @updatedAt @map("updated_at")
   node      Node     @relation(fields: [nodeId], references: [id])
   package   Package  @relation(fields: [packageId], references: [id])
+  activatedAt DateTime?
 
   @@index([packageId], map: "node_packages_package_id_fkey")
   @@map("node_packages")
 }
 
 model NodePayment {
-  id        Int           @id @default(autoincrement())
-  nodeId    Int           @map("node_id")
-  amount    Decimal       @db.Decimal(10, 2)
-  status    PaymentStatus @default(PENDING)
-  type      String
-  reference String?
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
-  node      Node          @relation(fields: [nodeId], references: [id])
+  id                Int           @id @default(autoincrement())
+  node             Node          @relation(fields: [nodeId], references: [id])
+  nodeId           Int
+  amount           Decimal       @db.Decimal(10, 2)
+  status           PaymentStatus @default(PENDING)
+  type             String
+  reference        String?       @unique
+  paymentMethod    String        @default("MTN_MOBILE")
+  phoneNumber      String?
+  transactionDetails Json?
+  completedAt      DateTime?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  packageId        Int?
+  package          Package?      @relation(fields: [packageId], references: [id])
+  activatedAt      DateTime?
 
-  @@index([nodeId], map: "node_payments_node_id_fkey")
+  @@index([nodeId], name: "node_payments_node_id_fkey")
   @@map("node_payments")
 }
 
@@ -111,12 +120,17 @@ model NodeStatement {
   id          Int      @id @default(autoincrement())
   nodeId      Int      @map("node_id")
   amount      Decimal  @db.Decimal(10, 2)
+  status      String   @default("PENDING")
   type        String
   description String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   node        Node     @relation(fields: [nodeId], references: [id])
-
+  activatedAt DateTime?
+  completedAt DateTime?
+  balanceAfter Decimal? @db.Decimal(10, 2) @default(0) @map("balance_after")
+  referenceType String
+  referenceId   Int
   @@index([nodeId], map: "node_statements_node_id_fkey")
   @@map("node_statements")
 }

@@ -85,9 +85,7 @@ const packagePurchaseSchema = Joi.object({
         .integer()
         .required(),
     
-    payment_method: Joi.string()
-        .valid('bank_transfer', 'mobile_money', 'card')
-        .required(),
+    
     
     phone_number: Joi.string()
         .pattern(/^[0-9]+$/)
@@ -108,18 +106,9 @@ const packageUpgradeSchema = Joi.object({
         .integer()
         .required(),
     
-    payment_method: Joi.string()
-        .valid('bank_transfer', 'mobile_money', 'card')
-        .required(),
+
     
-    phone_number: Joi.string()
-        .pattern(/^[0-9]+$/)
-        .min(10)
-        .max(15)
-        .when('payment_method', {
-            is: 'mobile_money',
-            then: Joi.required()
-        })
+ 
 });
 
 module.exports = {

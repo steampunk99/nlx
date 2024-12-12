@@ -13,19 +13,19 @@
 }
 
 .auth-layout label {
-  @apply text-gray-300;
+  @apply text-gray-200;
 }
 
 .auth-layout p {
-  @apply text-gray-400;
+  @apply text-gray-300;
 }
 
 .auth-layout .premium-text-gradient {
-  @apply bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-red-700/10 to-cyan-400 bg-clip-text text-transparent;
 }
 
 .auth-layout .auth-gradient {
-  @apply bg-gradient-to-r from-emerald-600/90 to-cyan-600/90;
+  @apply bg-gradient-to-r from-gray-900 to-emerald-600/90;
 }
 
 .auth-layout .premium-button {
@@ -55,7 +55,7 @@
 }
 
 .premium-text-gradient {
-  @apply bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-red-700 to-cyan-400 bg-clip-text text-transparent;
 }
 
 .premium-overlay {

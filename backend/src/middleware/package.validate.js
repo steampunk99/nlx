@@ -82,19 +82,10 @@ const packageUpdateSchema = Joi.object({
 
 const packagePurchaseSchema = Joi.object({
     package_id: Joi.number()
-        .integer()
-        .required(),
+        .integer(),
+    amount: Joi.number().integer()
     
-    
-    
-    phone_number: Joi.string()
-        .pattern(/^[0-9]+$/)
-        .min(10)
-        .max(15)
-        .when('payment_method', {
-            is: 'mobile_money',
-            then: Joi.required()
-        })
+
 });
 
 const packageUpgradeSchema = Joi.object({

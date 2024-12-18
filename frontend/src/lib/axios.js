@@ -28,11 +28,7 @@ api.interceptors.request.use(
   (config) => {
     const { accessToken } = getAuthTokens()
     
-    console.group('Axios Request Interceptor')
-    console.log('Request URL:', config.url)
-    console.log('Access Token Present:', !!accessToken)
-    console.trace('Request Interceptor Trace')
-    console.groupEnd()
+ 
 
     if (accessToken && !config.url.includes('/auth/refresh')) {
       config.headers.Authorization = `Bearer ${accessToken}`
@@ -48,22 +44,13 @@ api.interceptors.request.use(
 // Add response interceptor for error handling and token refresh
 api.interceptors.response.use(
   (response) => {
-    console.group('Axios Response Interceptor')
-    console.log('Response URL:', response.config.url)
-    console.log('Response Status:', response.status)
-    console.trace('Response Interceptor Trace')
-    console.groupEnd()
+    
     return response
   },
   async (error) => {
     const originalRequest = error.config
 
-    console.group('Axios Error Interceptor')
-    console.error('Full Error:', error)
-    console.log('Error Response:', error.response)
-    console.log('Original Request URL:', originalRequest?.url)
-    console.trace('Error Interceptor Trace')
-    console.groupEnd()
+  
 
     // Network error
     if (!error.response) {

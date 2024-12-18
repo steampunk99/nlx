@@ -10,8 +10,8 @@ import { Label } from '../../components/ui/label'
 import { Input } from '../../components/ui/input'
 import { useAuth } from '../../hooks/useAuth'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
-
 import { cn } from '../../lib/utils'
 
 const containerVariants = {
@@ -56,37 +56,13 @@ const formatCurrency = (amount) => {
 }
 
 export default function PackagesPage() {
+  const navigate = useNavigate()
   const [selectedPackage, setSelectedPackage] = useState(null)
-  const [paymentMethod, setPaymentMethod] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [paymentMethodError, setPaymentMethodError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  
 
 
-  const paymentMethods = [
-    {
-      id: 'MTN_MOBILE_MONEY',
-      name: 'MTN Mobile Money',
-      icon: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-500">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-          <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
-        </svg>
-      ),
-      description: 'Pay via MTN Mobile Money'
-    },
-    {
-      id: 'AIRTEL_MONEY',
-      name: 'Airtel Money',
-      icon: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-          <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
-        </svg>
-      ),
-      description: 'Pay via Airtel Money'
-    }
-  ]
+  
+    
 
   const {
     availablePackages, 
@@ -95,73 +71,17 @@ export default function PackagesPage() {
     purchasePackage
   } = usePackages()
 
+  console.log('Packages Page Data:', {
+    available: availablePackages,
+    active: activePackages
+  });
+
   const handlePackagePurchase = (pkg) => {
-    setSelectedPackage(pkg)
+    navigate('/dashboard/payment', { state: { selectedPackage: pkg } });
   }
 
-  const validateMobileMoneyPurchase = () => {
-    if (!phoneNumber) {
-      setPaymentMethodError('Please enter your mobile money phone number')
-      return false
-    }
-    
-    // Basic Uganda phone number validation
-    const ugandaPhoneRegex = /^(0|\+?256)?(7[0-9]{8})$/
-    if (!ugandaPhoneRegex.test(phoneNumber)) {
-      setPaymentMethodError('Please enter a valid Ugandan mobile number')
-      return false
-    }
 
-    return true
-  }
 
-  const confirmPurchase = async () => {
-    if (selectedPackage && paymentMethod) {
-      // Validate mobile money number if applicable
-      if (paymentMethod === 'MTN_MOBILE_MONEY' || paymentMethod === 'AIRTEL_MONEY') {
-        console.log('Purchase Data:', {
-          package_id: selectedPackage?.id,
-          paymentMethod,
-          phoneNumber: phoneNumber
-        })
-        if (!validateMobileMoneyPurchase()) return
-      }
-
-      setIsSubmitting(true)
-
-      try {
-        await purchasePackage({
-          package_id: selectedPackage.id,
-          paymentMethod,
-          phoneNumber: paymentMethod === 'MTN_MOBILE_MONEY' || paymentMethod === 'AIRTEL_MONEY' 
-            ? phoneNumber 
-            : undefined
-        })
-
-        // Success toast
-        toast({
-          title: 'Investment Successful',
-          description: `You have successfully purchased the ${selectedPackage.name} package.`,
-          variant: 'success'
-        })
-
-        // Reset states
-        setSelectedPackage(null)
-        setPaymentMethod('')
-        setPhoneNumber('')
-        setPaymentMethodError('')
-      } catch (error) {
-        // Error toast
-        toast({
-          title: 'Investment Failed',
-          description: error.message || 'Unable to complete your investment. Please try again.',
-          variant: 'destructive'
-        })
-      } finally {
-        setIsSubmitting(false)
-      }
-    }
-  }
 
   if (packagesLoading) {
     return (
@@ -185,10 +105,10 @@ export default function PackagesPage() {
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
         <div className="relative">
           <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary animate-text-gradient bg-300% mb-4">
-            Investment Packages
+            Subscription Packages
           </h1>
           <p className="text-xl text-muted-foreground/80 max-w-2xl">
-            Start your journey to financial freedom with our carefully crafted investment packages
+            Start your journey to financial freedom with today
           </p>
         </div>
       </div>
@@ -241,9 +161,9 @@ export default function PackagesPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Star className="h-6 w-6 text-yellow-500 animate-pulse" />
-                Active Packages
+                My Active Subscriptions
               </CardTitle>
-              <CardDescription className="text-base">Your current investment packages</CardDescription>
+              <CardDescription className="text-base">Your current subscriptions</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="relative overflow-hidden rounded-xl border bg-background/50">
@@ -258,11 +178,13 @@ export default function PackagesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {activePackages.map((pkg) => (
+                      {activePackages?.map((pkg) => (
                         <tr key={pkg.id} className="border-b transition-colors hover:bg-muted/50">
                           <td className="p-6 align-middle font-medium">{pkg.package.name}</td>
                           <td className="p-6 align-middle">{formatCurrency(pkg.package.price)}</td>
                           <td className="p-6 align-middle">{new Date(pkg.createdAt).toLocaleDateString()}</td>
+                          {/* <td className="p-6 align-middle">Payment Method: {pkg.paymentMethod}</td> */}
+
                           <td className="p-6 align-middle">
                             <Badge variant="success" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
                               {pkg.status}
@@ -290,6 +212,11 @@ export default function PackagesPage() {
           const benefits = typeof pkg.benefits === 'string' ? JSON.parse(pkg.benefits) : pkg.benefits || {};
           const isPremium = pkg.level === 4;
           
+          // Check if this specific package is already purchased
+          const isAlreadyPurchased = activePackages?.some(
+            activePkg => activePkg.package.id === pkg.id && activePkg.status === 'PAID'
+          );
+          
           return (
             <motion.div
               key={pkg.id}
@@ -309,7 +236,7 @@ export default function PackagesPage() {
                 isPremium 
                   ? "bg-gradient-to-br from-purple-500/10 via-primary/5 to-purple-500/10 hover:shadow-[0_0_40px_8px_rgba(124,58,237,0.1)] border-purple-500/20" 
                   : "hover:shadow-lg border-primary/20 bg-gradient-to-br from-primary/5 to-background",
-                activePackages?.length > 0 && "opacity-50"
+                isAlreadyPurchased && "opacity-50"
               )}>
                 <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
                 <CardHeader>
@@ -403,9 +330,9 @@ export default function PackagesPage() {
                       "shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                     )}
                     onClick={() => handlePackagePurchase(pkg)}
-                    disabled={activePackages && activePackages.length > 0}
+                    disabled={isAlreadyPurchased}
                   >
-                    {activePackages?.length > 0 ? "Already Subscribed" : "Invest Now"}
+                    {isAlreadyPurchased ? "Already Subscribed" : "Buy Now"}
                   </Button>
                 </CardContent>
               </Card>
@@ -414,135 +341,7 @@ export default function PackagesPage() {
         })}
       </motion.div>
 
-      {/* Payment Method Dialog */}
-      {selectedPackage && (
-        <Dialog open={!!selectedPackage} onOpenChange={() => setSelectedPackage(null)}>
-          <DialogContent className="sm:max-w-[425px] bg-gradient-to-br from-background to-muted/50">
-            <DialogHeader>
-              <DialogTitle className="text-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
-                Purchase {selectedPackage.name}
-              </DialogTitle>
-              <DialogDescription className="text-base">
-                Select your preferred payment method
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                {paymentMethods.map((method) => (
-                  <Button
-                    key={method.id}
-                    variant={paymentMethod === method.id ? 'default' : 'outline'}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-3 h-24 transition-all p-4",
-                      paymentMethod === method.id 
-                        ? "bg-gradient-to-r from-primary to-purple-500 text-white" 
-                        : "hover:bg-muted/50"
-                    )}
-                    onClick={() => {
-                      setPaymentMethod(method.id)
-                      setPaymentMethodError('')
-                    }}
-                  >
-                    {method.icon()}
-                    <span className="text-sm font-medium">{method.name}</span>
-                  </Button>
-                ))}
-              </div>
-
-              {(paymentMethod === 'MTN_MOBILE_MONEY' || paymentMethod === 'AIRTEL_MONEY') && (
-                <motion.div 
-                  className="space-y-3"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Label className="text-sm font-medium">Mobile Money Number</Label>
-                  <Input 
-                    className="h-12"
-                    placeholder="Enter your mobile money number" 
-                    value={phoneNumber}
-                    onChange={(e) => {
-                      setPhoneNumber(e.target.value)
-                      setPaymentMethodError('')
-                    }}
-                  />
-                  {paymentMethodError && (
-                    <motion.p 
-                      className="text-sm text-red-500"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      {paymentMethodError}
-                    </motion.p>
-                  )}
-                </motion.div>
-              )}
-
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-muted/80 to-muted">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-muted-foreground">Package Price</span>
-                    <span className="font-medium">{formatCurrency(selectedPackage.price)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Processing Fee</span>
-                    <span className="font-medium">UGX 0</span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Total Amount</span>
-                      <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
-                        {formatCurrency(selectedPackage.price)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button 
-                  onClick={confirmPurchase}
-                  disabled={
-                    !paymentMethod || 
-                    isSubmitting ||
-                    ((paymentMethod === 'MTN_MOBILE_MONEY' || paymentMethod === 'AIRTEL_MONEY') && !phoneNumber)
-                  }
-                  className={cn(
-                    "w-full h-12 text-base font-medium bg-gradient-to-r from-primary via-purple-500 to-primary hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300",
-                    isSubmitting && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center">
-                      <svg 
-                        className="animate-spin h-5 w-5 mr-3" 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        fill="none" 
-                        viewBox="0 0 24 24"
-                      >
-                        <circle 
-                          className="opacity-25" 
-                          cx="12" 
-                          cy="12" 
-                          r="10" 
-                          stroke="currentColor" 
-                          strokeWidth="4"
-                        ></circle>
-                        <path 
-                          className="opacity-75" 
-                          fill="currentColor" 
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Completing Investment...
-                    </div>
-                  ) : (
-                    "Complete Investment"
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+     
 
       {/* Add custom styles to the head */}
       <style jsx global>{`

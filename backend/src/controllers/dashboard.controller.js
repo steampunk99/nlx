@@ -254,23 +254,32 @@ const getNetworkStats = async (req, res) => {
     const levels = await Promise.all(
       Array.from({ length: 5 }, async (_, i) => {
         const level = i + 1;
-        const [count, active] = await Promise.all([
+        const [count, active,levelCommissions] = await Promise.all([
           prisma.node.count({
             where: {
               sponsorId: userNode.id,
               level
             }
           }),
+        
           prisma.node.count({
             where: {
               sponsorId: userNode.id,
               level,
               status: 'ACTIVE'
             }
+          }),
+          //total commissions for the level 
+          prisma.commission.aggregate({
+            where: {
+              userId: userNode.userId,
+              level:level
+            },
+            _sum: { amount: true }
           })
         ]);
 
-        return { level, count, active };
+        return { level, count, active,commissions:levelCommissions._sum.amount||0 };
       })
     );
 
@@ -279,7 +288,7 @@ const getNetworkStats = async (req, res) => {
       data: {
         directReferrals,
         totalNetwork,
-        levels
+        levels,
       }
     });
 
@@ -304,23 +313,19 @@ const getEarnings = async (req, res) => {
     const userId = req.user.id;
 
     // Get total earnings
-    const totalEarnings = await prisma.commission.aggregate({
+    const availableBalance = await prisma.node.findFirst({
       where: {
         userId,
-        status: 'PROCESSED'
-      },
-      _sum: {
-        amount: true
       }
     });
 
     // Get pending earnings
-    const pendingEarnings = await prisma.commission.aggregate({
+    const pendingEarnings = await prisma.commission.findFirst({
       where: {
         userId,
         status: 'PENDING'
       },
-      _sum: {
+      select: {
         amount: true
       }
     });
@@ -345,8 +350,8 @@ const getEarnings = async (req, res) => {
     return res.json({
       success: true,
       data: {
-        total: `$${(totalEarnings._sum.amount || 0).toFixed(2)}`,
-        pending: `$${(pendingEarnings._sum.amount || 0).toFixed(2)}`,
+        availableBalance: `$${(availableBalance?.availableBalance || 0).toFixed(2)}`,
+        pendingBalance: `$${(pendingEarnings?.amount || 0).toFixed(2)}`,
         history: history.map(item => ({
           amount: `$${item.amount.toFixed(2)}`,
           type: item.type,

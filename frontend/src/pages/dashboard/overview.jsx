@@ -4,25 +4,40 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { ArrowUpRight, Users, DollarSign, Package, Activity, ChevronRight, TrendingUp } from 'lucide-react'
 import { Skeleton } from "../../components/ui/skeleton"
-import { useDashboardStats, useRecentActivities } from "../../hooks/useDashboard"
+import { useDashboardStats, useEarnings, useRecentActivities } from "../../hooks/useDashboard"
 import { motion } from "framer-motion"
 import { ResponsiveContainer,LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { cn } from "../../lib/utils"
+import { usePackages } from "../../hooks/usePackages"
 
 // Format currency in UGX
 const formatCurrency = (amount) => {
+  if (!amount) return "UGX 0";
+  
+  if (typeof amount === 'string' && amount.startsWith('$')) {
+    amount = parseFloat(amount.replace('$', '').replace(/ ,/g, ''))
+  }
+  
   const value = Number(amount);
-  if (!amount || isNaN(value)) return "UGX 0";
-  return `UGX ${value.toLocaleString('en-US')}`;
+  if (isNaN(value)) return "UGX 0";
+    // Format with thousands separator
+    const formatted = value.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+    
+    return `UGX ${formatted}`;
 };
-
+  
 function DashboardOverview() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: dashboardStats, isLoading: isLoadingStats } = useDashboardStats()
   const { data: recentActivities, isLoading: isLoadingActivities } = useRecentActivities()
-
-  // Sample earnings data - replace with actual API data when available
+  const { data: earnings, isLoading: isLoadingEarnings } = useEarnings()
+  
+  const { activePackages} = usePackages()
+  // Sample earnings data - will replace with actual API data when available
   const earningsData = [
     { date: 'Jan', amount: 400 },
     { date: 'Feb', amount: 600 },
@@ -61,23 +76,33 @@ function DashboardOverview() {
       secondaryLabel: "New this month"
     },
     {
-      title: "Total Earnings",
-      value: formatCurrency(dashboardStats?.totalEarnings || 0),
-      description: "Lifetime earnings",
+      title: "Pending Balance",
+      value: formatCurrency(earnings?.pendingBalance || 0),
+      description: "Your pending balance",
       icon: DollarSign,
       color: "text-green-500",
       bgColor: "bg-green-500/10",
-      secondaryValue: formatCurrency(dashboardStats?.monthlyEarnings || 0),
+      secondaryValue: formatCurrency(earnings?.pendingBalance || 0),
+      secondaryLabel: "This month"
+    },
+    {
+      title: "Available Balance",
+      value: formatCurrency(earnings?.availableBalance || 0),
+      description: "Your available balance",
+      icon: DollarSign,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+      secondaryValue: formatCurrency(earnings?.availableBalance || 0),
       secondaryLabel: "This month"
     },
     {
       title: "Active Packages",
-      value: dashboardStats?.activePackages || "0",
+      value: activePackages?.length || "0",
       description: "Current investment packages",
       icon: Package,
       color: "text-yellow-500",
       bgColor: "bg-yellow-500/10",
-      secondaryValue: formatCurrency(dashboardStats?.totalPackageValue || 0),
+      secondaryValue: formatCurrency(activePackages?.reduce((acc, pkg) => acc + pkg.package.price, 0) || 0),
       secondaryLabel: "Total value"
     }
   ]

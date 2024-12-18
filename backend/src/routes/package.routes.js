@@ -55,7 +55,7 @@ router.get('/',auth, packageController.getAllPackages);
  *     summary: Get user's purchased packages
  *     tags: [Packages]
  */
-router.get('/user', [auth, isActive], packageController.getUserPackages);
+router.get('/user', [auth], packageController.getUserPackages);
 
 /**
  * @swagger
@@ -238,11 +238,6 @@ router.get('/upgrade/history', [
  *       404:
  *         description: Package not found
  */
-router.post('/purchase', [
-   
-    body('package_id').isInt(),
-    body('paymentMethod').isIn(['MTN_MOBILE_MONEY', 'AIRTEL_MONEY']),
-    body('phoneNumber').matches(/^(0|\+?256)?(7[0-9]{8})$/)
-], packageController.purchasePackage);
+
 
 module.exports = router;

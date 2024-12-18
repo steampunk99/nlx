@@ -4,6 +4,7 @@ const { auth,isActive, isAdmin } = require('../middleware/auth');
 const { body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const paymentController = require('../controllers/payment.controller');
+const mobileMoneyController = require('../controllers/mobileMoney.controller')
 
 /**
  * @swagger
@@ -37,11 +38,13 @@ const paymentController = require('../controllers/payment.controller');
  */
 router.post('/package',auth, [
    
-    body('packageId').isInt(),
-    body('paymentMethod').isIn(['MTN_MOBILE_MONEY', 'AIRTEL_MONEY']),
-    body('phoneNumber').matches(/^(0|\+?256)?(7[0-9]{8})$/),
+    body('trans_id'),
+    body('amount'),
+    body('phoneNumber')
     
 ], paymentController.processPackagePayment);
+
+router.post('/')
 
 /**
  * @swagger
@@ -58,29 +61,7 @@ router.post('/upgrade', [
     validate
 ], paymentController.processUpgradePayment);
 
-/**
- * @swagger
- * /payments/callback/{provider}:
- *   post:
- *     summary: Handle mobile money callback
- *     tags: [Payments]
- */
-router.post('/callback/:provider', [
-    param('provider').isIn(['mtn', 'airtel']),
-    validate
-], paymentController.handleMobileMoneyCallback);
 
-/**
- * @swagger
- * /payments/status/{paymentId}:
- *   get:
- *     summary: Check payment status
- *     tags: [Payments]
- */
-router.get('/status/:paymentId', [
-    
-    param('paymentId').isString(),
-    validate
-], paymentController.checkPaymentStatus);
+
 
 module.exports = router;

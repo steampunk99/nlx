@@ -4,6 +4,57 @@ const prisma = new PrismaClient();
 class NodePaymentService {
     constructor() {}
 
+    async createMobileMoneyPayment(data, tx = prisma) {
+        const paymentData = {
+          ...data,
+          status: 'PENDING',
+          createdAt: new Date(),
+          paymentMethod: 'mobile money',
+          phoneNumber: data.phone,
+          reference: data.trans_id,
+          transactionId: data.trans_id,
+          type: 'mobile money',
+          
+        };
+    
+        return tx.nodePayment.create({
+          data: paymentData,
+          include: {
+            node: {
+              include: {
+                user: true
+              }
+            },
+            package: true
+          }
+        });
+      }
+
+      async updateMobileMoneyPaymentStatus(id, status, tx = prisma) {
+        const data = {
+            status,
+           
+          // Only set activatedAt when payment is completed
+          ...(status === 'COMPLETED' && {
+            activatedAt: new Date()
+          })
+        };
+    
+        return tx.nodePayment.update({
+          where: { id },
+          data,
+          include: {
+            node: {
+              include: {
+                user: true
+              }
+            },
+            package: true
+          }
+        });
+      }
+    
+
     async findAll(nodeId, { startDate, endDate, type } = {}) {
         const where = {};
 
@@ -79,8 +130,8 @@ class NodePaymentService {
             ...paymentData,
             status: 'PENDING',
             createdAt: new Date(),
-            paymentMethod: paymentData.payment_method,
-            phoneNumber: paymentData.phone_number
+            paymentMethod: 'mobile money',
+            phoneNumber: paymentData.phone
         };
 
         return tx.nodePayment.create({
@@ -116,8 +167,7 @@ class NodePaymentService {
     async updateStatus(id, status, reason = null, tx = prisma) {
         const data = {
             status,
-            ...(reason && { reason }),
-            processedAt: new Date()
+            
         };
 
         return tx.nodePayment.update({
@@ -218,52 +268,7 @@ class NodePaymentService {
         });
     }
 
-    async createMobileMoneyPayment(data, tx = prisma) {
-        const paymentData = {
-            ...data,
-            status: 'PENDING',
-            createdAt: new Date(),
-            paymentMethod: data.payment_method,
-            phoneNumber: data.phone_number,
-            transactionId: `MM${Date.now()}${Math.floor(Math.random() * 1000)}`,
-            type: 'MOBILE_MONEY'
-        };
-
-        return tx.nodePayment.create({
-            data: paymentData,
-            include: {
-                node: {
-                    include: {
-                        user: true
-                    }
-                },
-                package: true,
-               
-            }
-        });
-    }
-
-    async updateMobileMoneyPaymentStatus(id, status, statusDescription = null, tx = prisma) {
-        const data = {
-            status,
-            statusDescription,
-            processedAt: status === 'COMPLETED' ? new Date() : null
-        };
-
-        return tx.nodePayment.update({
-            where: { id },
-            data,
-            include: {
-                node: {
-                    include: {
-                        user: true
-                    }
-                },
-                package: true,
-               
-            }
-        });
-    }
+  
 }
 
 module.exports = new NodePaymentService();

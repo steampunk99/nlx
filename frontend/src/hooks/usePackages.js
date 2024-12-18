@@ -3,35 +3,29 @@ import { api } from '../lib/axios'
 import { useToast } from '../components/ui/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { getAuthTokens } from '../lib/auth'
+import { PaymentStatusModal, PAYMENT_STATES } from '@/components/payment/PaymentStatusModal'
 
-export function usePackages() {
+
+
+export function usePackages(options = {}) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+
+  const { onPaymentStatusChange = () => {} } = options;
 
   // Enhanced authentication check with logging
   const isAuthenticated = () => {
     const tokens = getAuthTokens()
     const isAuth = !!tokens.accessToken
     
-    // console.group('Authentication Check')
-    // console.log('Access Token Present:', !!tokens.accessToken)
-    // console.log('Refresh Token Present:', !!tokens.refreshToken)
-    // console.log('Is Authenticated:', isAuth)
-    // console.trace('Authentication Check Trace')
-    // console.groupEnd()
-
+   
     return isAuth
   }
 
   // Detailed error handler
   const handleAuthError = (error, context = 'Unknown') => {
-    console.group(`Auth Error in ${context}`)
-    console.error('Full Error:', error)
-    console.log('Error Response:', error.response)
-    console.log('Error Status:', error.response?.status)
-    console.log('Error Data:', error.response?.data)
-    console.groupEnd()
+    
 
     // Only handle non-refresh errors here
     // Let axios interceptor handle refresh token flow
@@ -117,39 +111,30 @@ export function usePackages() {
 
   // Fetch user's current packages
   const { 
-    data: activePackages = [], 
+    data: activePackagesData = [], 
     isLoading: activePackagesLoading, 
     error: activePackagesError,
     refetch: refetchActivePackages 
   } = useQuery({
     queryKey: ['userPackages'],
     queryFn: async () => {
-      console.log('Fetching User Packages - Authentication Check')
-      if (!isAuthenticated()) {
-        console.warn('Not authenticated - redirecting to login')
-        navigate('/login')
-        return []
-      }
+     
+      const response = await api.get('/packages/user');
+      console.log('Raw Response:', response);
       
-      try {
-        console.log('Attempting to fetch user packages')
-        const { data } = await api.get('/packages/user')
-        console.log('User Packages fetched successfully:', data)
-        return data.data || []
-      } catch (error) {
-        console.error('User packages fetch error:', error)
-        handleAuthError(error, 'User Packages Fetch')
-        return []
-      }
+      // Transform the single object into an array
+      const packageData = response.data?.data;
+      const packages = packageData ? [packageData] : [];
+     
+      return packages;
     },
-    enabled: isAuthenticated(),
-    retry: 1,
-    staleTime: 1000 * 60 * 5,
-    onError: (error) => {
-      console.error('Query error in user packages:', error)
-      handleAuthError(error, 'User Packages Query')
-    }
-  })
+    enabled: isAuthenticated()
+  });
+
+  // No additional transformation needed
+  const activePackages = activePackagesData || [];
+ 
+  
 
   // Fetch upgrade options (with fallback)
   const { 
@@ -187,115 +172,54 @@ export function usePackages() {
 
   // Package purchase mutation
   const purchasePackageMutation = useMutation({
-    mutationFn: async ({ package_id, paymentMethod, phoneNumber = '' }) => {
-      console.group('Package Purchase Debug')
-      console.log('Authentication Status:', isAuthenticated())
-      console.log('Package ID:', package_id)
-      console.log('Payment Method:', paymentMethod)
-      console.log('Phone Number:', phoneNumber)
-
-      if (!isAuthenticated()) {
-        console.warn('Not authenticated - redirecting to login')
-        navigate('/login')
-        throw new Error('Not authenticated')
+    mutationFn: async (paymentData) => {
+      if (!paymentData?.phoneNumber) {
+        throw new Error('Phone number is required');
       }
+
+      const response = await api.post('/payments/package', {
+        trans_id: paymentData.trans_id,
+        packageId: paymentData.packageId,
+        amount: paymentData.amount,
+        phone: paymentData.phoneNumber
+      });
       
-      try {
-        console.log('Attempting package purchase', { package_id, paymentMethod, phoneNumber })
-        
-        // Validate inputs before making the request
-        if (!package_id) {
-          throw new Error('Package ID is required')
-        }
-        if (!paymentMethod) {
-          throw new Error('Payment method is required')
-        }
-
-        const purchasePayload = {
-          package_id,
-          paymentMethod,
-          ...(phoneNumber && { phoneNumber })
-        }
-
-        console.log('Purchase Payload:', JSON.stringify(purchasePayload, null, 2))
-
-        const { data } = await api.post('/packages/purchase', purchasePayload)
-
-        console.log('Purchase Response:', data)
-
-        // Handle different payment method scenarios
-        switch (paymentMethod) {
-          case 'MTN_MOBILE_MONEY':
-            // Mobile money specific handling
-            if (data.paymentUrl) {
-              // Redirect to mobile money payment page
-              window.location.href = data.paymentUrl
-              return data
-            }
-            break
-          case 'AIRTEL_MONEY':
-            // Mobile money specific handling
-            if (data.paymentUrl) {
-              // Redirect to mobile money payment page
-              window.location.href = data.paymentUrl
-              return data
-            }
-            break
-          default:
-            // Standard payment methods
-            break
-        }
-
-        // Refetch active packages after successful purchase
-        queryClient.invalidateQueries(['userPackages'])
-
-        toast({
-          title: 'Package Purchase Successful',
-          description: `You have successfully purchased the package.`,
-          variant: 'success'
-        })
-
-        console.groupEnd()
-        return data
-      } catch (error) {
-        console.error('Package purchase error', error)
-        
-        // Log detailed error information
-        console.group('Purchase Error Details')
-        console.log('Error Response:', error.response)
-        console.log('Error Status:', error.response?.status)
-        console.log('Error Data:', error.response?.data)
-        console.log('Error Message:', error.message)
-        console.groupEnd()
-        
-        // Detailed error handling for mobile money
-        if (error.response?.data?.mobileMoneyError) {
-          toast({
-            title: 'Mobile Money Payment Error',
-            description: error.response.data.mobileMoneyError,
-            variant: 'destructive'
-          })
-        } else {
-          handleAuthError(error, 'Package Purchase')
-        }
-        
-        console.groupEnd()
-        throw error
-      }
+      return response.data;
     },
     onSuccess: (data) => {
-      // Additional success handling if needed
-      console.log('Package purchase successful', data)
-    },
-    onError: (error) => {
-      console.error('Package purchase mutation error', error)
-      toast({
-        title: 'Purchase Failed',
-        description: error.message || 'Unable to complete package purchase',
-        variant: 'destructive'
-      })
+      let pollCount = 0;
+      const maxPolls = 6;
+      
+      const pollInterval = setInterval(async () => {
+        try {
+          pollCount++;
+          if (pollCount >= maxPolls) {
+            clearInterval(pollInterval);
+            onPaymentStatusChange?.(PAYMENT_STATES.TIMEOUT);
+            return;
+          }
+
+          // get the status from the response of the purchase
+          console.log('Data:', data.data.status);
+          if (!data.data.status) {
+            throw new Error('No mobile money response');
+          }
+          const status = data.data.status;
+
+          if (status === 'SUCCESS') {
+            clearInterval(pollInterval);
+            onPaymentStatusChange?.(PAYMENT_STATES.SUCCESS);
+            queryClient.invalidateQueries({ queryKey: ['userPackages'] });
+            setTimeout(() => {
+              navigate('/dashboard/packages');
+            }, 2000);
+          }
+        } catch (error) {
+          console.error('Status check failed:', error);
+        }
+      }, 55000);
     }
-  })
+  });
 
   // Package upgrade mutation
   const upgradePackageMutation = useMutation({
@@ -330,8 +254,8 @@ export function usePackages() {
         variant: 'default'
       })
       
-      queryClient.invalidateQueries(['userPackages'])
-      queryClient.invalidateQueries(['packages'])
+      queryClient.invalidateQueries({ queryKey: ['userPackages'] });
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
     },
     onError: (error) => {
       console.error('Package upgrade mutation error:', error)
@@ -357,6 +281,9 @@ export function usePackages() {
     // Mutations
     purchasePackage: purchasePackageMutation.mutate,
     upgradePackage: upgradePackageMutation.mutate,
+    purchasePackageMutation,
+    upgradePackageMutation,
+    
 
     // Refetch function
     refetchActivePackages
@@ -369,7 +296,7 @@ export function usePackagePurchase() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ packageId, paymentMethod, phoneNumber = '' }) => {
+    mutationFn: async ({ packageId, paymentMethod, phone = '' }) => {
       const { data } = await api.post('/packages/purchase', {
         packageId,
         paymentMethod,

@@ -46,17 +46,28 @@ class NodePackageService {
         });
     }
 
-    async create(nodePackageData) {
-        return prisma.nodePackage.create({
-            data: nodePackageData,
-            include: {
-                node: {
-                    include: {
-                        user: true
-                    }
-                },
-                package: true
-            }
+    async create(nodePackageData, tx) {
+        const prismaClient = tx || prisma;
+        
+        // First, check if there's an existing package
+        const existingPackage = await prismaClient.nodePackage.findFirst({
+            where: { nodeId: nodePackageData.nodeId }
+        });
+    
+        if (existingPackage) {
+            // If exists, update it instead of creating new
+            return prismaClient.nodePackage.update({
+                where: { id: existingPackage.id },
+                data: {
+                    ...nodePackageData,
+                    updatedAt: new Date()
+                }
+            });
+        }
+    
+        // If no existing package, create new one
+        return prismaClient.nodePackage.create({
+            data: nodePackageData
         });
     }
 
@@ -164,7 +175,7 @@ class NodePackageService {
                 isUpgrade: true,
                 previousPackageId,
                 paymentMethod: paymentData.paymentMethod,
-                paymentPhone: paymentData.phoneNumber
+                paymentPhone: paymentData.phone
             },
             include: {
                 node: {

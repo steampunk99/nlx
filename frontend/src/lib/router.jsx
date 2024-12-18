@@ -18,6 +18,7 @@ const CommissionsPage = lazy(() => import('../pages/dashboard/commissions'))
 const PackagesPage = lazy(() => import('../pages/dashboard/packages'))
 const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))
 const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
+const PaymentPage = lazy(() => import('../pages/payments/payments'))
 
 // Legal Pages
 const TermsPage = lazy(() => import('../pages/legal/terms'))
@@ -74,6 +75,7 @@ export function AppRouter() {
           <Route path="network" element={<NetworkPage />} />
           <Route path="commissions" element={<CommissionsPage />} />
           <Route path="packages" element={<PackagesPage />} />
+          <Route path="payment" element={<PaymentPage />} />
           <Route path="withdrawals" element={<WithdrawalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>

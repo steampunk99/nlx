@@ -9,23 +9,61 @@ const prisma = new PrismaClient();
  * @param {Object} pkg - The package that was purchased
  * @param {Object} tx - Prisma transaction
  */
-async function calculateCommissions(user, pkg, tx) {
+
+async function calculateCommissions(nodeId, amount, tx) {
     try {
+        const node = await tx.node.findUnique({
+            where: { id: nodeId },
+            include: {
+                user: true,
+                package: {
+                    include: {
+                        package: true
+                    }
+                }
+            }
+        });
+       
+
         // Validate input parameters
-        if (!user || !pkg || !tx) {
+        if (!node?.id || !amount || !tx) {
             throw new Error('Invalid input parameters for commission calculation');
         }
 
         // Log commission calculation start
-        logger.info(`Starting commission calculation for user ${user.username}, package ${pkg.name}`, {
-            userId: user.id,
-            packageId: pkg.id,
-            packagePrice: pkg.price
+        logger.info(`Starting commission calculation for user ${node.user.username}, package ${node.package.package.name}`, {
+            userId: node.user.id,
+            packageId: node.package.package.id,
+            packagePrice: node.package.package.price
         });
 
+        // Check if user has already received commissions for this package
+        const existingCommission = await tx.commission.findFirst({
+            where: {
+                userId: node.user.id,
+                packageId: node.package.package.id
+            }
+        });
+
+        if (existingCommission) {
+            logger.warn(`User has already received commissions for this package`, {
+                userId: node.user.id,
+                packageId: node.package.package.id
+            });
+            return 0;
+        }
+
         // Get sponsor chain (up to 10 levels)
-        const sponsorChain = await getSponsorChain(user.node.id, 10);
-        
+        const sponsorChain = await getSponsorChain(node.id, 10);
+
+        if (sponsorChain.length === 0) {
+            logger.warn(`User does not have any eligible sponsors`, {
+                userId: node.user.id,
+                packageId: node.package.package.id
+            });
+            return 0;
+        }
+
         // Commission rates for each level (in percentage)
         const commissionRates = {
             1: 10, // Direct sponsor gets 10%
@@ -46,7 +84,9 @@ async function calculateCommissions(user, pkg, tx) {
             // Skip if no commission rate for this level
             if (!commissionRates[level]) {
                 logger.warn(`No commission rate for level ${level}`, { 
-                    sponsorId: sponsor.id, 
+                    sponsorId: sponsor.id,
+                    sponsorUsername: sponsor.username,
+                    sponsorPosition: sponsor.position,
                     level 
                 });
                 continue;
@@ -54,43 +94,72 @@ async function calculateCommissions(user, pkg, tx) {
 
             // Calculate commission amount
             const commissionRate = commissionRates[level];
-            const commissionAmount = Number(((pkg.price * commissionRate) / 100).toFixed(2));
+            const commissionAmount = Number(((amount * commissionRate) / 100).toFixed(2));
 
             // Validate commission amount
             if (commissionAmount <= 0) {
                 logger.warn(`Invalid commission amount calculated`, { 
-                    commissionAmount, 
-                    packagePrice: pkg.price, 
-                    commissionRate 
+                    commissionAmount,
+                    packagePrice: amount,
+                    commissionRate,
+                    sponsorId: sponsor.id,
+                    sponsorUsername: sponsor.username,
+                    sponsorPosition: sponsor.position,
+                    level
                 });
                 continue;
             }
 
+            // Check if total commissions exceed package price
+            if (totalCommissionsDistributed + commissionAmount > amount) {
+                logger.warn(`Total commissions exceed package price`, {
+                    totalCommissionsDistributed,
+                    commissionAmount,
+                    packagePrice: amount,
+                    sponsorId: sponsor.id,
+                    sponsorUsername: sponsor.username,
+                    sponsorPosition: sponsor.position,
+                    level
+                });
+                break;
+            }
+
             try {
-                // Create commission statement
-                const commissionStatement = await tx.nodeStatement.create({
+                // Create node statement
+                const nodeStatement = await tx.nodeStatement.create({
                     data: {
                         nodeId: sponsor.id,
-                        nodeUsername: sponsor.username,
-                        nodePosition: sponsor.position,
                         amount: commissionAmount,
-                        description: `Level ${level} commission from ${user.username}'s package purchase`,
                         type: 'COMMISSION',
+                        description: `Level ${level} commission from ${node.user.username}'s package purchase`,
                         status: 'PENDING',
-                        isDebit: false,
-                        isCredit: true,
-                        isEffective: true,
-                        eventDate: new Date(),
-                        eventTimestamp: new Date(),
-                        referenceId: pkg.id
+                        referenceType: 'PACKAGE',
+                        referenceId: node.package.package.id
                     }
                 });
 
-                // Update sponsor's balance
+                // Create commission statement
+                const commissionStatement = await tx.commission.create({
+                    data: {
+                        userId: sponsor.id,
+                        amount: commissionAmount,
+                        type: 'LEVEL',
+                        description: `Level ${level} commission from ${node.user.username}'s package purchase`,
+                        status: 'PENDING',
+                        sourceUserId: node.user.id,
+                        packageId: node.package.package.id
+                    }
+                });
+                
+
+                // Update sponsor's pending balance
                 await tx.node.update({
                     where: { id: sponsor.id },
                     data: {
                         pendingBalance: {
+                            increment: commissionAmount
+                        },
+                        availableBalance: {
                             increment: commissionAmount
                         }
                     }
@@ -99,26 +168,45 @@ async function calculateCommissions(user, pkg, tx) {
                 // Track total commissions
                 totalCommissionsDistributed += commissionAmount;
 
+                // Update referred 's available balance
+                let balance = amount - totalCommissionsDistributed;
+                await tx.node.update({
+                   
+                    where: { id: node.id },
+                    data: {
+                        availableBalance: {
+                            increment: balance
+                        }
+                    }
+                });
+
+                
+
                 logger.info(`Commission distributed`, {
                     level,
                     sponsorId: sponsor.id,
+                    sponsorUsername: sponsor.username,
+                    sponsorPosition: sponsor.position,
                     commissionAmount,
-                    statementId: commissionStatement.id
+                    nodeStatementId: nodeStatement.id,
+                    commissionStatementId: commissionStatement.id
                 });
 
-            } catch (statementError) {
+            } catch (error) {
                 logger.error(`Failed to create commission statement for sponsor`, {
                     sponsorId: sponsor.id,
+                    sponsorUsername: sponsor.username,
+                    sponsorPosition: sponsor.position,
                     level,
-                    error: statementError.message
+                    error: error.message
                 });
-                // Continue processing other sponsors even if one fails
+                throw error; // Rethrow the error to trigger transaction rollback
             }
         }
 
         logger.info(`Commission calculation completed`, {
-            userId: user.id,
-            packageId: pkg.id,
+            nodeId,
+            amount,
             totalCommissionsDistributed
         });
 
@@ -126,14 +214,16 @@ async function calculateCommissions(user, pkg, tx) {
 
     } catch (error) {
         logger.error('Commission calculation error', {
-            userId: user.id,
-            packageId: pkg.id,
+            nodeId,
+            amount,
             errorMessage: error.message,
             errorStack: error.stack
         });
-        throw error;
+        throw error; // Rethrow the error to trigger transaction rollback
     }
 }
+
+
 
 /**
  * Get the sponsor chain for a user up to specified levels

@@ -112,12 +112,11 @@ export function DashboardLayout() {
           </div>
           {(!isCollapsed || isMobileView) && (
             <div className="flex items-center justify-between text-xs">
-              <span className="px-2 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-purple-500 text-white ring-1 ring-white/20">
-                Level {user?.node?.level || 1}
+                        <span className="text-green-400">
+                Active
               </span>
-              <span className="text-gray-400">
-                ID: {user?.id}
-              </span>
+         
+    
             </div>
           )}
         </div>

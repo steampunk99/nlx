@@ -129,13 +129,7 @@ export function useAuth() {
       navigate('/dashboard')
     },
     onError: (error) => {
-      console.group('Registration Error Details');
-      console.error('Full Error Object:', error);
-      console.error('Error Response:', error.response?.data);
-      console.error('Validation Errors:', error.response?.data?.errors);
-      console.error('Error Status:', error.response?.status);
-      console.error('Error Headers:', error.response?.headers);
-      console.groupEnd();
+    
 
       const errorMessage = getErrorMessage(error);
       toast.error(errorMessage);

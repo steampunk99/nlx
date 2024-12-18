@@ -40,22 +40,22 @@ export function useNetworkStats() {
   });
 }
 
+
+
 export function useNetworkLevels() {
   return useQuery({
     queryKey: ['networkLevels'],
     queryFn: async () => {
       const { data } = await api.get('/network/levels');
-      console.log('Network levels response:', data);
+      console.log('Network levels response..:', data);
       
       if (!data.data || !Array.isArray(data.data)) {
         console.warn('Unexpected levels data format:', data);
         return [];
       }
 
-      return data.data.map(level => ({
-        ...level,
-        earnings: level.earnings ? `$${level.earnings}` : '$0'
-      }));
+      return data.data
+     
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -94,6 +94,24 @@ export function useDashboardStats() {
       return data.data;
     },
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+  });
+}
+
+//not showing in the dashboard and console log is empty
+
+export function useEarnings() {
+  return useQuery({
+    queryKey: ['earnings'],
+    queryFn: async () => {
+      const { data } = await api.get('/dashboard/earnings');
+      console.log('Earnings response:', data.data);
+      if (!data.data) {
+        console.warn('No earnings data in response');
+        return [];
+      }
+      return data.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 

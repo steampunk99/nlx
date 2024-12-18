@@ -53,6 +53,8 @@ model Node {
   children    Node[]           @relation("TreeStructure")
   sponsor     Node?            @relation("SponsorRelation", fields: [sponsorId], references: [id])
   sponsored   Node[]           @relation("SponsorRelation")
+  pendingBalance Int @default(0) 
+  availableBalance Int @default(0)
 
   @@index([placementId], map: "nodes_placement_id_fkey")
   @@index([sponsorId], map: "nodes_sponsor_id_fkey")
@@ -102,7 +104,7 @@ model NodePayment {
   status           PaymentStatus @default(PENDING)
   type             String
   reference        String?       @unique
-  paymentMethod    String        @default("MTN_MOBILE")
+  paymentMethod    String         
   phoneNumber      String?
   transactionDetails Json?
   completedAt      DateTime?

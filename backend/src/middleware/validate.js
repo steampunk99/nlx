@@ -40,16 +40,15 @@ const packageSchema = Joi.object({
 });
 
 const paymentSchema = Joi.object({
-    packageId: Joi.string().required(),
-    paymentMethod: Joi.string().required().valid('MTN_MOBILE_MONEY', 'AIRTEL_MONEY'),
-    phoneNumber: Joi.string().required().pattern(/^(0|\+?256)?(7[0-9]{8})$/),
-    paymentReference: Joi.string().required()
+    
+    phone: Joi.string().required().pattern(/^(0|\+?256)?(7[0-9]{8})$/),
+    // paymentReference: Joi.string()
 });
 
 const withdrawalSchema = Joi.object({
     amount: Joi.number().required().min(0),
     currency: Joi.string().required().length(3),
-    phoneNumber: Joi.string().required().trim(),
+    phone: Joi.string().required().trim(),
     provider: Joi.string().required().valid('mtn', 'airtel'),
     type: Joi.string().required().valid('mobile_money'),
     description: Joi.string().optional()

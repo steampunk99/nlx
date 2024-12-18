@@ -156,7 +156,7 @@ export default function NetworkPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid-cols-1 space-y-6 gap-6 md:grid-cols-2">
           {/* Network Levels */}
           <Card>
             <CardHeader>
@@ -171,7 +171,8 @@ export default function NetworkPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Level</th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Members</th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Active</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Earnings</th>
+
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Commissions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -180,7 +181,8 @@ export default function NetworkPage() {
                         <td className="px-6 py-4 font-medium">Level {level.level}</td>
                         <td className="px-6 py-4">{level.members}</td>
                         <td className="px-6 py-4">{level.active}</td>
-                        <td className="px-6 py-4 font-medium">{level.earnings}</td>
+                     
+                        <td className="px-6 py-4 font-medium">{level.commissions}</td>
                       </tr>
                     ))}
                   </tbody>

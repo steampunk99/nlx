@@ -33,10 +33,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration
 app.use(cors({
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    origin: process.env.NODE_ENV === 'production'
+      ? ['http://extraordinary-grace.railway.internal']  // Frontend internal URL
+      : ['http://localhost:3001', 'http://172.28.0.1:3001', 'http://192.168.100.48.3001'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  }));
 
 app.use(helmet({
     contentSecurityPolicy: false // Required for Swagger UI

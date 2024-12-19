@@ -11,10 +11,16 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
-  },  server: {
-    host: '0.0.0.0', // Ensure Vite listens on all network interfaces
-    port: parseInt(process.env.PORT) || 3000, // Use Railway's PORT or default to 3000
-    strictPort: true, // Exit if the port is unavailable
+  },
+  server: {
+    host: true,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 3001,
+    strictPort: true
+  },
+  preview: {
+    host: true,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
+    strictPort: true
   },
   css: {
     postcss: {

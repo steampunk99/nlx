@@ -125,21 +125,10 @@ async function calculateCommissions(nodeId, amount, tx) {
             }
 
             try {
-                // Create node statement
-                const nodeStatement = await tx.nodeStatement.create({
-                    data: {
-                        nodeId: sponsor.id,
-                        amount: commissionAmount,
-                        type: 'COMMISSION',
-                        description: `Level ${level} commission from ${node.user.username}'s package purchase`,
-                        status: 'PENDING',
-                        referenceType: 'PACKAGE',
-                        referenceId: node.package.package.id
-                    }
-                });
-
-                // Create commission statement
-                const commissionStatement = await tx.commission.create({
+             
+               // Create both commission and node statement in parallel
+               const [commissionStatement, nodeStatement] = await Promise.all([
+                tx.commission.create({
                     data: {
                         userId: sponsor.id,
                         amount: commissionAmount,
@@ -149,29 +138,38 @@ async function calculateCommissions(nodeId, amount, tx) {
                         sourceUserId: node.user.id,
                         packageId: node.package.package.id
                     }
-                });
-                
-
-                // Update sponsor's pending balance
-                await tx.node.update({
-                    where: { id: sponsor.id },
+                }),    tx.nodeStatement.create({
                     data: {
-                        pendingBalance: {
-                            increment: commissionAmount
-                        },
-                        availableBalance: {
-                            increment: commissionAmount
-                        }
+                        nodeId: sponsor.id,
+                        amount: commissionAmount,
+                        type: 'COMMISSION',
+                        description: `Level ${level} commission from ${node.user.username}'s package purchase`,
+                        status: 'PENDING',
+                        referenceType: 'COMMISSION',  // Changed from PACKAGE to COMMISSION
+                        referenceId: node.package.package.id,
+                        
                     }
-                });
+                })
+            ]);
 
-                // Track total commissions
-                totalCommissionsDistributed += commissionAmount;
+             // Update sponsor's balances
+             await tx.node.update({
+                where: { id: sponsor.id },
+                data: {
+                    pendingBalance: {
+                        increment: commissionAmount
+                    },
+                    availableBalance: {
+                        increment: commissionAmount
+                    }
+                }
+            });
 
-                // Update referred 's available balance
+            totalCommissionsDistributed += commissionAmount;
+
+                // Update referred's available balance
                 let balance = amount - totalCommissionsDistributed;
                 await tx.node.update({
-                   
                     where: { id: node.id },
                     data: {
                         availableBalance: {
@@ -180,13 +178,10 @@ async function calculateCommissions(nodeId, amount, tx) {
                     }
                 });
 
-                
-
-                logger.info(`Commission distributed`, {
+                logger.info(`Commission and NodeStatement created`, {
                     level,
                     sponsorId: sponsor.id,
                     sponsorUsername: sponsor.username,
-                    sponsorPosition: sponsor.position,
                     commissionAmount,
                     nodeStatementId: nodeStatement.id,
                     commissionStatementId: commissionStatement.id

@@ -945,7 +945,15 @@ class NodeChildrenService {
             // Get direct referrals (level 1)
             const directReferrals = await prisma.node.findMany({
                 where: { sponsorId: user.node.id },
-                include: { user: true }
+                include: { user: true,
+                    statements: {
+                        where: {
+                            type: {
+                                in: 'COMMISSIONS'
+                            }
+                        }
+                    }
+                 }
             });
 
             const levelsMap = new Map();
@@ -956,7 +964,7 @@ class NodeChildrenService {
                     level: 1,
                     members: directReferrals.length,
                     active: directReferrals.filter(n => n.status === 'ACTIVE').length,
-                    earnings: 0
+                    commissionss: 0
                 });
             }
 
@@ -964,20 +972,37 @@ class NodeChildrenService {
             for (const referral of directReferrals) {
                 const level2Referrals = await prisma.node.findMany({
                     where: { sponsorId: referral.id },
-                    include: { user: true }
+                    include: { user: true,
+                        statements: {
+                            where: {
+                                status: {
+                                    in: ['PENDING', 'PROCESSED']
+                                },
+                                
+                            },
+                            select: {
+                                amount: true
+                            }
+                        }
+                     }
                 });
 
                 if (level2Referrals.length > 0) {
+                    const level2Commissions = level2Referrals.reduce((sum, node) => {
+                        return sum + node.statements.reduce((sum, stmt) => {
+                            return sum + Number(stmt.amount || 0);
+                        }, 0);
+                    }, 0);
                     const currentLevel = levelsMap.get(2) || {
                         level: 2,
                         members: 0,
                         active: 0,
-                        earnings: 0
+                        commissionss:0
                     };
 
                     currentLevel.members += level2Referrals.length;
                     currentLevel.active += level2Referrals.filter(n => n.status === 'ACTIVE').length;
-
+                    currentLevel.commissionss =level2Commissions
                     levelsMap.set(2, currentLevel);
                 }
             }

@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Link, useSearch } from '@tanstack/react-router'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
 import {
@@ -26,7 +26,8 @@ const resetPasswordSchema = z.object({
 export function ResetPasswordPage() {
   const { resetPassword } = useAuth()
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const { token } = useSearch()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
 
   const form = useForm({
     resolver: zodResolver(resetPasswordSchema),
@@ -38,7 +39,7 @@ export function ResetPasswordPage() {
 
   const onSubmit = async (values) => {
     await resetPassword({
-      token,
+        token: token,
       newPassword: values.password,
     })
     setIsSubmitted(true)

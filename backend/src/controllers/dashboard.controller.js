@@ -226,11 +226,10 @@ const getNetworkStats = async (req, res) => {
     }
 
     const userId = req.user.id;
+
+    //get user node
     const userNode = await prisma.node.findFirst({
-      where: { userId },
-      include: {
-        sponsored: true
-      }
+      where: { userId }
     });
 
     if (!userNode) {
@@ -240,56 +239,65 @@ const getNetworkStats = async (req, res) => {
       });
     }
 
-    // Get direct referrals
-    const directReferrals = await prisma.node.count({
-      where: {
-        sponsorId: userNode.id
-      }
-    });
-
-    // Get total network size (all levels)
-    const totalNetwork = await calculateTotalNetwork(userNode.id);
-
-    // Get level-wise breakdown
+    // Get all levels data
     const levels = await Promise.all(
       Array.from({ length: 5 }, async (_, i) => {
         const level = i + 1;
-        const [count, active,levelCommissions] = await Promise.all([
-          prisma.node.count({
-            where: {
-              sponsorId: userNode.id,
-              level
-            }
-          }),
         
-          prisma.node.count({
-            where: {
-              sponsorId: userNode.id,
-              level,
-              status: 'ACTIVE'
+        // Get nodes at this level
+        const nodesAtLevel = await prisma.node.findMany({
+          where: {
+            sponsorId: userNode.id,
+            level: level
+          },
+          include: {
+            user:true,
+            statements: {
+              where: {
+                type: 'COMMISSION',
+                status: {
+                  in: ['PENDING', 'PROCESSED']
+                }
+              },
+              select: {
+                amount: true
+              }
             }
-          }),
-          //total commissions for the level 
-          prisma.commission.aggregate({
-            where: {
-              userId: userNode.userId,
-              level:level
-            },
-            _sum: { amount: true }
-          })
-        ]);
+          }
+        });
 
-        return { level, count, active,commissions:levelCommissions._sum.amount||0 };
+        // Calculate stats for this level
+        const members = nodesAtLevel.length;
+        const active = nodesAtLevel.filter(node => node.status === 'ACTIVE').length;
+     
+        // Sum up all commission statements
+        const levelCommissions = nodesAtLevel.reduce((total, node) => {
+          const nodeCommissions = node.statements.reduce((sum, statement) => {
+            return sum + Number(statement.amount);
+          }, 0);
+          return total + nodeCommissions;
+        }, 0);
+
+        console.log(`Level ${level} stats:`, {
+          members,
+          active,
+          levelCommissions,
+          nodesCount: nodesAtLevel.length,
+          statementsCount: nodesAtLevel.reduce((sum, node) => sum + node.statements.length, 0)
+        });
+  
+        return {
+          level,
+          members,
+          active,
+          commissionss: formatAmount(levelCommissions)
+        };
       })
     );
-
+console.log('Final response data for network levels:', levels)
     return res.json({
       success: true,
-      data: {
-        directReferrals,
-        totalNetwork,
-        levels,
-      }
+      data: levels
     });
 
   } catch (error) {
@@ -299,6 +307,14 @@ const getNetworkStats = async (req, res) => {
       message: 'Failed to fetch network statistics'
     });
   }
+};
+
+
+
+// Helper function to format amounts
+const formatAmount = (amount) => {
+  if (!amount) return "UGX 0";
+  return `UGX ${Number(amount).toLocaleString()}`;
 };
 
 const getEarnings = async (req, res) => {
@@ -320,12 +336,12 @@ const getEarnings = async (req, res) => {
     });
 
     // Get pending earnings
-    const pendingEarnings = await prisma.commission.findFirst({
+    const pendingEarnings = await prisma.commission.aggregate({
       where: {
         userId,
         status: 'PENDING'
       },
-      select: {
+      _sum: {
         amount: true
       }
     });
@@ -351,7 +367,7 @@ const getEarnings = async (req, res) => {
       success: true,
       data: {
         availableBalance: `$${(availableBalance?.availableBalance || 0).toFixed(2)}`,
-        pendingBalance: `$${(pendingEarnings?.amount || 0).toFixed(2)}`,
+        pendingBalance: `$${(pendingEarnings?._sum.amount || 0).toFixed(2)}`,
         history: history.map(item => ({
           amount: `$${item.amount.toFixed(2)}`,
           type: item.type,

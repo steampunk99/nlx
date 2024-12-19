@@ -47,14 +47,19 @@ export function useNetworkLevels() {
     queryKey: ['networkLevels'],
     queryFn: async () => {
       const { data } = await api.get('/network/levels');
-      console.log('Network levels response..:', data);
+      console.log('Network levels response....:', data);
       
       if (!data.data || !Array.isArray(data.data)) {
         console.warn('Unexpected levels data format:', data);
         return [];
       }
 
-      return data.data
+      return data.data.map(level => ({
+        level: level.level,
+        members: level.members,
+        active: level.active,
+        commissions: level.commissionss // Already formatted as UGX string
+      }));
      
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

@@ -47,7 +47,17 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials) => {
+     try {
       const response = await api.post('/auth/login', credentials)
+
+      //validate response
+      if (!response.data?.data?.user || !response.data?.data?.accessToken) {
+        toast('Login failed: wrong email or password')
+        clearAuthTokens()
+        setUser(null)
+        throw new Error('Invalid response format')
+      }
+
       const { accessToken, refreshToken, user } = response.data.data
       // Set tokens first
       setAuthTokens(accessToken, refreshToken)
@@ -56,6 +66,14 @@ export function useAuth() {
       // Then update user state
       setUser(user)
       return response.data
+     } 
+     catch (error) {
+      const errorMessage = getErrorMessage(error)
+      clearAuthTokens()
+      setUser(null)
+      toast.error(errorMessage)
+      throw error
+     }
     },
     onMutate: () => {
       setLoading(true)
@@ -63,8 +81,9 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       if (data?.data?.user) {
-        toast.success('Welcome back!')
-        navigate('/dashboard')
+        toast.success('Login successful!')
+     setTimeout(() =>   navigate('/dashboard'),2000)
+     toast.success('Welcome back!')
       } else {
         toast.error('Login failed: Invalid response format')
         clearAuthTokens()

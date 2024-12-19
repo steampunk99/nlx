@@ -37,11 +37,11 @@ const TransactionsPage = lazy(() => import('../pages/admin/finance/transactions'
 const AdminCommissionsPage = lazy(() => import('../pages/admin/finance/commissions'))
 const SupportTicketsPage = lazy(() => import('../pages/admin/support/tickets'))
 const FAQPage = lazy(() => import('../pages/admin/support/faq'))
-const KnowledgeBasePage = lazy(() => import('../pages/admin/support/kb'))
+// const KnowledgeBasePage = lazy(() => import('../pages/admin/support/kb'))
 
 // Support Pages
-const SupportDashboardPage = lazy(() => import('../pages/support/index'))
-const TicketsPage = lazy(() => import('../pages/support/tickets'))
+// const SupportDashboardPage = lazy(() => import('../pages/support/index'))
+// const TicketsPage = lazy(() => import('../pages/support/tickets'))
 
 // Loading component for Suspense
 const Loading = () => (
@@ -94,13 +94,13 @@ export function AppRouter() {
           <Route path="finance/commissions" element={<AdminCommissionsPage />} />
           <Route path="support/tickets" element={<SupportTicketsPage />} />
           <Route path="support/faq" element={<FAQPage />} />
-          <Route path="support/kb" element={<KnowledgeBasePage />} />
+          {/* <Route path="support/kb" element={<KnowledgeBasePage />} /> */}
         </Route>
 
         {/* Support Routes */}
         <Route path="/support" element={<SupportLayout />}>
-          <Route index element={<SupportDashboardPage />} />
-          <Route path="tickets" element={<TicketsPage />} />
+              {/* <Route index element={<SupportDashboardPage />} />
+              <Route path="tickets" element={<TicketsPage />} /> */}
         </Route>
       </Routes>
     </Suspense>

@@ -45,11 +45,11 @@ Standard HTTP status codes are used:
     },
     servers: [
       {
-        url: 'http://localhost:3000/api/v1',
+        url: 'http://nlx.railway.internal/api/v1',
         description: 'Development server'
       },
       {
-        url: 'https://api.zillionaire.com/v1',
+        url: 'nlx.railway.internal/v1',
         description: 'Production server'
       }
     ],

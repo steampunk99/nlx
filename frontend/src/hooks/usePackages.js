@@ -212,12 +212,12 @@ export function usePackages(options = {}) {
             queryClient.invalidateQueries({ queryKey: ['userPackages'] });
             setTimeout(() => {
               navigate('/dashboard/packages');
-            }, 2000);
+            }, 5000);
           }
         } catch (error) {
           console.error('Status check failed:', error);
         }
-      }, 55000);
+      }, 125000);
     }
   });
 

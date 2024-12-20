@@ -54,7 +54,7 @@ class PaymentController {
             const result = await prisma.$transaction(async (tx) => {
                 // Create payment record with trans_id
                 const payment = await nodePaymentService.createMobileMoneyPayment({
-                    transactionId:trans_id,  // This will be used to match the callback
+                    transactionDetails:trans_id,  // This will be used to match the callback
                     amount,
                     reference:trans_id,
                     phoneNumber:phone,
@@ -74,7 +74,7 @@ class PaymentController {
 
                     //webhook response
                     const webhookResponse = await mobileMoneyUtil.webhookResponse(mobileMoneyResponse.trans_id);
-
+                    console.log('webhook response in payment controller', webhookResponse)
                     return {
                         trans_id,  // Return this for frontend polling
                         status: webhookResponse.status,

@@ -54,7 +54,7 @@ class MobileMoneyCallbackController {
             commissionService.create({
               ...commission,
               packageId: payment.packageId,
-              status: 'PENDING'
+              status: 'PROCESSED'
             }, tx)
           ));
 

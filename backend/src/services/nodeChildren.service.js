@@ -942,18 +942,9 @@ class NodeChildrenService {
                 return [];
             }
 
-            // Get direct referrals (level 1)
             const directReferrals = await prisma.node.findMany({
                 where: { sponsorId: user.node.id },
-                include: { user: true,
-                    statements: {
-                        where: {
-                            type: {
-                                in: 'COMMISSIONS'
-                            }
-                        }
-                    }
-                 }
+                include: { user: true }
             });
 
             const levelsMap = new Map();

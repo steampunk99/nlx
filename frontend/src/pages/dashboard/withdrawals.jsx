@@ -1,173 +1,187 @@
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-import { Icon } from '@iconify/react'
-import { Wallet, ArrowUpRight, Plus } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select"
-
-// Sample data - replace with actual API calls
-const withdrawalStats = [
-  {
-    title: "Available Balance",
-    value: "$3,450",
-    description: "Available for withdrawal",
-    icon: Wallet,
-    trend: "+$850 this month",
-    color: "text-green-500"
-  },
-  {
-    title: "Total Withdrawn",
-    value: "$12,680",
-    description: "Lifetime withdrawals",
-    icon: Wallet,
-    trend: "+$2,450 this month",
-    color: "text-blue-500"
-  }
-]
-
-const withdrawalHistory = [
-  {
-    id: "WTH001",
-    amount: "$1,000",
-    method: "Bank Transfer",
-    account: "****1234",
-    date: "2024-01-15",
-    status: "completed",
-    processedDate: "2024-01-16"
-  },
-  {
-    id: "WTH002",
-    amount: "$500",
-    method: "Bitcoin",
-    account: "3FZbgi29...",
-    date: "2024-01-14",
-    status: "processing",
-    processedDate: null
-  },
-  {
-    id: "WTH003",
-    amount: "$750",
-    method: "Bank Transfer",
-    account: "****5678",
-    date: "2024-01-13",
-    status: "completed",
-    processedDate: "2024-01-14"
-  }
-]
+import { Button } from "../../components/ui/button"
+import { Input } from "../../components/ui/input"
+import { useForm } from "react-hook-form"
+import { api } from "../../lib/axios"
+import { toast } from "sonner"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { Loader2 } from "lucide-react"
+import { useAuth } from "../../hooks/useAuth"
+import { useCommissions } from "../../hooks/useCommissions"
 
 export default function WithdrawalsPage() {
+  const { user } = useAuth()
+  const { commissions,commissionStats } = useCommissions()
+  const [isLoading, setIsLoading] = useState(false)
+  const queryClient = useQueryClient()
+  const { register, handleSubmit, reset, formState: { errors } } = useForm()
+
+  //format currency to UGX
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount)
+  }
+  // Calculate available balance
+  const availableBalance = formatCurrency(commissionStats?.totalCommissions)
+    
+
+  // Fetch withdrawal history
+  const { data: withdrawals } = useQuery({
+    queryKey: ['withdrawals'],
+    queryFn: async () => {
+      const response = await api.get('/withdrawals')
+      return response.data.data
+    }
+  })
+
+  // Withdrawal mutation
+  const withdrawalMutation = useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/withdrawals', data)
+      return response.data
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || 'Withdrawal request submitted successfully')
+      queryClient.invalidateQueries(['withdrawals'])
+      reset()
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to process withdrawal')
+    }
+  })
+
+  const onSubmit = async (data) => {
+    withdrawalMutation.mutate({
+      amount: parseFloat(data.amount),
+      phone: data.phone
+    })
+  }
+
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Withdrawals</h1>
-        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-          <Plus className="mr-2 h-4 w-4" />
-          New Withdrawal
-        </button>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Balance</CardTitle>
+            <CardDescription>Amount available for withdrawal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">UGX {availableBalance.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Withdrawn</CardTitle>
+            <CardDescription>Lifetime withdrawals</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              UGX {withdrawals?.reduce((total, w) => total + (w.status === 'COMPLETED' ? w.amount : 0), 0)?.toLocaleString() || '0'}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Withdrawal Stats */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {withdrawalStats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
-              <div className={`mt-2 flex items-center text-sm ${stat.color}`}>
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                {stat.trend}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Withdrawal Methods */}
       <Card>
         <CardHeader>
-          <CardTitle>Withdrawal Methods</CardTitle>
-          <CardDescription>Your saved withdrawal methods</CardDescription>
+          <CardTitle>Request Withdrawal</CardTitle>
+          <CardDescription>
+            Withdraw your earnings to your mobile money account
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border p-4">
-            <div className="flex items-center space-x-4">
-              <div className="rounded-full bg-muted p-2">
-                <Icon icon="ph:bank" className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="font-medium">Bank Account</p>
-                <p className="text-sm text-muted-foreground">****1234</p>
-              </div>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <label>Amount (UGX)</label>
+              <Input
+                type="number"
+                {...register('amount', {
+                  required: 'Amount is required',
+                  min: { value: 1000, message: 'Minimum withdrawal is UGX 1,000' },
+                  max: { value: availableBalance, message: 'Amount exceeds available balance' }
+                })}
+                placeholder="Enter amount"
+              />
+              {errors.amount && (
+                <span className="text-sm text-red-500">{errors.amount.message}</span>
+              )}
             </div>
-          </div>
-          <div className="rounded-lg border p-4">
-            <div className="flex items-center space-x-4">
-              <div className="rounded-full bg-muted p-2">
-                <Icon icon="ph:currency-btc" className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="font-medium">Bitcoin Wallet</p>
-                <p className="text-sm text-muted-foreground">3FZbgi29...</p>
-              </div>
+
+            <div className="space-y-2">
+              <label>Phone Number</label>
+              <Input
+                type="tel"
+                {...register('phone', {
+                  required: 'Phone number is required',
+                  pattern: {
+                    value: /^07\d{8}$/,
+                    message: 'Please enter a valid Ugandan phone number (e.g., 0701234567)'
+                  }
+                })}
+                placeholder="Enter phone number (e.g., 0701234567)"
+              />
+              {errors.phone && (
+                <span className="text-sm text-red-500">{errors.phone.message}</span>
+              )}
             </div>
-          </div>
+
+            <Button 
+              type="submit" 
+              disabled={withdrawalMutation.isPending || availableBalance < 1000}
+              className="w-full"
+            >
+              {withdrawalMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Request Withdrawal'
+              )}
+            </Button>
+          </form>
         </CardContent>
       </Card>
 
-      {/* Withdrawal History */}
       <Card>
         <CardHeader>
           <CardTitle>Withdrawal History</CardTitle>
-          <CardDescription>Your recent withdrawal requests</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="relative overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-muted">
-                <tr>
-                  <th className="px-6 py-3">ID</th>
-                  <th className="px-6 py-3">Amount</th>
-                  <th className="px-6 py-3">Method</th>
-                  <th className="px-6 py-3">Account</th>
-                  <th className="px-6 py-3">Request Date</th>
-                  <th className="px-6 py-3">Processed Date</th>
-                  <th className="px-6 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {withdrawalHistory.map((withdrawal) => (
-                  <tr key={withdrawal.id} className="border-b">
-                    <td className="px-6 py-4 font-medium">{withdrawal.id}</td>
-                    <td className="px-6 py-4">{withdrawal.amount}</td>
-                    <td className="px-6 py-4">{withdrawal.method}</td>
-                    <td className="px-6 py-4">{withdrawal.account}</td>
-                    <td className="px-6 py-4">{withdrawal.date}</td>
-                    <td className="px-6 py-4">{withdrawal.processedDate || '-'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        withdrawal.status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            {withdrawals?.map((withdrawal) => (
+              <div
+                key={withdrawal.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
+                <div>
+                  <p className="font-medium">{formatCurrency(withdrawal.amount)}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(withdrawal.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    withdrawal.status === 'COMPLETED' 
+                      ? 'bg-green-100 text-green-800'
+                      : withdrawal.status === 'PENDING'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {withdrawal.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {!withdrawals?.length && (
+              <p className="text-center text-gray-500">No withdrawal history</p>
+            )}
           </div>
         </CardContent>
       </Card>

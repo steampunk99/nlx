@@ -62,6 +62,39 @@ class UgandaMobileMoneyUtil {
       });
     }
   }
+
+  async requestWithdrawal(withdrawalData) {
+    try {
+        const response = await axios.post(
+          `${config.scriptNetworks.baseUrl}/withdraw`,
+          {
+            amount: withdrawalData.amount,
+            phone: withdrawalData.phone,
+            trans_id: withdrawalData.trans_id,
+            reason: 'bills'
+          },
+          {
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${config.scriptNetworks.authToken}`,
+              'secret_key': config.scriptNetworks.secretKey,
+              'Content-Type': 'application/json',
+              'password': config.scriptNetworks.password
+            }
+          }
+        );
+        return response.data;
+    }
+    catch (error) {
+      logger.error('Mobile money withdrawal error:', {
+        error: error.message,
+        response: error.response?.data
+      });
+      throw error;
+    }
+  }
 }
+
+
 
 module.exports = new UgandaMobileMoneyUtil();

@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const withdrawalService = require('../services/nodeWithdrawal.service');
 const notificationService = require('../services/notification.service');
+const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 
 class WithdrawalController {
     /**
@@ -11,15 +12,86 @@ class WithdrawalController {
      */
     async requestWithdrawal(req, res) {
         try {
-            const { amount, withdrawal_method, ...paymentDetails } = req.body;
+            const { amount, phone } = req.body;
             const userId = req.user.id;
 
-            const withdrawal = await withdrawalService.create({
+            //check user balance
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: {
+                    node:true,
+                    commissions: true }
+            });
+            console.log('Found user:', {
                 userId,
+                hasNode: !!user?.node,
+                nodeId: user?.node?.id
+            });
+            if (!user || !user.node) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+            }
+            const availableBalance = user.commissions.reduce((total, commission) => total + (commission.status === 'PENDING' ? commission.amount : 0));
+            console.log('Available balance for user:', availableBalance);
+            if (availableBalance < amount) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Insufficient balance'
+                });
+            }
+
+            //generate transaction id
+            const trans_id = `WTH${Date.now()}${Math.random().toString(36).substr(2, 4)}`;
+            console.log('Transaction ID generated for withdrawal:', trans_id);
+            // Create withdrawal record
+            const withdrawal = await prisma.withdrawal.create({
+                data: {
+                    
+                    userId: userId,
+                    amount: amount,
+                    status: 'PENDING',
+                    method: 'MOBILE MONEY',
+                    createdAt: new Date(),
+                    userId: user.id,
+                    
+                details: {
+                    phone,
+                    trans_id,
+                    amount,
+                    user: user.id
+                }
+                },
+                include:{
+                    user: true
+                }
+            });
+
+            console.log('Withdrawal record created :', withdrawal);
+
+            //process withdrawal using scriptnetworks
+            console.log('Processing withdrawal using Script Networks...');
+           const scriptNetworksResponse = await ugandaMobileMoneyUtil.requestWithdrawal({
                 amount,
-                withdrawal_method,
-                paymentDetails,
-                status: 'PENDING'
+                phone,
+                trans_id,
+                reason: 'bills'
+            });
+
+            console.log('Script Networks response:', scriptNetworksResponse);
+
+            // Update withdrawal status based on Script Networks response
+            const updatedStatus = scriptNetworksResponse.success ? 'COMPLETED' : 'FAILED';
+            await prisma.withdrawal.update({
+                where: { id: withdrawal.id },
+                data: {
+                    status: updatedStatus,
+                    details: {
+                        ...withdrawal.details,
+                        scriptNetworksResponse: scriptNetworksResponse.data
+                    }
+                }
             });
 
             await notificationService.createWithdrawalNotification(
@@ -31,7 +103,7 @@ class WithdrawalController {
 
             res.status(201).json({
                 success: true,
-                message: 'Withdrawal request submitted successfully',
+                message: 'Withdrawal  successfully',
                 data: withdrawal
             });
         } catch (error) {

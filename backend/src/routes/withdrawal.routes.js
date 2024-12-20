@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isActive, isAdmin } = require('../middleware/auth');
+const { isActive, isAdmin,auth } = require('../middleware/auth');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const withdrawalController = require('../controllers/withdrawal.controller');
@@ -43,10 +43,11 @@ const withdrawalController = require('../controllers/withdrawal.controller');
  *     tags: [Withdrawals]
  */
 router.post('/', [
-    isActive,
-    body('amount').isFloat({ min: 0 }),
-    body('withdrawal_method').isIn(['MPESA', 'BANK', 'CRYPTO']),
-    body('paymentDetails').isObject(),
+    auth,
+    body('amount').isFloat({ min: 1000 }).withMessage('Minimum withdrawal amount is 1000'),
+    body('phone')
+        .matches(/^07\d{8}$/)
+        .withMessage('Please provide a valid Ugandan phone number (e.g., 0701234567)'),
     validate
 ], withdrawalController.requestWithdrawal);
 

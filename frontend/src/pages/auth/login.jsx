@@ -22,7 +22,7 @@ const LoginPage = () => {
         email: formData.get('email'),
         password: formData.get('password')
       })
-      navigate('/dashboard')
+   
     } catch (err) {
       console.error('Login failed:', err)
     }

@@ -1,4 +1,9 @@
 /** @type {import('tailwindcss').Config} */
+
+// require is not defined so fix it
+const { createRequire } = require('module');
+const require = createRequire(import.meta.url);
+
 export default {
     darkMode: ["class"],
     content: [

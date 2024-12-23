@@ -1,13 +1,16 @@
 export function PaymentSummary({ selectedPackage, amount, isUpgrade = false }) {
-  const totalAmount = isUpgrade ? amount : selectedPackage?.price;
+  // For upgrades, use the amount directly
+  // For purchases, use the package price
   const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-UG', {
-    style: 'currency',
-    currency: 'UGX',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
-}
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount)
+  }
+  const totalAmount = isUpgrade ? amount : selectedPackage?.price;
+  
   if (!totalAmount) return null;
   
   return (
@@ -32,4 +35,4 @@ export function PaymentSummary({ selectedPackage, amount, isUpgrade = false }) {
       </div>
     </div>
   )
-}
+} 

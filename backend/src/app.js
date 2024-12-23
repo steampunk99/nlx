@@ -16,9 +16,9 @@ const adminRoutes = require('./routes/admin.routes');
 const announcementRoutes = require('./routes/announcement.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
-// const reportRoutes = require('./routes/report.routes')
-const notificationRoutes = require('./routes/notification.routes')
+const notificationRoutes = require('./routes/notification.routes');
 const commissionRoutes = require('./routes/commission.routes');
+const systemRevenueRoutes = require('./routes/systemRevenue.routes');
 
 const { auth } = require('./middleware/auth');
 
@@ -50,12 +50,11 @@ if (process.env.NODE_ENV !== 'test') {
     app.use(morgan('dev'));
 }
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+
+
+const createRateLimiter = (windowMs, max) => rateLimit({
+    windowMs,max,keyGenerator: (req) => `{req.ip}:${req.path}`
+})
 
 // Health check endpoint (before other routes)
 app.get('/health', (req, res) => {
@@ -107,17 +106,18 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 // API Routes
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes,createRateLimiter(1 * 60 * 1000, 10));
 app.use('/api/v1/network', networkRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/finance', financeRoutes);
-app.use('/api/v1/withdrawals', withdrawalRoutes);
+app.use('/api/v1/withdrawals', withdrawalRoutes,createRateLimiter(1 * 60 * 1000, 20));
 app.use('/api/v1/admin', auth, adminRoutes);
 app.use('/api/v1/announcements', auth, announcementRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/dashboard', auth, dashboardRoutes);
 app.use('/api/v1/notifications', auth, notificationRoutes);
-app.use('/api/v1/commissions', auth, commissionRoutes);
+app.use('/api/v1/commissions', auth, commissionRoutes,createRateLimiter(1 * 60 * 1000, 50));
+app.use('/api/v1/system-revenue', systemRevenueRoutes);
 
 // Error handling
 app.use(errorHandler);

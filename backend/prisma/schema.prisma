@@ -53,7 +53,6 @@ model Node {
   children    Node[]           @relation("TreeStructure")
   sponsor     Node?            @relation("SponsorRelation", fields: [sponsorId], references: [id])
   sponsored   Node[]           @relation("SponsorRelation")
-  pendingBalance Int @default(0) 
   availableBalance Int @default(0)
 
   @@index([placementId], map: "nodes_placement_id_fkey")
@@ -77,6 +76,7 @@ model Package {
   commissions  Commission[]
   nodePackages NodePackage[]
   nodePayments NodePayment[]
+  systemRevenue SystemRevenue[]
 
   @@map("packages")
 }
@@ -224,15 +224,19 @@ model Report {
 }
 
 model Withdrawal {
-  id        Int              @id @default(autoincrement())
-  userId    Int              @map("user_id")
-  amount    Decimal          @db.Decimal(10, 2)
-  status    WithdrawalStatus @default(PENDING)
-  method    String
-  details   Json?
-  createdAt DateTime         @default(now()) @map("created_at")
-  updatedAt DateTime         @updatedAt @map("updated_at")
-  user      User             @relation(fields: [userId], references: [id])
+  id            Int              @id @default(autoincrement())
+  userId        Int              @map("user_id")
+  amount        Decimal          @db.Decimal(10, 2)
+  status        WithdrawalStatus @default(PENDING)
+  method        String
+  details       Json?
+  failureReason String?          @db.Text
+  attempts      Int              @default(0)
+  processedAt   DateTime?        @map("processed_at")
+  completedAt   DateTime?        @map("completed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  user          User             @relation(fields: [userId], references: [id])
 
   @@index([userId], map: "withdrawals_user_id_fkey")
   @@map("withdrawals")
@@ -269,6 +273,22 @@ model ReferralLink {
   @@map("referral_links")
 }
 
+model SystemRevenue {
+  id          Int      @id @default(autoincrement())
+  amount      Decimal  @db.Decimal(10, 2)
+  type        String   // e.g., 'PACKAGE_PURCHASE', 'COMMISSION_REMAINDER'
+  description String?  @db.Text
+  status      String   @default("PENDING")
+  paymentId   Int?     @map("payment_id")
+  packageId   Int?     @map("package_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  package     Package? @relation(fields: [packageId], references: [id])
+
+  @@index([packageId], map: "system_revenue_package_id_fkey")
+  @@map("system_revenue")
+}
+
 enum Role {
   USER
   ADMIN
@@ -290,9 +310,11 @@ enum PaymentStatus {
 
 enum WithdrawalStatus {
   PENDING
-  APPROVED
-  REJECTED
+  PROCESSING
   COMPLETED
+  FAILED
+  CANCELLED
+  REJECTED
 }
 
 enum AnnouncementType {
@@ -313,6 +335,7 @@ enum CommissionStatus {
   PENDING
   PROCESSED
   FAILED
+  WITHDRAWN
 }
 
 enum Position {

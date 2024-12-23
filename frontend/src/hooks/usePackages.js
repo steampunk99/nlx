@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { getAuthTokens } from '../lib/auth'
 import { PaymentStatusModal, PAYMENT_STATES } from '@/components/payment/PaymentStatusModal'
 
-
-
 export function usePackages(options = {}) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -18,15 +16,11 @@ export function usePackages(options = {}) {
   const isAuthenticated = () => {
     const tokens = getAuthTokens()
     const isAuth = !!tokens.accessToken
-    
-   
     return isAuth
   }
 
   // Detailed error handler
   const handleAuthError = (error, context = 'Unknown') => {
-    
-
     // Only handle non-refresh errors here
     // Let axios interceptor handle refresh token flow
     if (error.response?.status === 401) {
@@ -82,20 +76,15 @@ export function usePackages(options = {}) {
   } = useQuery({
     queryKey: ['packages'],
     queryFn: async () => {
-      console.log('Fetching Packages - Authentication Check')
       if (!isAuthenticated()) {
-        console.warn('Not authenticated - redirecting to login')
         navigate('/login')
         return []
       }
       
       try {
-        console.log('Attempting to fetch packages')
         const { data } = await api.get('/packages')
-        console.log('Packages fetched successfully:', data)
         return data.data || []
       } catch (error) {
-        console.error('Packages fetch error:', error)
         handleAuthError(error, 'Packages Fetch')
         return []
       }
@@ -223,45 +212,57 @@ export function usePackages(options = {}) {
 
   // Package upgrade mutation
   const upgradePackageMutation = useMutation({
-    mutationFn: async ({ currentPackageId, newPackageId, paymentMethod, phoneNumber = '' }) => {
-      console.log('Package Upgrade - Authentication Check')
-      if (!isAuthenticated()) {
-        console.warn('Not authenticated - redirecting to login')
-        navigate('/login')
-        throw new Error('Not authenticated')
+    mutationFn: async (paymentData) => {
+      if (!paymentData?.phone) {
+        throw new Error('Phone number is required');
       }
+
+      const response = await api.post('/payments/upgrade', {
+        trans_id: paymentData.trans_id,
+        currentPackageId: paymentData.currentPackageId,
+        newPackageId: paymentData.newPackageId,
+        amount: paymentData.amount,
+        phone: paymentData.phone
+      });
       
-      try {
-        console.log('Attempting package upgrade', { currentPackageId, newPackageId, paymentMethod })
-        const { data } = await api.post('/packages/upgrade', {
-          currentPackageId,
-          newPackageId,
-          paymentMethod,
-          phoneNumber
-        })
-        console.log('Package upgrade successful:', data)
-        return data
-      } catch (error) {
-        console.error('Package upgrade error:', error)
-        handleAuthError(error, 'Package Upgrade')
-        throw error
-      }
+      return response.data;
     },
     onSuccess: (data) => {
-      toast({
-        title: 'Package Upgraded',
-        description: data.message || 'Package upgraded successfully',
-        variant: 'default'
-      })
+      let pollCount = 0;
+      const maxPolls = 6;
       
-      queryClient.invalidateQueries({ queryKey: ['userPackages'] });
-      queryClient.invalidateQueries({ queryKey: ['packages'] });
+      const pollInterval = setInterval(async () => {
+        try {
+          pollCount++;
+          if (pollCount >= maxPolls) {
+            clearInterval(pollInterval);
+            onPaymentStatusChange?.(PAYMENT_STATES.TIMEOUT);
+            return;
+          }
+
+          if (!data.data.status) {
+            throw new Error('No mobile money response');
+          }
+          const status = data.data.status;
+
+          if (status === 'SUCCESS') {
+            clearInterval(pollInterval);
+            onPaymentStatusChange?.(PAYMENT_STATES.SUCCESS);
+            queryClient.invalidateQueries({ queryKey: ['userPackages'] });
+            setTimeout(() => {
+              navigate('/dashboard/packages');
+            }, 5000);
+          }
+        } catch (error) {
+          console.error('Status check failed:', error);
+        }
+      }, 125000);
     },
     onError: (error) => {
-      console.error('Package upgrade mutation error:', error)
-      handleAuthError(error, 'Package Upgrade Mutation')
+      console.error('Package upgrade error:', error);
+      handleAuthError(error, 'Package Upgrade');
     }
-  })
+  });
 
   return {
     // Packages data

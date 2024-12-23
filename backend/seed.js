@@ -7,17 +7,22 @@ async function seedPackagePurchase() {
   try {
     const referredUserId = 5;
   
-    const packageId = 4;
+    const packageId = 3;
     const nodeId = 5;
 
     // Start a transaction
     await prisma.$transaction(async (tx) => {
       // Create a NodePayment record
+      //get package price
+      const packagePrice = await tx.package.findUnique({
+        where: { id: packageId }
+      });
+
       const payment = await tx.nodePayment.create({
         data: {
           nodeId,
           packageId,
-          amount: 500000,
+          amount: packagePrice.price,
           status: 'COMPLETED',
           paymentMethod: 'TEST',
           type: 'SUBSCRIPTION',
@@ -48,7 +53,7 @@ async function seedPackagePurchase() {
     
 
       // Calculate and distribute commissions
-      await calculateCommissions(nodeId, 500000, tx);
+      await calculateCommissions(nodeId, packagePrice.price, tx);
     });
 
     console.log('Package purchase seeded and commissions distributed successfully');

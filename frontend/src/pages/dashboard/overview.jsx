@@ -75,16 +75,7 @@ function DashboardOverview() {
       secondaryValue: dashboardStats?.networkSize || "0",
       secondaryLabel: "New this month"
     },
-    {
-      title: "Pending Balance",
-      value: formatCurrency(earnings?.pendingBalance || 0),
-      description: "Your pending balance",
-      icon: DollarSign,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
-      secondaryValue: formatCurrency(earnings?.pendingBalance || 0),
-      secondaryLabel: "This month"
-    },
+  
     {
       title: "Available Balance",
       value: formatCurrency(earnings?.availableBalance || 0),
@@ -264,7 +255,7 @@ function DashboardOverview() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y">
+            <div className="divide-y max-h-[300px] overflow-y-auto">
               {recentActivities?.map((activity, index) => {
                 const ActivityIcon = getActivityIcon(activity.type)
                 const colorClass = getActivityColor(activity.type)
@@ -303,7 +294,7 @@ function DashboardOverview() {
                             "font-medium",
                             activity.type === 'earning' && "text-green-600 dark:text-green-400"
                           )}>
-                            {activity.value || activity.amount}
+                           {formatCurrency(activity.value || activity.amount)}
                           </p>
                         </div>
                         <div className="flex items-center justify-between">

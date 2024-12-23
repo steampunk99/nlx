@@ -367,7 +367,7 @@ const getEarnings = async (req, res) => {
       success: true,
       data: {
         availableBalance: `$${(availableBalance?.availableBalance || 0).toFixed(2)}`,
-        pendingBalance: `$${(pendingEarnings?._sum.amount || 0).toFixed(2)}`,
+       
         history: history.map(item => ({
           amount: `$${item.amount.toFixed(2)}`,
           type: item.type,

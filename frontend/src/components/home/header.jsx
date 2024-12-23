@@ -84,14 +84,14 @@ export function Header() {
               className="flex items-center gap-2"
             >
               <Link to="/">
-                <img src={logo} alt="Zillionaire" className="h-12 w-12" />
+                <img src={logo} alt="Zillionaire" className="h-[40px] w-[120px]" />
               </Link>
             </motion.div>
             <Link
               to="/"
               className="flex items-center gap-2 transition duration-300 hover:opacity-80"
             >
-              <span className="sr-only">Zillionaire</span>
+              <span className="sr-only"></span>
               <h1 className={cn(
                 "font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-300",
                 isScrolled ? "text-lg" : "text-xl"

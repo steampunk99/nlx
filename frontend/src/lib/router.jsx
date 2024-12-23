@@ -5,6 +5,7 @@ import { DashboardLayout } from '../layouts/DashboardLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { SupportLayout } from '../layouts/SupportLayout'
 import { AuthLayout } from '../layouts/AuthLayout'
+import UpgradePage from '@/pages/dashboard/packages/upgrade'
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -76,6 +77,7 @@ export function AppRouter() {
           <Route path="commissions" element={<CommissionsPage />} />
           <Route path="packages" element={<PackagesPage />} />
           <Route path="payment" element={<PaymentPage />} />
+          <Route path="upgrade" element={<UpgradePage />} />
           <Route path="withdrawals" element={<WithdrawalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>

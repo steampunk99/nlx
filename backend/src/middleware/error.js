@@ -1,51 +1,42 @@
+const AppError = require('../utils/appError');
+
 /**
  * Global error handling middleware
  */
-exports.errorHandler = (err, req, res, next) => {
-    console.error('Error:', err);
+const errorHandler = (err, req, res, next) => {
+    err.statusCode = err.statusCode || 500;
+    err.status = err.status || 'error';
 
-    // Handle Sequelize validation errors
-    if (err.name === 'SequelizeValidationError') {
-        return res.status(400).json({
+    if (process.env.NODE_ENV === 'development') {
+        // Development error response - with full error details
+        res.status(err.statusCode).json({
             success: false,
-            message: 'Validation error',
-            errors: err.errors.map(e => ({
-                field: e.path,
-                message: e.message
-            }))
+            status: err.status,
+            error: err,
+            message: err.message,
+            stack: err.stack
         });
+    } else {
+        // Production error response - clean error message
+        if (err.isOperational) {
+            // Operational, trusted error: send message to client
+            res.status(err.statusCode).json({
+                success: false,
+                status: err.status,
+                message: err.message
+            });
+        } else {
+            // Programming or other unknown error: don't leak error details
+            console.error('ERROR 💥', err);
+            res.status(500).json({
+                success: false,
+                status: 'error',
+                message: 'Something went wrong!'
+            });
+        }
     }
+};
 
-    // Handle Sequelize unique constraint errors
-    if (err.name === 'SequelizeUniqueConstraintError') {
-        return res.status(400).json({
-            success: false,
-            message: 'Duplicate entry',
-            errors: err.errors.map(e => ({
-                field: e.path,
-                message: e.message
-            }))
-        });
-    }
-
-    // Handle JWT errors
-    if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Invalid token'
-        });
-    }
-
-    if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({
-            success: false,
-            message: 'Token expired'
-        });
-    }
-
-    // Default error response
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal server error'
-    });
+module.exports = {
+    errorHandler
 };

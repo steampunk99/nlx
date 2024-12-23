@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 // CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-      ? ['https://capable-ambition.railway.internal','https://capable-ambition-production.up.railway.app']  // Frontend internal URL
+      ? ['https://gleaming-renewal.railway.internal','https://gleaming-renewal-production.up.railway.app']  // Frontend internal URL
       : ['http://localhost:8080','http://172.28.0.1:8080', 'http://192.168.100.48.8080', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

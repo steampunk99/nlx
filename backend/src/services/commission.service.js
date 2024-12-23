@@ -4,7 +4,20 @@ const prisma = new PrismaClient();
 class CommissionService {
     async findAll({ page = 1, limit = 10, userId, type, status, startDate, endDate }) {
         const skip = (page - 1) * limit;
-        const where = {};
+        // indexes to improve query performance
+        const where = {
+            AND: [
+                userId && { userId },
+                type && { type },
+                status && { status },
+                (startDate || endDate) && {
+                    createdAt: {
+                        ...(startDate && { gte: new Date(startDate) }),
+                        ...(endDate && { lte: new Date(endDate) })
+                    }
+                }
+            ].filter(Boolean)
+        };
 
         if (userId) where.userId = userId;
         if (type) where.type = type;

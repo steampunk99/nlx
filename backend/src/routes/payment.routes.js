@@ -44,8 +44,6 @@ router.post('/package',auth, [
     
 ], paymentController.processPackagePayment);
 
-router.post('/')
-
 /**
  * @swagger
  * /payments/upgrade:
@@ -53,11 +51,13 @@ router.post('/')
  *     summary: Process package upgrade payment
  *     tags: [Payments]
  */
-router.post('/upgrade', [
+router.post('/upgrade', auth, [
    
-    body('newPackageId').isInt(),
-    body('paymentMethod').isIn(['MTN_MOBILE', 'AIRTEL_MONEY']),
-    body('phoneNumber').matches(/^(0|\+?256)?(7[0-9]{8})$/),
+    body('trans_id'),
+    body('currentPackageId'),
+    body('newPackageId'),
+    body('amount'),
+    body('phone'),
     validate
 ], paymentController.processUpgradePayment);
 

@@ -181,63 +181,8 @@ router.delete('/:id', [
  *     summary: Upgrade existing package
  *     tags: [Packages]
  */
-router.post('/upgrade', [
-    auth,
-    isActive,
-    body('currentPackageId').isString(),
-    body('newPackageId').isString(),
-    body('paymentMethod').isIn(['MPESA', 'BANK', 'CRYPTO']),
-    body('phoneNumber').optional().matches(/^\+?[1-9]\d{1,14}$/),
-    validate
-], packageController.upgradePackage);
 
-/**
- * @swagger
- * /packages/upgrade/history:
- *   get:
- *     summary: Get package upgrade history
- *     tags: [Packages]
- */
-router.get('/upgrade/history', [
-    auth,
-    isActive,
-    query('startDate').optional().isISO8601(),
-    query('endDate').optional().isISO8601(),
-    validate
-], packageController.getUpgradeHistory);
 
-/**
- * @swagger
- * /packages/purchase:
- *   post:
- *     summary: Purchase a new package
- *     tags: [Packages]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - packageId
- *               - paymentMethod
- *               - phoneNumber
- *             properties:
- *               packageId:
- *                 type: integer
- *               paymentMethod:
- *                 type: string
- *                 enum: [MTN_MOBILE, AIRTEL_MONEY]
- *               phoneNumber:
- *                 type: string
- *     responses:
- *       201:
- *         description: Package purchase successful
- *       400:
- *         description: Invalid request
- *       404:
- *         description: Package not found
- */
 
 
 module.exports = router;

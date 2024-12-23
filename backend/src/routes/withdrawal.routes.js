@@ -59,15 +59,9 @@ router.post('/', [
  *     tags: [Withdrawals]
  */
 router.get('/', [
-    isActive,
+    auth,
     query('status').optional().isIn(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']),
-    query('withdrawal_method').optional().isIn(['MPESA', 'BANK', 'CRYPTO']),
-    query('start_date').optional().isISO8601(),
-    query('end_date').optional().isISO8601(),
-    query('min_amount').optional().isFloat({ min: 0 }),
-    query('max_amount').optional().isFloat({ min: 0 }),
-    query('page').optional().isInt({ min: 1 }),
-    query('limit').optional().isInt({ min: 1, max: 100 }),
+    
     validate
 ], withdrawalController.getWithdrawalHistory);
 

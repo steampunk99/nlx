@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
 import { cn } from '../../lib/utils'
+import { UpgradePackageModal } from './packages/upgrade-package-modal'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -58,11 +59,7 @@ const formatCurrency = (amount) => {
 export default function PackagesPage() {
   const navigate = useNavigate()
   const [selectedPackage, setSelectedPackage] = useState(null)
-  
-
-
-  
-    
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const {
     availablePackages, 
@@ -82,7 +79,10 @@ export default function PackagesPage() {
 
 
 
-
+const handleUpgrade = (pkg) => {
+  setSelectedPackage(pkg)
+  setShowUpgradeModal(true)
+}
   if (packagesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -175,6 +175,7 @@ export default function PackagesPage() {
                         <th className="h-12 px-6 text-left align-middle font-medium">Amount</th>
                         <th className="h-12 px-6 text-left align-middle font-medium">Purchase Date</th>
                         <th className="h-12 px-6 text-left align-middle font-medium">Status</th>
+                        <th className="h-12 px-6 text-left align-middle font-medium">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -183,13 +184,24 @@ export default function PackagesPage() {
                           <td className="p-6 align-middle font-medium">{pkg.package.name}</td>
                           <td className="p-6 align-middle">{formatCurrency(pkg.package.price)}</td>
                           <td className="p-6 align-middle">{new Date(pkg.createdAt).toLocaleDateString()}</td>
-                          {/* <td className="p-6 align-middle">Payment Method: {pkg.paymentMethod}</td> */}
-
+                          
                           <td className="p-6 align-middle">
                             <Badge variant="success" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
                               {pkg.status}
                             </Badge>
                           </td>
+                          <td className="p-6 align-middle">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleUpgrade(pkg)}
+                            disabled={!availablePackages?.some(p => p.level > pkg.package.level)}
+                          >
+                            Upgrade
+                          </Button>
+                        </td>
+                          {/* <td className="p-6 align-middle">Payment Method: {pkg.paymentMethod}</td> */}
+
+                         
                         </tr>
                       ))}
                     </tbody>
@@ -214,7 +226,7 @@ export default function PackagesPage() {
           
           // Check if this specific package is already purchased
           const isAlreadyPurchased = activePackages?.some(
-            activePkg => activePkg.package.id === pkg.id && activePkg.status === 'PAID'
+            activePkg => activePkg.package.id === pkg.id && activePkg.status === 'ACTIVE'
           );
           
           return (
@@ -341,7 +353,17 @@ export default function PackagesPage() {
         })}
       </motion.div>
 
-     
+      <UpgradePackageModal 
+        open={showUpgradeModal}
+        onClose={() => {
+          setShowUpgradeModal(false)
+          setSelectedPackage(null)
+        }}
+        currentPackage={selectedPackage}
+        availablePackages={availablePackages?.filter(pkg => 
+          pkg.level > (selectedPackage?.package?.level || 0)
+        )}
+      />
 
       {/* Add custom styles to the head */}
       <style jsx global>{`

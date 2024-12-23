@@ -12,7 +12,7 @@ import { useCommissions } from "../../hooks/useCommissions"
 
 export default function WithdrawalsPage() {
   const { user } = useAuth()
-  const { commissions,commissionStats } = useCommissions()
+  const { commissions, commissionStats } = useCommissions()
   const [isLoading, setIsLoading] = useState(false)
   const queryClient = useQueryClient()
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
@@ -26,12 +26,12 @@ export default function WithdrawalsPage() {
       maximumFractionDigits: 0
     }).format(amount)
   }
+
   // Calculate available balance
-  const availableBalance = formatCurrency(commissionStats?.totalCommissions)
-    
+  const availableBalance = commissionStats?.totalCommissions || 0
 
   // Fetch withdrawal history
-  const { data: withdrawals } = useQuery({
+  const { data: withdrawalsData } = useQuery({
     queryKey: ['withdrawals'],
     queryFn: async () => {
       const response = await api.get('/withdrawals')
@@ -62,6 +62,32 @@ export default function WithdrawalsPage() {
     })
   }
 
+  const withdrawalHistory = withdrawalsData?.withdrawals?.map((withdrawal) => ({
+    id: withdrawal.id,
+    amount: withdrawal.amount,
+    phone: withdrawal.details?.phone,
+    status: withdrawal.status,
+    createdAt: withdrawal.createdAt
+  })) || []
+
+  // Calculate total withdrawn amount
+  const totalWithdrawn = withdrawalHistory.reduce((total, withdrawal) => 
+    total + (withdrawal.status === 'COMPLETED' ? Number(withdrawal.amount) : 0)
+  , 0)
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'COMPLETED':
+        return 'text-green-600 bg-green-100'
+      case 'PENDING' || 'PROCESSING':
+        return 'text-yellow-600 bg-yellow-100'
+      case 'FAILED':
+        return 'text-red-600 bg-red-100'
+      default:
+        return 'text-gray-600 bg-gray-100'
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
@@ -71,7 +97,7 @@ export default function WithdrawalsPage() {
             <CardDescription>Amount available for withdrawal</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">UGX {availableBalance.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{formatCurrency(availableBalance)}</p>
           </CardContent>
         </Card>
         
@@ -82,7 +108,7 @@ export default function WithdrawalsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              UGX {withdrawals?.reduce((total, w) => total + (w.status === 'COMPLETED' ? w.amount : 0), 0)?.toLocaleString() || '0'}
+              {formatCurrency(totalWithdrawn)}
             </p>
           </CardContent>
         </Card>
@@ -155,31 +181,26 @@ export default function WithdrawalsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {withdrawals?.map((withdrawal) => (
-              <div
-                key={withdrawal.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{formatCurrency(withdrawal.amount)}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(withdrawal.createdAt).toLocaleDateString()}
-                  </p>
+            {withdrawalHistory.length > 0 ? (
+              withdrawalHistory.map((withdrawal) => (
+                <div
+                  key={withdrawal.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{formatCurrency(withdrawal.amount)}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(withdrawal.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(withdrawal.status)}`}>
+                      {withdrawal.status}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className={`px-3 py-1 rounded-full text-sm ${
-                    withdrawal.status === 'COMPLETED' 
-                      ? 'bg-green-100 text-green-800'
-                      : withdrawal.status === 'PENDING'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {withdrawal.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-            {!withdrawals?.length && (
+              ))
+            ) : (
               <p className="text-center text-gray-500">No withdrawal history</p>
             )}
           </div>

@@ -7,6 +7,7 @@ const commissionService = require('../services/commission.service');
 const { calculateCommissions } = require('../utils/commission.utils');
 const { PrismaClient } = require('@prisma/client');
 const mobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
+const { Prisma } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -24,86 +25,91 @@ class PaymentController {
                 phone,
                 packageId
             } = req.body;
-
+    
             const userId = req.user.id;
-
+    
             // Get package details
             const pkg = await packageService.findById(packageId);
-            console.log("Step 1: package details",pkg)
-         
             if (!pkg) {
                 return res.status(400).json({
                     success: false,
                     message: 'Package not found'
                 });
             }
-
+    
             // Get node details
             const node = await nodeService.findByUserId(userId);
-            console.log('Step 2 - node details',node);
             if (!node) {
                 return res.status(404).json({
                     success: false,
                     message: 'Node not found for user'
                 });
             }
-
-            console.log("Initializing transaction..")
-
-            // Start transaction
+    
+            // Create initial payment record with longer transaction timeout
             const result = await prisma.$transaction(async (tx) => {
-                // Create payment record with trans_id
+                // Create payment record
                 const payment = await nodePaymentService.createMobileMoneyPayment({
-                    transactionDetails:trans_id,  // This will be used to match the callback
+                    transactionDetails: trans_id,
                     amount,
-                    reference:trans_id,
-                    phoneNumber:phone,
+                    reference: trans_id,
+                    phoneNumber: phone,
                     packageId,
                     nodeId: node.id,
                     status: 'PENDING'
                 }, tx);
-
-                try {
-                    // Initiate mobile money request
-                    const mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
-                        amount,
-                        phone,
-                        trans_id,  // Script Networks will return this
-                    });
-                    console.log("Mobile money response",mobileMoneyResponse)
-
-                    //webhook response
-                    const webhookResponse = await mobileMoneyUtil.webhookResponse(mobileMoneyResponse.trans_id);
-                    console.log('webhook response in payment controller', webhookResponse)
-                    return {
-                        trans_id,  // Return this for frontend polling
-                        status: webhookResponse.status,
+    
+                return payment;
+            }, {
+                isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+                timeout: 30000 // 30 seconds timeout for DB operations
+            });
+    
+            // Initiate mobile money request outside transaction
+            try {
+                // Initiate mobile money request
+                const mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
+                    amount,
+                    phone,
+                    trans_id,
+                });
+    
+                // Get webhook response
+                const webhookResponse = await mobileMoneyUtil.webhookResponse(mobileMoneyResponse.trans_id);
+    
+                // Return early response to prevent timeout
+                res.status(201).json({
+                    success: true,
+                    data: {
+                        trans_id: result.trans_id,
+                        status: 'PENDING',
                         mobileMoneyResponse,
                         webhookResponse
-                    };
-
-                } catch (error) {
+                    }
+                });
+    
+                // Process webhook response asynchronously
+                if (webhookResponse.status === 'FAILED') {
                     await nodePaymentService.updateMobileMoneyPaymentStatus(
-                        payment.id, 
-                        'FAILED', 
-                        tx
+                        result.id,
+                        'FAILED'
                     );
-                    throw error;
                 }
-            });
-
-            // Return trans_id for polling mobile money
-            //include mobile money response
-            return res.status(201).json({
-                success: true,
-                data: {
-                    trans_id: result.trans_id,
-                    status: 'PENDING',
-                    mobileMoneyResponse: result.mobileMoneyResponse,
-                    webhookResponse: result.webhookResponse
-                }
-            });
-
+    
+            } catch (error) {
+                // Update payment status if mobile money request fails
+                await nodePaymentService.updateMobileMoneyPaymentStatus(
+                    result.id,
+                    'FAILED'
+                );
+    
+                return res.status(500).json({
+                    success: false,
+                    message: 'Payment processing failed',
+                    error: error.message
+                });
+            }
+    
         } catch (error) {
             console.error('Payment processing error:', error);
             return res.status(500).json({
@@ -120,12 +126,33 @@ class PaymentController {
      */
     async processUpgradePayment(req, res) {
         try {
-            const { currentPackageId, newPackageId } = req.body;
+            const { 
+                trans_id,
+                currentPackageId, 
+                newPackageId,
+                amount,
+                phone
+            } = req.body;
+
+            console.group('Package Upgrade Request');
+            console.log('Request Body:', {
+                trans_id,
+                currentPackageId,
+                newPackageId,
+                amount,
+                phone
+            });
+
             const userId = req.user.id;
+            console.log('User ID:', userId);
 
             // Get node details
             const node = await nodeService.findByUserId(userId);
+            console.log('Node found:', node);
+
             if (!node) {
+                console.log('Node not found for user:', userId);
+                console.groupEnd();
                 return res.status(404).json({
                     success: false,
                     message: 'Node not found for user'
@@ -133,104 +160,130 @@ class PaymentController {
             }
 
             // Get package details
-            const [currentPackage, newPackage] = await Promise.all([
-                nodePackageService.findById(currentPackageId),
-                packageService.findById(newPackageId)
-            ]);
-
-            if (!currentPackage || currentPackage.nodeId !== node.id) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Current package not found'
-                });
-            }
-
-            if (!newPackage) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'New package not found'
-                });
-            }
+                    // Get package details
+                    console.log('Fetching package details...');
+                    console.log('Looking for current package with ID:', currentPackageId);
+                    console.log('Looking for new package with ID:', newPackageId);
+        
+                    // First get the node's current package
+                    const currentNodePackage = await nodePackageService.findByNodeId(node.id);
+                    console.log('Current Node Package found:', currentNodePackage);
+        
+                    if (!currentNodePackage || currentNodePackage.packageId !== currentPackageId) {
+                        console.log('Current package validation failed:', {
+                            packageFound: !!currentNodePackage,
+                            currentPackageId: currentNodePackage?.packageId,
+                            requestedPackageId: currentPackageId
+                        });
+                        console.groupEnd();
+                        return res.status(404).json({
+                            success: false,
+                            message: 'Current package not found or does not match your active package'
+                        });
+                    }
+        
+                    // Get new package details
+                    const newPackage = await packageService.findById(newPackageId);
+                    console.log('New Package found:', newPackage);
 
             // Calculate upgrade cost
-            const upgradeCost = newPackage.price - currentPackage.package.price;
+            const upgradeCost = newPackage.price - currentNodePackage.package.price;
+            console.log('Upgrade cost calculation:', {
+                newPackagePrice: newPackage.price,
+                currentPackagePrice: currentNodePackage.package.price,
+                calculatedCost: upgradeCost,
+                providedAmount: amount
+            });
+
             if (upgradeCost <= 0) {
+                console.log('Invalid upgrade cost:', upgradeCost);
+                console.groupEnd();
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid upgrade: new package must be more expensive'
                 });
             }
 
-            // Process upgrade payment in a transaction
+            // Verify amount matches upgrade cost
+            if (amount !== upgradeCost) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid amount for upgrade'
+                });
+            }
+
+            // Create initial payment record with longer transaction timeout
             const result = await prisma.$transaction(async (tx) => {
-                // Initialize mobile money utility
-               
-                const mobileMoneyUtil = new UgandaMobileMoneyUtil();
-
-                // Prepare payment request
-                const paymentRequest = {
-                    amount: upgradeCost,
-                    phone: req.body.phoneNumber,
-                    externalId: `UPGRADE_${node.id}_${currentPackageId}_${newPackageId}`,
-                    description: `Package Upgrade: ${currentPackage.package.name} to ${newPackage.name}`
-                };
-
-                // Request payment
-                const paymentResponse = await mobileMoneyUtil.requestToPay(paymentRequest);
-
                 // Create payment record
-                const payment = await nodePaymentService.create({
-                    nodeId: node.id,
-                    packageId: newPackageId,
+                const payment = await nodePaymentService.createMobileMoneyPayment({
+                    transactionDetails: trans_id,
                     amount: upgradeCost,
-                    reference: paymentResponse.trans_id,
+                    reference: trans_id,
+                    phoneNumber: phone,
+                    packageId: newPackageId,
+                    nodeId: node.id,
                     status: 'PENDING',
                     type: 'PACKAGE_UPGRADE',
-                    paymentMethod: 'MTN_MOBILE',
-                    transactionDetails: {
-                        phone: req.body.phone,
-                        
-                        ...paymentResponse
-                    },
-                    isUpgrade: true,
-                    previousPackageId: currentPackageId
+                   
+                   
                 }, tx);
 
-                // Create statement record
-                const statement = await nodeStatementService.create({
-                    nodeId: node.id,
+                return payment;
+            }, {
+                isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+                timeout: 30000 // 30 seconds timeout for DB operations
+            });
+
+            // Initiate mobile money request outside transaction
+            try {
+                // Initiate mobile money request
+                const mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
                     amount: upgradeCost,
-                    type: 'DEBIT',
-                    description: `Package upgrade: ${currentPackage.package.name} to ${newPackage.name}`,
-                    status: 'PENDING',
-                    referenceType: 'PACKAGE_UPGRADE',
-                    referenceId: payment.id
-                }, tx);
+                    phone,
+                    trans_id,
+                });
 
-               
+                // Get webhook response
+                const webhookResponse = await mobileMoneyUtil.webhookResponse(mobileMoneyResponse.trans_id);
 
-                return {
-                    payment,
-                    statement,
-                    transactionId: paymentResponse.trans_id
-                };
-            });
+                // Return early response to prevent timeout
+                res.status(201).json({
+                    success: true,
+                    data: {
+                        trans_id: result.trans_id,
+                        status: 'PENDING',
+                        mobileMoneyResponse,
+                        webhookResponse
+                    }
+                });
 
-            res.status(201).json({
-                success: true,
-                message: 'Upgrade payment initiated',
-                data: {
-                    transactionId: result.transactionId,
-                    paymentId: result.payment.id
+                // Process webhook response asynchronously
+                if (webhookResponse.status === 'FAILED') {
+                    await nodePaymentService.updateMobileMoneyPaymentStatus(
+                        result.id,
+                        'FAILED'
+                    );
                 }
-            });
+
+            } catch (error) {
+                // Update payment status if mobile money request fails
+                await nodePaymentService.updateMobileMoneyPaymentStatus(
+                    result.id,
+                    'FAILED'
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Payment processing failed',
+                    error: error.message
+                });
+            }
 
         } catch (error) {
             console.error('Upgrade payment processing error:', error);
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
-                message: 'Error processing upgrade payment',
-                error: error.message
+                message: 'Payment processing failed'
             });
         }
     }

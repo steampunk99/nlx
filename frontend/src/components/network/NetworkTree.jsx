@@ -91,12 +91,12 @@ const NetworkTree = ({ networkData }) => {
                 <div className={styles.subtitle}>Level {level} • {node.position || 'N/A'}</div>
                 <div className={styles.stats}>
                   <div className={styles.stat}>
-                    <div className="font-medium">{node.sponsored?.length || 0}</div>
-                    <div className="text-gray-500">Direct</div>
+                    {/* <div className="font-medium">{node.sponsored?.length || 0}</div>
+                    <div className="text-gray-500">Direct</div> */}
                   </div>
                   <div className={styles.stat}>
-                    <div className="font-medium">{node.package?.name || 'No Package'}</div>
-                    <div className="text-gray-500">Package</div>
+                    {/* <div className="font-medium">{node.package?.name || 'No Package'}</div>
+                    <div className="text-gray-500">Package</div> */}
                   </div>
                 </div>
               </div>

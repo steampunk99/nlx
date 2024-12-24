@@ -18,7 +18,7 @@ export function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <Link to="/" className="text-2xl font-bold text-gray-900 hover:text-[#0095E7]">
-              Zillionaire
+              TriplePride
             </Link>
             <p className="text-sm text-gray-600">
               Empowering your financial journey through network marketing excellence.
@@ -27,8 +27,8 @@ export function Footer() {
               <a href="tel:+256700000000" className="text-sm text-gray-600 hover:text-[#0095E7]">
                 +256 700 000 000
               </a>
-              <a href="mailto:support@zillionaire.com" className="text-sm text-gray-600 hover:text-[#0095E7]">
-                support@zillionaire.com
+              <a href="mailto:support@TriplePride.com" className="text-sm text-gray-600 hover:text-[#0095E7]">
+                support@TriplePride.com
               </a>
             </div>
           </div>
@@ -107,7 +107,7 @@ export function Footer() {
         <div className="pt-8 mt-8 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600">
-              {new Date().getFullYear()} Zillionaire. All rights reserved.
+              {new Date().getFullYear()} Triple Pride. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <Link to="/terms" className="text-sm text-gray-600 hover:text-[#0095E7]">

@@ -83,9 +83,7 @@ export function Header() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-2"
             >
-              <Link to="/">
-                <img src={logo} alt="Zillionaire" className="h-[40px] w-[120px]" />
-              </Link>
+           
             </motion.div>
             <Link
               to="/"
@@ -96,7 +94,7 @@ export function Header() {
                 "font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-300",
                 isScrolled ? "text-lg" : "text-xl"
               )}>
-                Zillionaire
+                TriplePride
               </h1>
             </Link>
           </motion.div>

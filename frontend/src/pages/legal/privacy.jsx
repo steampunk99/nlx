@@ -125,7 +125,7 @@ export default function PrivacyPage() {
             <p className="text-gray-600">
               For privacy-related inquiries, please contact us at:
               <br />
-              Email: privacy@zillionaires.com
+              Email: privacy@triplepride.com
               <br />
               Address: [Your Business Address]
             </p>

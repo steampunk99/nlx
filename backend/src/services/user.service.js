@@ -4,14 +4,31 @@ const prisma = new PrismaClient();
 
 class UserService {
     async findById(id) {
+        if (!id) throw new Error('User ID is required');
+        
         return prisma.user.findUnique({
-            where: { id },
+            where: { 
+                id: Number(id)
+            },
             include: {
-                node: true,
-                notifications: true,
-                withdrawals: true,
-                reports: true,
-                commissions: true
+                node: {
+                    include: {
+                        package: {
+                            include: {
+                                package: true
+                            }
+                        }
+                    }
+                },
+                withdrawals: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                        createdAt: true,
+                        updatedAt: true
+                    }
+                }
             }
         });
     }
@@ -33,6 +50,22 @@ class UserService {
         });
     }
 
+    async findAll() {
+        return prisma.user.findMany({
+            include: {
+                node: {
+                    include: {
+                        package: {
+                            include: {
+                                package: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     async create(userData) {
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         return prisma.user.create({
@@ -50,6 +83,37 @@ class UserService {
         return prisma.user.update({
             where: { id },
             data: userData
+        });
+    }
+
+    async updateStatus(id, status) {
+        if (!id) throw new Error('User ID is required');
+        if (!status) throw new Error('Status is required');
+
+        return prisma.user.update({
+            where: { id: Number(id) },
+            data: { status }
+        });
+    }
+
+    async softDelete(id) {
+        if (!id) throw new Error('User ID is required');
+
+        const user = await prisma.user.findUnique({
+            where: { id: Number(id) },
+            select: {
+                email: true,
+                username: true
+            }
+        });
+
+        return prisma.user.update({
+            where: { id: Number(id) },
+            data: { 
+                status: 'DELETED',
+                email: `deleted_${Date.now()}_${user.email}`,
+                username: `deleted_${Date.now()}_${user.username}`
+            }
         });
     }
 

@@ -404,7 +404,7 @@ class NetworkController {
           userId,
           code,
           status: 'ACTIVE',
-          link: `https://zillionaires.co/register?ref=${code}`
+          link: `https://triplepride.com/register?ref=${code}`
         }
       });
 

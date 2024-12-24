@@ -65,10 +65,10 @@ export function AdminDashboardPage() {
           </div>
         </Card>
 
-        {/* Commission Stats */}
+        {/* System revenue Stats */}
         <Card className="p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-muted-foreground">Total Commissions</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">System Revenue</h3>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="mt-2">

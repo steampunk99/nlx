@@ -84,7 +84,7 @@ export function DashboardLayout() {
       )}>
         {(!isCollapsed || isMobileView) && (
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-white">Zillionaire</span>
+            <span className="font-bold text-white">Triple Pride</span>
           </Link>
         )}
       </div>
@@ -191,7 +191,7 @@ export function DashboardLayout() {
             <Menu className="h-6 w-6" />
           </Button>
           <div className="flex-1">
-            <span className="font-bold text-white">Zillionaire</span>
+            <span className="font-bold text-white">TriplePride</span>
           </div>
         </div>
       )}

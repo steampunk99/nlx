@@ -154,7 +154,7 @@ export default function RegisterPage() {
               className="space-y-8 max-w-lg mx-auto"
             >
               <div>
-                <h1 className="text-5xl font-bold mb-4">Join Zillionaires</h1>
+                <h1 className="text-5xl font-bold mb-4">Join Triple Pride</h1>
                 <p className="text-xl text-white/90">Start your journey to financial freedom</p>
               </div>
 

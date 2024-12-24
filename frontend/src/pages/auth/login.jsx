@@ -55,7 +55,7 @@ const LoginPage = () => {
             >
               <div>
                 <h1 className="text-5xl font-bold mb-4">Welcome Back!</h1>
-                <p className="text-xl text-white/90">Sign in to continue your journey with Zillionaires</p>
+                <p className="text-xl text-white/90">Sign in to continue your journey with Triple Pride</p>
               </div>
 
               <div className="space-y-6">

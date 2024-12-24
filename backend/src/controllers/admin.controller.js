@@ -31,13 +31,21 @@ class AdminController {
         sortOrder
       });
 
+      // Detailed logging
+      users.forEach(user => {
+        console.log('User:', user.id);
+        console.log('Node:', user.node);
+        if (user.node) {
+          console.log('Package:', user.node.package);
+        }
+      });
+
+      console.log('users returned:::', JSON.stringify(users, null, 2));
       res.json({
         success: true,
         data: {
-          users: users.data,
-          total: users.total,
-          pages: users.pages,
-          currentPage: users.currentPage
+          users,
+         
         }
       });
 
@@ -59,7 +67,7 @@ class AdminController {
     try {
       const { id } = req.params;
 
-      const user = await userService.findById(id, {
+      const user = await userService.findById(parseInt(id), {
         includeNode: true,
         includePackages: true,
         includeWithdrawals: true

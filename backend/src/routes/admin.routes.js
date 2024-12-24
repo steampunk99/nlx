@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isAdmin } = require('../middleware/auth');
+const { isAdmin,auth } = require('../middleware/auth');
 const { query, body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const adminController = require('../controllers/admin.controller');
@@ -45,7 +45,7 @@ const adminController = require('../controllers/admin.controller');
  *     tags: [Admin]
  */
 router.get('/users', [
-    isAdmin,
+    auth,isAdmin,
     query('page').optional().isInt({ min: 1 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
     query('status').optional().isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']),

@@ -1,7 +1,7 @@
 {
-  "name": "zillionaire-api",
+  "name": "Earn Drip-api",
   "version": "1.0.0",
-  "description": "Zillionaire Network Marketing REST API",
+  "description": "Earn Drip Network Marketing REST API",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

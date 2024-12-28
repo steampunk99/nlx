@@ -10,7 +10,7 @@ const config = {
         port: process.env.DB_PORT || 3306,
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || 'password',
-        database: process.env.DB_NAME || 'zillionaire'
+        database: process.env.DB_NAME || 'Earn Drip'
     },
     test: {
         db: {
@@ -18,7 +18,7 @@ const config = {
             port: process.env.TEST_DB_PORT || 3306,
             user: process.env.TEST_DB_USER || 'root',
             password: process.env.TEST_DB_PASSWORD || 'password',
-            database: process.env.TEST_DB_NAME || 'zillionaire_test'
+            database: process.env.TEST_DB_NAME || 'Earn Drip_test'
         }
     },
 

@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { addDays } = require('date-fns');
 
 class NodePackageService {
     async findAll() {
@@ -46,28 +47,40 @@ class NodePackageService {
         });
     }
 
-    async create(nodePackageData, tx) {
-        const prismaClient = tx || prisma;
-        
-        // First, check if there's an existing package
-        const existingPackage = await prismaClient.nodePackage.findFirst({
+    async create(nodePackageData, tx = prisma) {
+        const pkg = await tx.package.findUnique({
+            where: { id: nodePackageData.packageId }
+        });
+
+        if (!pkg) {
+            throw new Error('Package not found');
+        }
+
+        const now = new Date();
+        const existingPackage = await tx.nodePackage.findFirst({
             where: { nodeId: nodePackageData.nodeId }
         });
-    
+
         if (existingPackage) {
             // If exists, update it instead of creating new
-            return prismaClient.nodePackage.update({
+            return tx.nodePackage.update({
                 where: { id: existingPackage.id },
                 data: {
                     ...nodePackageData,
+                    activatedAt: now,
+                    expiresAt: addDays(now, pkg.duration),
                     updatedAt: new Date()
                 }
             });
         }
-    
+
         // If no existing package, create new one
-        return prismaClient.nodePackage.create({
-            data: nodePackageData
+        return tx.nodePackage.create({
+            data: {
+                ...nodePackageData,
+                activatedAt: now,
+                expiresAt: addDays(now, pkg.duration)
+            }
         });
     }
 
@@ -86,8 +99,8 @@ class NodePackageService {
         });
     }
 
-    async updateStatus(id, status) {
-        return prisma.nodePackage.update({
+    async updateStatus(id, status, tx = prisma) {
+        return tx.nodePackage.update({
             where: { id },
             data: { status },
             include: {
@@ -105,6 +118,51 @@ class NodePackageService {
         return prisma.nodePackage.delete({
             where: { id }
         });
+    }
+
+    async checkExpiredPackages() {
+        const now = new Date();
+        const expiredPackages = await prisma.nodePackage.findMany({
+            where: {
+                status: 'ACTIVE',
+                expiresAt: {
+                    lt: now
+                }
+            },
+            include: {
+                node: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+
+        for (const nodePackage of expiredPackages) {
+            await prisma.$transaction(async (tx) => {
+                // Update package status to EXPIRED
+                await this.updateStatus(nodePackage.id, 'EXPIRED', tx);
+
+                // Update node status if needed
+                await tx.node.update({
+                    where: { id: nodePackage.nodeId },
+                    data: { status: 'INACTIVE' }
+                });
+
+                // Create notification for user
+                await tx.notification.create({
+                    data: {
+                        userId: nodePackage.node.user.id,
+                        title: 'Package Expired',
+                        message: `Your package has expired. Please purchase a new package to continue enjoying our services.`,
+                        type: 'PACKAGE_EXPIRED',
+                        status: 'UNREAD'
+                    }
+                });
+            });
+        }
+
+        return expiredPackages;
     }
 
     async findActivePackagesByNodeId(nodeId) {

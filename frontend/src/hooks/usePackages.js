@@ -98,32 +98,31 @@ export function usePackages(options = {}) {
     }
   })
 
-  // Fetch user's current packages
-  const { 
-    data: activePackagesData = [], 
-    isLoading: activePackagesLoading, 
-    error: activePackagesError,
-    refetch: refetchActivePackages 
-  } = useQuery({
-    queryKey: ['userPackages'],
+  // Get user's active package
+  const { data: userPackage, isLoading: isLoadingUserPackage } = useQuery({
+    queryKey: ['userPackage'],
     queryFn: async () => {
-     
-      const response = await api.get('/packages/user');
-      console.log('Raw Response:', response);
-      
-      // Transform the single object into an array
-      const packageData = response.data?.data;
-      const packages = packageData ? [packageData] : [];
-     
-      return packages;
+      try {
+        const response = await api.get('/packages/user');
+        const packageData = response.data.data;
+        
+        if (packageData) {
+          return {
+            ...packageData,
+            formattedExpiresAt: packageData.expiresAt ? new Date(packageData.expiresAt).toLocaleDateString() : 'N/A',
+            status: packageData.isExpired ? 'EXPIRED' : packageData.status,
+            statusColor: packageData.isExpired ? 'red' : 
+                        packageData.daysRemaining <= 7 ? 'orange' : 'green'
+          };
+        }
+        return null;
+      } catch (error) {
+        handleAuthError(error, 'Fetching user package');
+        return null;
+      }
     },
     enabled: isAuthenticated()
   });
-
-  // No additional transformation needed
-  const activePackages = activePackagesData || [];
- 
-  
 
   // Fetch upgrade options (with fallback)
   const { 
@@ -198,7 +197,7 @@ export function usePackages(options = {}) {
           if (status === 'SUCCESS') {
             clearInterval(pollInterval);
             onPaymentStatusChange?.(PAYMENT_STATES.SUCCESS);
-            queryClient.invalidateQueries({ queryKey: ['userPackages'] });
+            queryClient.invalidateQueries({ queryKey: ['userPackage'] });
             setTimeout(() => {
               navigate('/dashboard/packages');
             }, 5000);
@@ -248,7 +247,7 @@ export function usePackages(options = {}) {
           if (status === 'SUCCESS') {
             clearInterval(pollInterval);
             onPaymentStatusChange?.(PAYMENT_STATES.SUCCESS);
-            queryClient.invalidateQueries({ queryKey: ['userPackages'] });
+            queryClient.invalidateQueries({ queryKey: ['userPackage'] });
             setTimeout(() => {
               navigate('/dashboard/packages');
             }, 5000);
@@ -267,27 +266,22 @@ export function usePackages(options = {}) {
   return {
     // Packages data
     availablePackages,
-    activePackages,
+    userPackage,
     upgradeOptions,
 
     // Loading states
     packagesLoading: packagesLoading || !isAuthenticated(),
-    activePackagesLoading: activePackagesLoading || !isAuthenticated(),
+    isLoadingUserPackage: isLoadingUserPackage || !isAuthenticated(),
     upgradeOptionsLoading: upgradeOptionsLoading || !isAuthenticated(),
 
     // Errors
     packagesError,
-    activePackagesError,
 
     // Mutations
     purchasePackage: purchasePackageMutation.mutate,
     upgradePackage: upgradePackageMutation.mutate,
     purchasePackageMutation,
     upgradePackageMutation,
-    
-
-    // Refetch function
-    refetchActivePackages
   }
 }
 
@@ -312,7 +306,7 @@ export function usePackagePurchase() {
         variant: 'default'
       })
       
-      queryClient.invalidateQueries(['userPackages'])
+      queryClient.invalidateQueries(['userPackage'])
       queryClient.invalidateQueries(['packages'])
     },
     onError: (error) => {
@@ -347,7 +341,7 @@ export function usePackageUpgrade() {
         variant: 'default'
       })
       
-      queryClient.invalidateQueries(['userPackages'])
+      queryClient.invalidateQueries(['userPackage'])
       queryClient.invalidateQueries(['packages'])
     },
     onError: (error) => {

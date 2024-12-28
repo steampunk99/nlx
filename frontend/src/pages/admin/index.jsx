@@ -72,7 +72,7 @@ export function AdminDashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-bold">{formatCurrency(stats?.totalCommissions || 0)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats?.systemRevenue || 0)}</div>
             <div className="text-xs text-muted-foreground mt-1">
               {formatCurrency(stats?.pendingCommissions || 0)} pending
             </div>

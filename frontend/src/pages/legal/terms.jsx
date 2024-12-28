@@ -19,14 +19,14 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-600 mb-4">
-              Welcome to Triple Pride. By accessing and using our platform, you agree to be bound by these Terms of Service.
+              Welcome to Earn Drip. By accessing and using our platform, you agree to be bound by these Terms of Service.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Definitions</h2>
             <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              <li>"Platform" refers to the Triple Pride website and services</li>
+              <li>"Platform" refers to the Earn Drip website and services</li>
               <li>"User" refers to any individual or entity using our Platform</li>
               <li>"Content" refers to all materials and information provided through the Platform</li>
             </ul>

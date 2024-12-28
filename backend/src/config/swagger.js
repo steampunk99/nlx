@@ -34,13 +34,13 @@ Standard HTTP status codes are used:
 - 5xx: Server errors
       `,
       contact: {
-        name: 'Zillionaire Support',
-        url: 'https://zillionaire.com/support',
-        email: 'support@zillionaire.com'
+        name: 'earndrip Support',
+        url: 'https://earndrip.com/support',
+        email: 'support@earndrip.com'
       },
       license: {
         name: 'Proprietary',
-        url: 'https://zillionaire.com/terms'
+        url: 'https://earndrip.com/terms'
       }
     },
     servers: [

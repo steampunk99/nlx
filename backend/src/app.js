@@ -64,7 +64,7 @@ app.get('/health', (req, res) => {
         version: process.env.npm_package_version || 'v1',
         environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString(),
-        service: 'Zillionaires API'
+        service: 'Earn Drip API'
     });
 });
 
@@ -86,8 +86,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
         .swagger-ui input { border-radius: 4px; }
         .swagger-ui textarea { border-radius: 4px; }
     `,
-    customSiteTitle: "Zillionaire MLM API Documentation",
-    customfavIcon: "https://zillionaire.com/favicon.ico",
+    customSiteTitle: "earndrip MLM API Documentation",
+    customfavIcon: "https://earndrip.com/favicon.ico",
     swaggerOptions: {
         persistAuthorization: true,
         filter: true,

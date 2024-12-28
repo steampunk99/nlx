@@ -483,7 +483,7 @@ class NetworkController {
           console.log('Generating new referral link...');
           // Generate a unique referral code
           const referralCode = crypto.randomBytes(16).toString('hex').substring(0, 8);
-          const baseUrl = process.env.FRONTEND_URL || 'https://zillionaires.com';
+          const baseUrl = process.env.FRONTEND_URL || 'https://earndrip.com' || 'https://ample-youthfulness-production.up.railway.app';
           
           referralLink = `${baseUrl}/register?ref=${referralCode}`;
 

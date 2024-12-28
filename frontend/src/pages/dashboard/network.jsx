@@ -59,7 +59,7 @@ export default function NetworkPage() {
     if (navigator.share && referralLinkData?.referralLink) {
       try {
         await navigator.share({
-          title: 'Join my network on Triple Pride',
+          title: 'Join my network on Earn Drip',
           text: 'Join my network and start your journey to financial freedom!',
           url: referralLinkData.referralLink
         })

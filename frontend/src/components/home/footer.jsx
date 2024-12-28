@@ -107,7 +107,7 @@ export function Footer() {
         <div className="pt-8 mt-8 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600">
-              {new Date().getFullYear()} Triple Pride. All rights reserved.
+              {new Date().getFullYear()} Earn Drip. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <Link to="/terms" className="text-sm text-gray-600 hover:text-[#0095E7]">

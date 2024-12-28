@@ -1,6 +1,6 @@
-# Zillionaire Network Marketing API
+# EarnDrip Network Marketing API
 
-A modern REST API built with Node.js and Express for the Zillionaire Network Marketing platform. This API provides comprehensive functionality for managing network marketing operations, including user authentication, network management, package handling, and financial operations.
+A modern REST API built with Node.js and Express for the EarnDrip Network Marketing platform. This API provides comprehensive functionality for managing network marketing operations, including user authentication, network management, package handling, and financial operations.
 
 ## Features
 

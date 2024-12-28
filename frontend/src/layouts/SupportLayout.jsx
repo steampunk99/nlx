@@ -31,7 +31,7 @@ export function SupportLayout() {
       <aside className="fixed inset-y-0 left-0 w-64 border-r bg-muted/40">
         <div className="flex h-14 items-center border-b px-6">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold">Triple Pride</span>
+            <span className="font-bold">Earn Drip</span>
           </Link>
         </div>
         <nav className="space-y-1 p-4">

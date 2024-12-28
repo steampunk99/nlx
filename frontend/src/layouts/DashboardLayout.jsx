@@ -84,7 +84,7 @@ export function DashboardLayout() {
       )}>
         {(!isCollapsed || isMobileView) && (
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-white">Triple Pride</span>
+            <span className="font-bold text-white">Earn Drip</span>
           </Link>
         )}
       </div>

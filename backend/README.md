@@ -52,7 +52,7 @@ A modern REST API built with Node.js and Express for the EarnDrip Network Market
      DB_HOST=localhost
      DB_USER=your_db_user
      DB_PASS=your_db_password
-     DB_NAME=zillionaire_db
+     DB_NAME=Earn Drip
      
      # JWT
      JWT_SECRET=your_jwt_secret

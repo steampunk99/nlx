@@ -94,7 +94,7 @@ export function Header() {
                 "font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-300",
                 isScrolled ? "text-lg" : "text-xl"
               )}>
-                TriplePride
+                Earn Drip
               </h1>
             </Link>
           </motion.div>

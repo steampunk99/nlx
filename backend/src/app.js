@@ -34,8 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 // CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-      ? ['https://gleaming-renewal.railway.internal','https://gleaming-renewal-production.up.railway.app']  // Frontend internal URL
-      : ['http://localhost:8080','http://172.28.0.1:8080', 'http://192.168.100.48.8080', 'http://localhost:5173'],
+      ? ['https://earndrip.com','http://earndrip.com', 'http://ample-youthfulness-production.up.railway.app', 'https://ample-youthfulness-production.up.railway.app']  // Frontend internal URL
+      : ['http://localhost:8080','http://172.28.0.1:8080', 'http://192.168.100.48.8080', 'http://localhost:5173','http://192.168.240.1:8080'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

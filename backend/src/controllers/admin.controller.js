@@ -4,6 +4,7 @@ const packageService = require('../services/package.service');
 const nodePackageService = require('../services/nodePackage.service');
 const nodeWithdrawalService = require('../services/nodeWithdrawal.service');
 const { validatePackage } = require('../middleware/validate');
+const prisma = require('../config/prisma');
 
 class AdminController {
   /**
@@ -168,6 +169,7 @@ class AdminController {
    */
   async getSystemStats(req, res) {
     try {
+      
       const [
         totalUsers,
         activeUsers,
@@ -175,7 +177,10 @@ class AdminController {
         activeNodes,
         totalPackages,
         activePackages,
-        pendingWithdrawals
+        pendingWithdrawals,
+        nodePayments,
+        commissions,
+        withdrawals
       ] = await Promise.all([
         userService.count(),
         userService.count({ status: 'ACTIVE' }),
@@ -183,8 +188,32 @@ class AdminController {
         nodeService.count({ status: 'ACTIVE' }),
         packageService.count(),
         packageService.count({ status: 'ACTIVE' }),
-        nodeWithdrawalService.count({ status: 'PENDING' })
+        nodeWithdrawalService.count({ status: 'PENDING' }),
+        // All node payments (packages, upgrades, etc)
+        prisma.nodePayment.aggregate({
+          _sum: {
+            amount: true
+          }
+        }),
+        // All commissions
+        prisma.commission.aggregate({
+          _sum: {
+            amount: true
+          }
+        }),
+        // All withdrawals
+        prisma.nodeWithdrawal.aggregate({
+          _sum: {
+            amount: true
+          }
+        })
       ]);
+
+      // Calculate total system revenue
+      const totalRevenue = Number(nodePayments._sum.amount || 0);
+      const totalCommissions = Number(commissions._sum.amount || 0);
+      const totalWithdrawals = Number(withdrawals._sum.amount || 0);
+      const systemRevenue = totalRevenue - totalCommissions - totalWithdrawals;
 
       res.json({
         success: true,
@@ -201,7 +230,13 @@ class AdminController {
             total: totalPackages,
             active: activePackages
           },
-          pendingWithdrawals
+          pendingWithdrawals,
+          systemRevenue,
+          revenue: {
+            total: totalRevenue,
+            commissions: totalCommissions,
+            withdrawals: totalWithdrawals
+          }
         }
       });
 

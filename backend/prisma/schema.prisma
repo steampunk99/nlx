@@ -73,6 +73,7 @@ model Package {
   features     String?       @db.Text
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
+  dailyMultiplier Decimal?   @db.Decimal(10, 2) @default(1)
   commissions  Commission[]
   nodePackages NodePackage[]
   nodePayments NodePayment[]
@@ -91,6 +92,7 @@ model NodePackage {
   node      Node     @relation(fields: [nodeId], references: [id])
   package   Package  @relation(fields: [packageId], references: [id])
   activatedAt DateTime?
+  expiresAt  DateTime?
 
   @@index([packageId], map: "node_packages_package_id_fkey")
   @@map("node_packages")

@@ -48,13 +48,29 @@ class PackageController {
         });
       }
 
-      const packages = await nodePackageService.findByNodeId(node.id);
+      const nodePackage = await nodePackageService.findByNodeId(node.id);
+      
+      // Add expiration status and time remaining
+      if (nodePackage) {
+        const now = new Date();
+        const isExpired = nodePackage.expiresAt && nodePackage.expiresAt < now;
+        const timeRemaining = nodePackage.expiresAt ? 
+          Math.max(0, Math.ceil((nodePackage.expiresAt - now) / (1000 * 60 * 60 * 24))) : 0;
 
-      res.json({
+        return res.json({
+          success: true,
+          data: {
+            ...nodePackage,
+            isExpired,
+            daysRemaining: timeRemaining
+          }
+        });
+      }
+
+      return res.json({
         success: true,
-        data: packages
+        data: null
       });
-
     } catch (error) {
       console.error('Get user packages error:', error);
       res.status(500).json({

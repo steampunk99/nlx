@@ -8,6 +8,7 @@ const { calculateCommissions } = require('../utils/commission.utils');
 const { PrismaClient } = require('@prisma/client');
 const mobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 const { Prisma } = require('@prisma/client');
+const addDays = require('../utils/date.utils').addDays;
 
 const prisma = new PrismaClient();
 
@@ -89,7 +90,26 @@ class PaymentController {
                 });
     
                 // Process webhook response asynchronously
-                if (webhookResponse.status === 'FAILED') {
+                if (webhookResponse.status === 'SUCCESS') {
+                    // Update payment status to completed
+                    const completedPayment = await nodePaymentService.updateMobileMoneyPaymentStatus(
+                        result.id,
+                        'COMPLETED'
+                    );
+
+                    // Activate package
+                    if (completedPayment.packageId) {
+                        const pkg = await packageService.findById(completedPayment.packageId);
+                        
+                        await nodePackageService.create({
+                            nodeId: completedPayment.nodeId,
+                            packageId: completedPayment.packageId,
+                            status: 'ACTIVE',
+                            activatedAt: new Date(),
+                            expiresAt: addDays(new Date(), pkg.duration)
+                        });
+                    }
+                } else if (webhookResponse.status === 'FAILED') {
                     await nodePaymentService.updateMobileMoneyPaymentStatus(
                         result.id,
                         'FAILED'
@@ -258,7 +278,26 @@ class PaymentController {
                 });
 
                 // Process webhook response asynchronously
-                if (webhookResponse.status === 'FAILED') {
+                if (webhookResponse.status === 'SUCCESS') {
+                    // Update payment status to completed
+                    const completedPayment = await nodePaymentService.updateMobileMoneyPaymentStatus(
+                        result.id,
+                        'COMPLETED'
+                    );
+
+                    // Activate package
+                    if (completedPayment.packageId) {
+                        const pkg = await packageService.findById(completedPayment.packageId);
+                        
+                        await nodePackageService.create({
+                            nodeId: completedPayment.nodeId,
+                            packageId: completedPayment.packageId,
+                            status: 'ACTIVE',
+                            activatedAt: new Date(),
+                            expiresAt: addDays(new Date(), pkg.duration)
+                        });
+                    }
+                } else if (webhookResponse.status === 'FAILED') {
                     await nodePaymentService.updateMobileMoneyPaymentStatus(
                         result.id,
                         'FAILED'

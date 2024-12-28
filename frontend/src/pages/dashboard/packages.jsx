@@ -63,26 +63,27 @@ export default function PackagesPage() {
 
   const {
     availablePackages, 
-    activePackages, 
+    userPackage,
+    upgradeOptions,
     packagesLoading,
-    purchasePackage
+    purchasePackage,
+    upgradePackage
   } = usePackages()
 
   console.log('Packages Page Data:', {
     available: availablePackages,
-    active: activePackages
+    user: userPackage
   });
 
   const handlePackagePurchase = (pkg) => {
     navigate('/dashboard/payment', { state: { selectedPackage: pkg } });
   }
 
+  const handleUpgrade = (pkg) => {
+    setSelectedPackage(pkg)
+    setShowUpgradeModal(true)
+  }
 
-
-const handleUpgrade = (pkg) => {
-  setSelectedPackage(pkg)
-  setShowUpgradeModal(true)
-}
   if (packagesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -112,6 +113,78 @@ const handleUpgrade = (pkg) => {
           </p>
         </div>
       </div>
+
+      {/* Active Subscription Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>My Active Subscription</CardTitle>
+          <CardDescription>View your current package details</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {packagesLoading ? (
+            <div className="flex items-center justify-center p-4">
+              <BorderTrail />
+            </div>
+          ) : userPackage ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold">{userPackage.package.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Level {userPackage.package.level} Package
+                  </p>
+                </div>
+                <Badge 
+                  variant={userPackage.statusColor === 'red' ? 'destructive' : 
+                          userPackage.statusColor === 'orange' ? 'warning' : 'success'}
+                >
+                  {userPackage.status}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <Label>Price</Label>
+                  <p className="text-sm font-medium">
+                    {formatCurrency(userPackage.package.price)}
+                  </p>
+                </div>
+                <div>
+                  <Label>Expires On</Label>
+                  <p className="text-sm font-medium">
+                    {userPackage.formattedExpiresAt}
+                  </p>
+                </div>
+                <div>
+                  <Label>Days Remaining</Label>
+                  <p className="text-sm font-medium">
+                    {userPackage.daysRemaining} days
+                  </p>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <p className="text-sm font-medium">
+                    {userPackage.status}
+                  </p>
+                </div>
+              </div>
+              {userPackage.status !== 'EXPIRED' && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleUpgrade(userPackage.package)}
+                  >
+                    Upgrade Package
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">No active package. Purchase one below.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Stats Section */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -150,69 +223,6 @@ const handleUpgrade = (pkg) => {
         </div>
       </div>
 
-      {/* Active Packages */}
-      {activePackages && activePackages.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-card/50 to-card backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Star className="h-6 w-6 text-yellow-500 animate-pulse" />
-                My Active Subscriptions
-              </CardTitle>
-              <CardDescription className="text-base">Your current subscriptions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="relative overflow-hidden rounded-xl border bg-background/50">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="h-12 px-6 text-left align-middle font-medium">Package</th>
-                        <th className="h-12 px-6 text-left align-middle font-medium">Amount</th>
-                        <th className="h-12 px-6 text-left align-middle font-medium">Purchase Date</th>
-                        <th className="h-12 px-6 text-left align-middle font-medium">Status</th>
-                        <th className="h-12 px-6 text-left align-middle font-medium">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activePackages?.map((pkg) => (
-                        <tr key={pkg.id} className="border-b transition-colors hover:bg-muted/50">
-                          <td className="p-6 align-middle font-medium">{pkg.package.name}</td>
-                          <td className="p-6 align-middle">{formatCurrency(pkg.package.price)}</td>
-                          <td className="p-6 align-middle">{new Date(pkg.createdAt).toLocaleDateString()}</td>
-                          
-                          <td className="p-6 align-middle">
-                            <Badge variant="success" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
-                              {pkg.status}
-                            </Badge>
-                          </td>
-                          <td className="p-6 align-middle">
-                          <Button
-                            variant="outline"
-                            onClick={() => handleUpgrade(pkg)}
-                            disabled={!availablePackages?.some(p => p.level > pkg.package.level)}
-                          >
-                            Upgrade
-                          </Button>
-                        </td>
-                          {/* <td className="p-6 align-middle">Payment Method: {pkg.paymentMethod}</td> */}
-
-                         
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
       {/* Available Packages */}
       <motion.div 
         className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
@@ -225,9 +235,7 @@ const handleUpgrade = (pkg) => {
           const isPremium = pkg.level === 4;
           
           // Check if this specific package is already purchased
-          const isAlreadyPurchased = activePackages?.some(
-            activePkg => activePkg.package.id === pkg.id && activePkg.status === 'ACTIVE'
-          );
+          const isAlreadyPurchased = userPackage?.package?.id === pkg.id && userPackage.status === 'ACTIVE';
           
           return (
             <motion.div
@@ -361,7 +369,7 @@ const handleUpgrade = (pkg) => {
         }}
         currentPackage={selectedPackage}
         availablePackages={availablePackages?.filter(pkg => 
-          pkg.level > (selectedPackage?.package?.level || 0)
+          pkg.level > (selectedPackage?.level || 0)
         )}
       />
 

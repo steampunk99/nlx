@@ -8,7 +8,7 @@ export function HeroSection() {
     <section className="relative overflow-hidden bg-white">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-25" />
-      
+      <a href="https://github.com/steampunk99">st</a>
       {/* Main Content */}
       <div className="relative">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">

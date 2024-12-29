@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const path = require('path')
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -118,6 +119,12 @@ app.use('/api/v1/dashboard', auth, dashboardRoutes);
 app.use('/api/v1/notifications', auth, notificationRoutes);
 app.use('/api/v1/commissions', auth, commissionRoutes,createRateLimiter(1 * 60 * 1000, 50));
 app.use('/api/v1/system-revenue', systemRevenueRoutes);
+
+if(process.env.NODE_ENV === 'production') {
+    app.get('*', (req,res) => {
+        res.redirect('https://www.earndrip.com')
+    })
+}
 
 // Error handling
 app.use(errorHandler);

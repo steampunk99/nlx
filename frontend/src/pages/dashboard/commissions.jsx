@@ -107,33 +107,20 @@ export default function CommissionsPage() {
 
     const statsData = [
       {
-        title: "Total Commissions",
+        title: "Available Commissions",
         value: formatCurrency(commissionStats?.totalCommissions || 0),
         description: "Lifetime earnings from commissions",
         icon: DollarSign,
         color: "text-green-500"
       },
-      {
-        title: "Direct Commissions",
-        value: formatCurrency(commissionStats?.directCommissions || 0),
-        description: "Earnings from direct referrals",
-        icon: Users,
-        color: "text-blue-500"
-      },
-      {
-        title: "Matching Commissions",
-        value: formatCurrency(commissionStats?.matchingCommissions || 0),
-        description: "Earnings from team matching",
-        icon: ArrowUpRight,
-        color: "text-purple-500"
-      },
-      {
-        title: "Level Commissions",
-        value: formatCurrency(commissionStats?.levelCommissions || 0),
-        description: "Earnings from level bonuses",
-        icon: DollarSign,
-        color: "text-green-500"
-      }
+    
+      // {
+      //   title: "Level Commissions",
+      //   value: formatCurrency(commissionStats?.levelCommissions || 0),
+      //   description: "Earnings from level bonuses",
+      //   icon: DollarSign,
+      //   color: "text-green-500"
+      // }
     ];
 
     return (
@@ -147,7 +134,7 @@ export default function CommissionsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-mono font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
             </CardContent>
           </Card>
@@ -218,9 +205,11 @@ export default function CommissionsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
+                {/* <TableHead>ID</TableHead> */}
+                <TableHead>Description</TableHead>
+                <TableHead >Amount</TableHead>
                 <TableHead>From</TableHead>
+                <TableHead>Package</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -235,19 +224,18 @@ export default function CommissionsPage() {
               ) : (
                 commissionHistory.map((commission) => (
                   <TableRow key={commission.id}>
-                    <TableCell>{commission.type}</TableCell>
-                    <TableCell className="font-medium">
+                   
+                    {/* <TableCell>{commission.id}</TableCell> */}
+                    <TableCell>{commission.description}</TableCell>
+                    <TableCell className="font-medium font-mono font-bold">
                       {formatCurrency(commission.amount)}
                     </TableCell>
                     <TableCell>{commission.sourceUser?.username || 'System'}</TableCell>
+                    <TableCell>{commission.package.name}</TableCell>
                     <TableCell>{new Date(commission.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Badge 
-                        variant={
-                          commission.status === 'PROCESSED' ? 'success' : 
-                          commission.status === 'PENDING' ? 'secondary' : 
-                          'destructive'
-                        }
+                        className="bg-green-400"
                       >
                         {commission.status}
                       </Badge>
@@ -308,12 +296,7 @@ export default function CommissionsPage() {
               <SelectItem value="this-year">This Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button 
-            variant="outline" 
-            onClick={() => setWithdrawalModalOpen(true)}
-          >
-            <DollarSign className="mr-2 h-4 w-4" /> Withdraw
-          </Button>
+      
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" /> Export
           </Button>
@@ -323,49 +306,6 @@ export default function CommissionsPage() {
       {renderCommissionStats()}
       {renderCommissionHistory()}
 
-      <Dialog 
-        open={withdrawalModalOpen} 
-        onOpenChange={setWithdrawalModalOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Withdraw Commissions</DialogTitle>
-            <DialogDescription>
-              Enter the amount you want to withdraw from your available balance.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Withdrawal Amount</Label>
-              <Input
-                id="amount"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Enter amount"
-                value={withdrawalAmount}
-                onChange={(e) => setWithdrawalAmount(e.target.value)}
-              />
-            </div>
-            
-            {commissionStats?.availableBalance && (
-              <Alert>
-                <AlertDescription>
-                  Available Balance: {formatCurrency(commissionStats.availableBalance)}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <Button 
-              onClick={handleWithdrawal}
-              disabled={isWithdrawing || !withdrawalAmount || parseFloat(withdrawalAmount) <= 0}
-              className="w-full"
-            >
-              {isWithdrawing ? 'Processing...' : 'Confirm Withdrawal'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

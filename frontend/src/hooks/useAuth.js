@@ -6,12 +6,16 @@ import { clearAuthTokens } from '../lib/auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAtom } from 'jotai'
 import { userAtom, setAuthTokens } from '../lib/auth'
+import  {usePackages}  from './usePackages'
 
 export function useAuth() {
   const [user, setUser] = useAtom(userAtom)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const userPackage = usePackages()
+
+   
 
   const getErrorMessage = (error) => {
     // Network or server errors
@@ -49,6 +53,7 @@ export function useAuth() {
     mutationFn: async (credentials) => {
      try {
       const response = await api.post('/auth/login', credentials)
+      
 
       //validate response
       if (!response.data?.data?.user || !response.data?.data?.accessToken) {
@@ -65,7 +70,11 @@ export function useAuth() {
       localStorage.setItem('refreshToken', refreshToken)
       // Then update user state
       setUser(user)
+      console.log('Login successful:', response.data)
+     console.log('userPackage response..',userPackage.userPackage)
       return response.data
+     
+      
      } 
      catch (error) {
       const errorMessage = getErrorMessage(error)
@@ -76,19 +85,24 @@ export function useAuth() {
      }
     },
     onMutate: () => {
+      
       setLoading(true)
-      toast('Signing in...')
+     
     },
     onSuccess: (data) => {
-      if (data?.data?.user) {
-        toast.success('Login successful!')
-     setTimeout(() =>   navigate('/dashboard'),2000)
-     toast.success('Welcome back!')
-      } else {
-        toast.error('Login failed: Invalid response format')
-        clearAuthTokens()
-        setUser(null)
+      if(!userPackage.userPackage) {
+        try {
+          setTimeout(()=>navigate('/activation'),2000)
+        }
+        catch(error){
+          console.error(error)
+        }
+      } 
+      else {
+      setTimeout(() =>   navigate('/dashboard'),2000)
+      toast.success('Welcome back!')
       }
+      
     },
     onError: (error) => {
       const errorMessage = getErrorMessage(error)
@@ -144,8 +158,9 @@ export function useAuth() {
       toast('Creating your account...')
     },
     onSuccess: () => {
-      toast('Account created successfully!')
-      navigate('/dashboard')
+      toast('Account created successfully!, please proceed to activate your account and start earning')
+
+      navigate('/activation')
     },
     onError: (error) => {
     
@@ -174,10 +189,8 @@ export function useAuth() {
       navigate('/login')
     },
     onError: (error) => {
-      // Even if the server call fails, we should still clear local storage and redirect
-      clearAuthTokens()
-      toast('Error signing out. Please try again.')
-      console.error('Logout error:', error)
+      toast('Success.')
+      
       setUser(null)
       navigate('/login')
     }

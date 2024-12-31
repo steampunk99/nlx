@@ -33,7 +33,8 @@ export function ResetPasswordPage() {
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: '',
-      confirmPassword: '',
+      confirmPassword: ''
+      
     },
   })
 

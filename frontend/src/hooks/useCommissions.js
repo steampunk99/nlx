@@ -55,6 +55,8 @@ export function useCommissions(options = {}) {
         };
         
         const { data } = await api.get(endpoint, { params });
+
+        console.log("commission history:..",data.data )
         
         if (!data.success) {
           throw new Error(data.error || 'Failed to fetch commission history');

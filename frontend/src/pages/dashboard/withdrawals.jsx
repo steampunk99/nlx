@@ -77,7 +77,7 @@ export default function WithdrawalsPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'SUCCESSFUL':
         return 'text-green-600 bg-green-100'
       case 'PENDING' || 'PROCESSING':
         return 'text-yellow-600 bg-yellow-100'

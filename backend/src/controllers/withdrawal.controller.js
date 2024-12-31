@@ -14,6 +14,8 @@ class WithdrawalController {
         const { amount, phone } = req.body;
         const userId = req.user.id;
 
+        console.log(`Received withdrawal request: Amount: ${amount}, Phone: ${phone}, User ID: ${userId}`);
+
         // Check for existing pending withdrawals
         const pendingWithdrawals = await prisma.withdrawal.findMany({
             where: {
@@ -25,6 +27,7 @@ class WithdrawalController {
         });
 
         if (pendingWithdrawals.length > 0) {
+            console.warn(`User ${userId} has pending withdrawals:`, pendingWithdrawals);
             throw new AppError('You have pending withdrawals. Please wait for them to complete.', 400);
         }
 
@@ -38,16 +41,21 @@ class WithdrawalController {
             });
 
             if (!user?.node) {
+                console.error(`User or node not found for User ID: ${userId}`);
                 throw new AppError('User or node not found', 404);
             }
 
+            console.log(`Processing withdrawal for user:`, user);
+
             // Check available balance
             if (user.node.availableBalance < amount) {
+                console.error(`Insufficient balance for User ID: ${userId}. Available: ${user.node.availableBalance}, Requested: ${amount}`);
                 throw new AppError('Insufficient balance', 400);
             }
 
             // Generate transaction ID
             const trans_id = `WTH${Date.now()}${Math.random().toString(36).substr(2, 4)}`;
+            console.log(`Generated Transaction ID: ${trans_id}`);
 
             // Create withdrawal records with initial PENDING status
             const [withdrawal, nodeWithdrawal] = await Promise.all([
@@ -58,6 +66,7 @@ class WithdrawalController {
                         amount: amount,
                         status: 'PENDING',
                         method: 'MOBILE MONEY',
+                        transactionId: trans_id,
                         details: {
                             phone,
                             trans_id,
@@ -84,6 +93,8 @@ class WithdrawalController {
                     }
                 })
             ]);
+
+            console.log(`Withdrawal records created: User Withdrawal ID: ${withdrawal.id}, Node Withdrawal ID: ${nodeWithdrawal.id}`);
 
             // Create node statement
             await tx.nodeStatement.create({
@@ -125,6 +136,8 @@ class WithdrawalController {
                     trans_id,
                     reason: 'Commission withdrawal'
                 });
+
+                console.log(`Script Networks Response:`, scriptNetworksResponse);
 
                 // Update records based on Script Networks response
                 if (scriptNetworksResponse.success) {

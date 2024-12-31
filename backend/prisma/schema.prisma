@@ -145,6 +145,7 @@ model NodeWithdrawal {
   nodeId         Int              @map("node_id")
   amount         Decimal          @db.Decimal(10, 2)
   status         WithdrawalStatus @default(PENDING)
+  transactionId  String           @unique
   reason         String?          @db.Text
   paymentPhone   String?          @map("payment_phone_number")
   paymentType    String           @default("mobile money") @map("payment_type")
@@ -234,7 +235,7 @@ model Withdrawal {
   status        WithdrawalStatus @default(PENDING)
   method        String
   details       Json?
-  failureReason String?          @db.Text
+  transactionId String           @unique
   attempts      Int              @default(0)
   processedAt   DateTime?        @map("processed_at")
   completedAt   DateTime?        @map("completed_at")

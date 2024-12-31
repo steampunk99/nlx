@@ -1,59 +1,70 @@
 const { PrismaClient } = require('@prisma/client');
+const logger = require('../services/logger.service');
+
 const prisma = new PrismaClient();
 
 class NodePaymentService {
     constructor() {}
 
     async createMobileMoneyPayment(data, tx = prisma) {
+        logger.info('Creating mobile money payment:', data);
+
         const paymentData = {
-          ...data,
-          status: 'PENDING',
-          createdAt: new Date(),
-          paymentMethod: 'mobile money',
-          phoneNumber: data.phone,
-          reference: data.trans_id,
-          transactionId: data.trans_id,
-          type: 'mobile money',
-          
+            transactionDetails: data.transactionDetails,
+            amount: data.amount,
+            packageId: data.packageId,
+            nodeId: data.nodeId,
+            status: 'PENDING',
+            createdAt: new Date(),
+            paymentMethod: 'mobile-money',
+            phoneNumber: data.phone,
+            reference: data.reference,
+            transactionId: data.transactionId,
+            type: 'mobile-money'
         };
+
+        logger.info('Payment data prepared:', paymentData);
     
         return tx.nodePayment.create({
-          data: paymentData,
-          include: {
-            node: {
-              include: {
-                user: true
-              }
-            },
-            package: true
-          }
+            data: paymentData,
+            include: {
+                node: {
+                    include: {
+                        user: true
+                    }
+                },
+                package: true
+            }
         });
-      }
+    }
 
-      async updateMobileMoneyPaymentStatus(id, status, tx = prisma) {
+    async updateMobileMoneyPaymentStatus(id, status, tx = prisma) {
+        logger.info('Updating mobile money payment status:', {
+            id,
+            status
+        });
+
         const data = {
             status,
-           
-          // Only set activatedAt when payment is completed
-          ...(status === 'COMPLETED' && {
-            activatedAt: new Date()
-          })
+            // Only set activatedAt when payment is successful
+            ...(status === 'SUCCESSFUL' && {
+                activatedAt: new Date()
+            })
         };
     
         return tx.nodePayment.update({
-          where: { id },
-          data,
-          include: {
-            node: {
-              include: {
-                user: true
-              }
-            },
-            package: true
-          }
+            where: { id },
+            data,
+            include: {
+                node: {
+                    include: {
+                        user: true
+                    }
+                },
+                package: true
+            }
         });
-      }
-    
+    }
 
     async findAll(nodeId, { startDate, endDate, type } = {}) {
         const where = {};
@@ -165,6 +176,11 @@ class NodePaymentService {
     }
 
     async updateStatus(id, status, reason = null, tx = prisma) {
+        logger.info('Updating payment status:', {
+            id,
+            status
+        });
+
         const data = {
             status,
             
@@ -240,10 +256,25 @@ class NodePaymentService {
         };
     }
 
-    //find by reference
     async findByReference(reference) {
         return prisma.nodePayment.findUnique({
-            where: { reference }
+            where: { transactionId: reference }
+        });
+    }
+
+    async findByTransactionId(transId) {
+        return prisma.nodePayment.findFirst({
+            where: { 
+                transactionId: transId
+            },
+            include: {
+                node: {
+                    include: {
+                        user: true
+                    }
+                },
+                package: true
+            }
         });
     }
 
@@ -267,8 +298,6 @@ class NodePaymentService {
             }
         });
     }
-
-  
 }
 
 module.exports = new NodePaymentService();

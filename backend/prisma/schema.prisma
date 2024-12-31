@@ -15,7 +15,7 @@ model User {
   firstName         String
   lastName          String
   phone             String
-  status            String         @default("ACTIVE")
+  status            String         @default("INACTIVE")
   role              Role           @default(USER)
   isVerified        Boolean        @default(false)
   createdAt         DateTime       @default(now()) @map("created_at")
@@ -105,6 +105,7 @@ model NodePayment {
   amount           Decimal       @db.Decimal(10, 2)
   status           PaymentStatus @default(PENDING)
   type             String
+  transactionId    String        @unique
   reference        String?       @unique
   paymentMethod    String         
   phoneNumber      String?
@@ -161,6 +162,7 @@ model Commission {
   userId       Int              @map("user_id")
   amount       Decimal          @db.Decimal(15, 2)
   type         CommissionType
+  level         String @default("LEVEL 1")
   description  String?          @db.Text
   status       CommissionStatus @default(PENDING)
   sourceUserId Int?             @map("source_user_id")
@@ -305,15 +307,15 @@ enum Priority {
 
 enum PaymentStatus {
   PENDING
-  COMPLETED
+  SUCCESSFUL
   FAILED
-  REFUNDED
+  
 }
 
 enum WithdrawalStatus {
   PENDING
   PROCESSING
-  COMPLETED
+  SUCCESSFUL
   FAILED
   CANCELLED
   REJECTED

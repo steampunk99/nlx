@@ -157,7 +157,7 @@ class AuthController {
         data: {
           userId: user.id,
           position: nodePosition || 'ONE', // Default to position ONE if no sponsor
-          status: 'ACTIVE',
+          status: 'INACTIVE',
           level: sponsorNode ? sponsorNode.level + 1 : 1,
           sponsorId: sponsorNode?.id || null
         }

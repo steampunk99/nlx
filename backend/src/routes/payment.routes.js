@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { auth,isActive, isAdmin } = require('../middleware/auth');
+const { auth, isActive, isAdmin } = require('../middleware/auth');
 const { body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const paymentController = require('../controllers/payment.controller');
-const mobileMoneyController = require('../controllers/mobileMoney.controller')
+const mobileMoneyController = require('../controllers/mobileMoney.controller');
+const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 
 /**
  * @swagger
@@ -36,13 +37,23 @@ const mobileMoneyController = require('../controllers/mobileMoney.controller')
  *     summary: Process package purchase payment
  *     tags: [Payments]
  */
-router.post('/package',auth, [
-   
+router.post('/package', auth, [
     body('trans_id'),
     body('amount'),
     body('phoneNumber')
-    
 ], paymentController.processPackagePayment);
+
+/**
+ * @swagger
+ * /payments/status/callback:
+ *   post:
+ *     summary: Check payment status or handle Script Networks callback
+ *     tags: [Payments]
+ *     description: |
+ *       - When called by frontend: Checks current payment status
+ *       - When called by Script Networks: Updates payment status
+ */
+router.post('/status/callback', mobileMoneyController.handleCallback);
 
 /**
  * @swagger
@@ -52,7 +63,6 @@ router.post('/package',auth, [
  *     tags: [Payments]
  */
 router.post('/upgrade', auth, [
-   
     body('trans_id'),
     body('currentPackageId'),
     body('newPackageId'),
@@ -60,7 +70,6 @@ router.post('/upgrade', auth, [
     body('phone'),
     validate
 ], paymentController.processUpgradePayment);
-
 
 
 

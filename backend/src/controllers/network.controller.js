@@ -373,7 +373,8 @@ class NetworkController {
       // First ensure user has a node
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        include: { node: true }
+        include: { node: true },
+        select: {username:true}
       });
 
       if (!user) {
@@ -402,9 +403,12 @@ class NetworkController {
       const referralLink = await prisma.referralLink.create({
         data: {
           userId,
-          code,
+          code:user.username,
+          username:user.username,
+          position: 'LEFT',
           status: 'ACTIVE',
-          link: `https://triplepride.com/register?ref=${code}`
+          // link: `https://www.earndrip.com/register?ref=${code}`
+          link: `http://localhost:3000/register?ref=${code}`
         }
       });
 
@@ -482,8 +486,8 @@ class NetworkController {
         } else {
           console.log('Generating new referral link...');
           // Generate a unique referral code
-          const referralCode = crypto.randomBytes(16).toString('hex').substring(0, 8);
-          const baseUrl = process.env.FRONTEND_URL || 'https://www.earndrip.com' || 'https://ample-youthfulness-production.up.railway.app';
+          const referralCode = username
+          const baseUrl = process.env.FRONTEND_URL || 'https://www.earndrip.com' ;
           
           referralLink = `${baseUrl}/register?ref=${referralCode}`;
 
@@ -549,38 +553,22 @@ class NetworkController {
 
   async trackReferralClick(req, res) {
     try {
-      const { code } = req.params;
-      console.log('Tracking click for referral code:', code);
-
-      const referralLink = await prisma.referralLink.findUnique({
-        where: { code }
-      });
-
-      if (!referralLink) {
-        return res.status(404).json({
-          success: false,
-          message: 'Invalid referral code'
-        });
-      }
-
-      // Increment the clicks count
-      await prisma.referralLink.update({
-        where: { id: referralLink.id },
+      const { username } = req.params;
+  
+      const referralLink = await prisma.referralLink.update({
+        where: { code: username },
         data: { clicks: { increment: 1 } }
       });
-
-      res.json({
+  
+      return res.json({
         success: true,
-        data: {
-          link: referralLink.link
-        }
+        data: referralLink
       });
     } catch (error) {
-      console.error('Track referral click error:', error);
-      res.status(500).json({
+      console.error('Error tracking referral click:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Failed to track referral click',
-        error: error.message
+        message: 'Failed to track referral click'
       });
     }
   }

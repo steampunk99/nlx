@@ -1,38 +1,22 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../ui/button"
 import { HoverLink } from "../ui/hover-link"
-import { Menu, X, ChevronDown } from "lucide-react"
+import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { cn } from "../../lib/utils"
 import logo from '@/assets/logo.png'
+import { useAuth } from '../../hooks/useAuth';
+import { usePackages } from '../../hooks/usePackages';
+import { Avatar } from '../ui/avatar';
 
 const navigation = [
   { 
-    name: "Features",
-    href: "/#features",
+    name: "Explore Earn Drip",
+    href: "/privacy",
     submenu: [
-      { name: "Earn More", href: "/#features" },
-      { name: "Build Teams", href: "/#features" },
-      { name: "Track Growth", href: "/#features" },
-      { name: "Secure Platform", href: "/#features" },
-    ]
-  },
-  { 
-    name: "Packages",
-    href: "/#packages",
-    submenu: [
-      { name: "Starter Package", href: "/#packages" },
-      { name: "Professional Package", href: "/#packages" },
-      { name: "Enterprise Package", href: "/#packages" },
-    ]
-  },
-  { 
-    name: "About",
-    href: "/about",
-    submenu: [
-      { name: "Our Company", href: "/about" },
-      { name: "Contact Us", href: "/contact" },
+      { name: "Terms & Conditions", href: "/terms" },
+      { name: "Privacy Policy", href: "/privacy" },
     ]
   },
 ]
@@ -41,6 +25,14 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState(null)
+  const { user, logout } = useAuth();
+
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,7 +112,7 @@ export function Header() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 1.5 }}
             className="hidden lg:flex lg:gap-x-12"
           >
             {navigation.map((item) => (
@@ -142,6 +134,7 @@ export function Header() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
+                      
                       className="absolute left-0 top-full z-10 mt-3 w-screen max-w-md overflow-hidden rounded-3xl bg-gray-900/90 backdrop-blur-sm shadow-lg ring-1 ring-gray-900/5"
                     >
                       <div className="p-4">
@@ -167,23 +160,23 @@ export function Header() {
             transition={{ duration: 0.5 }}
             className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4"
           >
-            <Button variant="ghost" className="hover:bg-transparent border border-emerald-400 transition-ease duration-300 hover:border hover:border-emerald-600">
-              <HoverLink 
-                to="/login"
-                defaultText="Sign in"
-                className="text-sm font-medium text-emerald-400 transition-colors duration-200"
-              />
-            </Button>
-            <Button 
-              asChild
-              className="bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-500 hover:to-cyan-500 text-gray-900 font-medium transition-all duration-300"
-            >
-              <HoverLink 
-                to="/register" 
-                defaultText="Get Started"
-                className="text-sm font-medium"
-              />
-            </Button>
+            {user ? (
+              <> 
+             
+             <Button className="text-md font-semibold font-mono bg-gradient-to-r from-emerald-400 to-cyan-400 leading-6 text-center flex items-center text-white">
+                {user.lastName} {user.firstName}
+              </Button>
+               
+                <Button onClick={handleLogout} size="sm" className="bg-transparent border border-red-300 flex items-center text-xs p-1">
+                  <LogOut className="w-3 h-3 mr-1" /> Logout
+                </Button>
+              </>
+            ) : (
+              <>
+              <Button className="bg-gradient-to-r from-emerald-400 to-cyan-400" onClick={() => navigate('/login')}>Login</Button>
+              <Button className="border border-gradient-to-r from-emerald-400 to-cyan-400" onClick={() => navigate('/register')}>Register</Button>
+              </>
+            )}
           </motion.div>
 
           {/* Mobile menu */}
@@ -241,20 +234,34 @@ export function Header() {
                   
                   <div className="pt-4 border-t">
                     <div className="space-y-2">
-                      <Button 
-                        variant="ghost"
-                        className="w-full justify-center text-gray-100"
-                        asChild
-                      >
-                        <Link to="/login">Log In</Link>
-                      </Button>
-                      
-                      <Button 
-                        className="w-full justify-center bg-[#0095E7] text-white hover:bg-[#0077B6]"
-                        asChild
-                      >
-                        <Link to="/register">Get Started</Link>
-                      </Button>
+                      {user ? (
+                        <> 
+                          <Button 
+                            variant="ghost"
+                            className="w-full justify-center bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-100"
+                            asChild
+                          >
+                            
+                          </Button>
+                          <Button 
+                            variant="ghost"
+                            className="w-full justify-center text-gray-100"
+                            asChild
+                          >
+                            <Link to="/login" onClick={handleLogout}>Logout</Link>
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="ghost"
+                          className="w-full justify-center bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-100"
+                          asChild
+                        >
+                          <Link to="/login">Log In</Link>
+                        </Button>
+
+                        
+                      )}
                     </div>
                   </div>
                 </div>

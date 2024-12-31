@@ -1,19 +1,19 @@
 import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-import { Button } from "../../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Check, Star, TrendingUp, Users, Network } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog'
-import { usePackages } from '../../hooks/usePackages'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { usePackages } from '@/hooks/usePackages'
 import { motion } from 'framer-motion'
-import { Badge } from "../../components/ui/badge"
-import { Label } from '../../components/ui/label'
-import { Input } from '../../components/ui/input'
-import { useAuth } from '../../hooks/useAuth'
+import { Badge } from "@/components/ui/badge"
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
-import { cn } from '../../lib/utils'
-import { UpgradePackageModal } from './packages/upgrade-package-modal'
+import { cn } from '@/lib/utils'
+import { UpgradePackageModal } from '@/pages/dashboard/packages/upgrade-package-modal'
 
 const containerVariants = {
   hidden: { opacity: 0 },

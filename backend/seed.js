@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 async function seedPackagePurchase() {
   try {
-    const referredUserId = 5;
+    const referredUserId = 1;
   
-    const packageId = 3;
-    const nodeId = 5;
+    const packageId = 4;
+    const nodeId = 1;
 
     // Start a transaction
     await prisma.$transaction(async (tx) => {
@@ -23,9 +23,14 @@ async function seedPackagePurchase() {
           nodeId,
           packageId,
           amount: packagePrice.price,
-          status: 'COMPLETED',
-          paymentMethod: 'TEST',
+          transactionId:"TRX6434U9843U8FCN3",
+          transactionDetails:"TRX6434U9843U8FCN3",
+          status: 'SUCCESSFUL',
+          paymentMethod: 'mobile-money',
           type: 'SUBSCRIPTION',
+          phoneNumber: '0700000000',
+          createdAt: new Date(),
+          updatedAt: new Date()
         },
       });
 

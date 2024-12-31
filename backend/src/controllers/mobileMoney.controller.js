@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const logger = require('../services/logger.service');
 const nodePaymentService = require('../services/nodePayment.service');
 const nodePackageService = require('../services/nodePackage.service');
-const commissionService = require('../services/commission.service');
+const paymentController = require('./payment.controller');
 const { calculateCommissions } = require('../utils/commission.utils');
 
 const prisma = new PrismaClient();
@@ -11,83 +11,94 @@ class MobileMoneyCallbackController {
   async handleCallback(req, res) {
     const { status, type, trans_id } = req.body;
 
-    logger.info('Mobile Money Callback Received', {
-      trans_id,    // Transaction ID from Script Networks
-      status,      // "SUCCESSFUL" or "FAILED"
-      type      
+    logger.info('📥 Webhook Request Received:', {
+      trans_id,
+      status,
+      type,
+      timestamp: new Date().toISOString()
     });
 
+    // If it's a PENDING status, just acknowledge without processing
+    if (status === 'PENDING') {
+      logger.info('⏳ Ignoring PENDING status webhook:', { trans_id });
+      return res.status(200).json({
+        success: true,
+        message: 'Pending status acknowledged'
+      });
+    }
+
     try {
-      const referenceId = trans_id
-      // Find the original payment record
-      const payment = await nodePaymentService.findByReference(referenceId);
+      const payment = await nodePaymentService.findByReference(trans_id);
       if (!payment) {
-        logger.error('Payment not found for reference ID', { referenceId });
+        logger.error('❌ Payment not found:', {
+          trans_id,
+          error: 'Transaction ID not found in database'
+        });
         return res.status(404).json({
           success: false,
-          message: `Payment not found for reference ID: ${referenceId}`
+          message: `Payment not found: ${trans_id}`
         });
       }
 
-      // Process callback in a transaction
-      await prisma.$transaction(async (tx) => {
-        // Update payment status
-        const updatedPayment = await nodePaymentService.updateStatus(
-          payment.id,
-          status === 'SUCCESS' ? 'COMPLETED' : 'FAILED',
-          reference=trans_id,
-          tx
-        );
+      logger.info('💳 Found payment record:', {
+        trans_id,
+        amount: payment.amount,
+        currentStatus: payment.status
+      });
 
-        // If payment was successful, complete package and commissions
-        if (status === 'SUCCESS') {
-          // Update node package status
-          const nodePackage = await nodePackageService.updateStatus(
-            payment.nodePackageId,
-            'ACTIVE',
-            tx
-          );
-
-          // Calculate and create commissions
-          const commissions = await calculateCommissions(payment.nodeId, payment.amount, tx);
-          await Promise.all(commissions.map(commission =>
-            commissionService.create({
-              ...commission,
-              packageId: payment.packageId,
-              status: 'PROCESSED'
-            }, tx)
-          ));
-
-          logger.info('Mobile Money Payment Processed Successfully', {
-            paymentId: updatedPayment.id,
+      if (status === 'SUCCESSFUL') {
+        logger.info('✅ Processing successful payment:', { trans_id });
+        
+        await prisma.$transaction(async (tx) => {
+          const updatedPayment = await paymentController.processSuccessfulPayment(payment.id);
+          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);
+          
+          logger.info('📦 Package activated:', {
             nodePackageId: nodePackage.id,
-            commissionsCreated: commissions.length
+            status: nodePackage.status,
+            trans_id
           });
-        } else {
-          logger.warn('Mobile Money Payment Not Successful', {
-            status,
-            referenceId,
-            paymentId: updatedPayment.id
-          });
-        }
-      });
+          
+          await calculateCommissions(payment.nodeId, payment.amount, tx);
+          logger.info('💰 Commissions calculated:', { trans_id });
+        });
 
-      // Send success response
-      res.status(200).json({
-        success: true,
-        message: 'Mobile Money callback processed successfully'
-      });
+        logger.info('✨ Payment processing completed:', { trans_id });
+        return res.status(200).json({
+          success: true,
+          data: {
+            status: 'COMPLETED',
+            trans_id
+          }
+        });
+      } 
+      
+      if (status === 'FAILED') {
+        logger.info('❌ Processing failed payment:', { trans_id });
+        await nodePaymentService.updateStatus(payment.id, 'FAILED', trans_id);
+        
+        return res.status(200).json({
+          success: true,
+          data: {
+            status: 'FAILED',
+            trans_id
+          }
+        });
+      }
+
     } catch (error) {
-      logger.error('Mobile Money Callback Processing Error', {
+      logger.error('💥 Error processing webhook:', {
+        trans_id,
         error: error.message,
-        stack: error.stack,
-        referenceId
+        stack: error.stack
       });
-
-      res.status(500).json({
+      return res.status(200).json({
         success: false,
-        message: 'Error processing Mobile Money callback',
-        error: error.message
+        message: 'Error processing callback',
+        data: {
+          status: 'FAILED',
+          trans_id
+        }
       });
     }
   }

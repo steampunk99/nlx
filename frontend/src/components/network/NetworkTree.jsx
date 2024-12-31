@@ -38,7 +38,7 @@ const NetworkTree = ({ networkData }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState(0.4);
   const [layout, setLayout] = useState('vertical'); // vertical or horizontal
 
   const transformNetworkToGraph = useCallback((data) => {
@@ -49,6 +49,8 @@ const NetworkTree = ({ networkData }) => {
 
     const nodes = [];
     const edges = [];
+    console.log("Nodes:", nodes);
+    console.log("Edges:", edges);
 
     // Process nodes level by level
     const processLevel = (levelNodes, level) => {
@@ -167,6 +169,7 @@ const NetworkTree = ({ networkData }) => {
 
   useEffect(() => {
     const { nodes, edges } = transformNetworkToGraph(networkData);
+    console.log("this is network data",networkData)
     setNodes(nodes);
     setEdges(edges);
   }, [networkData, transformNetworkToGraph]);
@@ -188,6 +191,7 @@ const NetworkTree = ({ networkData }) => {
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
         fitView
+        fitViewOptions={{ padding: 0.2 }}
         attributionPosition="bottom-left"
       >
         <Controls />

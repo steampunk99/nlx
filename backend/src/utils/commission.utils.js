@@ -41,11 +41,13 @@ async function calculateCommissions(nodeId, amount, tx) {
 
         // Commission rates for each level (in percentage)
         const commissionRates = {
-            1: 10, // Direct sponsor gets 10%
-            2: 5,  // Level 2 sponsor gets 5%
-            3: 3,  // Level 3 sponsor gets 3%
+            1: 40, // Direct sponsor gets 40%
+            2: 10,  // Level 2 sponsor gets 10%
+            3: 5,  // Level 3 sponsor gets 5%
             4: 2,  // Level 4 sponsor gets 2%
-            5: 1   // Level 5 sponsor gets 1%
+            5: 2,   // Level 5 sponsor gets 2%
+            6: 2,   // Level 6 sponsor gets 2%
+            7: 1   // Level 7 sponsor gets 1%
         };
 
         // Track total commissions distributed
@@ -89,7 +91,8 @@ async function calculateCommissions(nodeId, amount, tx) {
                             data: {
                                 userId: sponsor.id,
                                 amount: commissionAmount,
-                                type: 'LEVEL',
+                                type: "Level",
+                                level: `Level ${level}`,
                                 description: `Level ${level} commission from ${node.user.username}'s package purchase`,
                                 status: 'PROCESSED',
                                 sourceUserId: node.user.id,

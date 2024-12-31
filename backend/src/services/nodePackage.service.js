@@ -1,6 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const logger = require('../services/logger.service');
 const { addDays } = require('date-fns');
+
+const prisma = new PrismaClient();
 
 class NodePackageService {
     async findAll() {
@@ -252,17 +254,71 @@ class NodePackageService {
     }
 
     async updateStatus(nodePackageId, status, tx = prisma) {
+        logger.info('Updating node package status:', { id: nodePackageId, status });
+
+        if (!nodePackageId) {
+            throw new Error('Node package ID is required for status update');
+        }
+
         return tx.nodePackage.update({
-          where: { id: nodePackageId },
-          data: {
-            status,
-            updatedAt: new Date()
-          },
-          include: {
-            node: true,
-            package: true
-          }
+            where: { id: nodePackageId },
+            data: { 
+                status,
+                updatedAt: new Date()
+            },
+            include: {
+                node: true,
+                package: true
+            }
         });
+    }
+
+    async activatePackageForPayment(payment, tx = prisma) {
+        logger.info('Activating package for payment:', {
+            paymentId: payment.id,
+            nodeId: payment.nodeId,
+            packageId: payment.packageId
+        });
+
+        // Find existing active package
+        const existingPackage = await this.findByNodeId(payment.nodeId, tx);
+        
+        if (existingPackage) {
+            // Deactivate existing package
+            await tx.nodePackage.update({
+                where: { id: existingPackage.id },
+                data: { 
+                    status: 'INACTIVE',
+                    updatedAt: new Date()
+                }
+            });
+        }
+
+        // Create new active package
+        const newPackage = await this.create({
+            nodeId: payment.nodeId,
+            packageId: payment.packageId,
+            status: 'ACTIVE',
+            activatedAt: new Date(),
+            expiresAt: addDays(new Date(), payment.package.duration)
+        }, tx);
+
+        // Update node status to ACTIVE
+        await tx.node.update({
+            where: { id: payment.nodeId },
+            data: { 
+                status: 'ACTIVE',
+                updatedAt: new Date()
+            }
+        });
+
+        logger.info('Package and node activated successfully:', {
+            nodePackageId: newPackage.id,
+            nodeId: payment.nodeId,
+            status: 'ACTIVE'
+        });
+
+        return newPackage;
     }
 }
 

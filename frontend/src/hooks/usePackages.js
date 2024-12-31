@@ -105,6 +105,15 @@ export function usePackages(options = {}) {
       try {
         const response = await api.get('/packages/user');
         const packageData = response.data.data;
+        console.log('package response 1',packageData)
+        if(!packageData){
+          navigate('/activation')
+        } else {
+          toast({
+            message: 'You have a package already'
+          })
+          navigate('/dashboard')
+        }
         
         if (packageData) {
           return {
@@ -125,89 +134,124 @@ export function usePackages(options = {}) {
   });
 
   // Fetch upgrade options (with fallback)
-  const { 
-    data: upgradeOptions = null, 
-    isLoading: upgradeOptionsLoading 
-  } = useQuery({
-    queryKey: ['packageUpgradeOptions'],
-    queryFn: async () => {
-      console.log('Fetching Upgrade Options - Authentication Check')
-      if (!isAuthenticated()) {
-        console.warn('Not authenticated - redirecting to login')
-        navigate('/login')
-        return null
-      }
-      
-      try {
-        console.log('Attempting to fetch upgrade options')
-        const { data } = await api.get('/packages/upgrade-options')
-        console.log('Upgrade options fetched successfully:', data)
-        return data.data || null
-      } catch (error) {
-        console.error('Upgrade options fetch error:', error)
-        handleAuthError(error, 'Upgrade Options Fetch')
-        return null
-      }
-    },
-    enabled: isAuthenticated(),
-    retry: 1,
-    staleTime: 1000 * 60 * 5,
-    onError: (error) => {
-      console.error('Query error in upgrade options:', error)
-      handleAuthError(error, 'Upgrade Options Query')
-    }
-  })
+ 
 
-  // Package purchase mutation
+  // Purchase package mutation
   const purchasePackageMutation = useMutation({
     mutationFn: async (paymentData) => {
-      if (!paymentData?.phoneNumber) {
-        throw new Error('Phone number is required');
-      }
-
-      const response = await api.post('/payments/package', {
-        trans_id: paymentData.trans_id,
-        packageId: paymentData.packageId,
-        amount: paymentData.amount,
-        phone: paymentData.phoneNumber
-      });
-      
+      const response = await api.post('/payments/package', paymentData);
       return response.data;
     },
+    onMutate: () => {
+      // Start with waiting state (for PIN entry)
+      onPaymentStatusChange(PAYMENT_STATES.WAITING);
+    },
     onSuccess: (data) => {
-      let pollCount = 0;
-      const maxPolls = 6;
-      
-      const pollInterval = setInterval(async () => {
-        try {
-          pollCount++;
-          if (pollCount >= maxPolls) {
-            clearInterval(pollInterval);
-            onPaymentStatusChange?.(PAYMENT_STATES.TIMEOUT);
-            return;
-          }
-
-          // get the status from the response of the purchase
-          console.log('Data:', data.data.status);
-          if (!data.data.status) {
-            throw new Error('No mobile money response');
-          }
-          const status = data.data.status;
-
-          if (status === 'SUCCESS') {
-            clearInterval(pollInterval);
-            onPaymentStatusChange?.(PAYMENT_STATES.SUCCESS);
-            queryClient.invalidateQueries({ queryKey: ['userPackage'] });
-            setTimeout(() => {
-              navigate('/dashboard/packages');
-            }, 5000);
-          }
-        } catch (error) {
-          console.error('Status check failed:', error);
-        }
-      }, 125000);
+      if (data.success) {
+        // Move to processing state and start polling
+        onPaymentStatusChange(PAYMENT_STATES.PROCESSING);
+        startPaymentStatusPolling(data.data.trans_id);
+      }
+    },
+    onError: (error) => {
+      onPaymentStatusChange(PAYMENT_STATES.FAILED);
+      handleAuthError(error, 'Package Purchase');
     }
   });
+
+  // Payment status polling
+  const startPaymentStatusPolling = async (transId) => {
+    const pollInterval = 5000; // 5 seconds
+    const maxAttempts = 24; // 2 minutes total
+    let attempts = 0;
+
+    console.log('🚀 Starting payment status polling:', {
+      transId,
+      maxAttempts,
+      pollInterval: `${pollInterval}ms`
+    });
+
+    const pollStatus = async () => {
+      try {
+        console.log(`📡 Polling attempt ${attempts + 1}/${maxAttempts} for transaction:`, transId);
+        
+        const { data } = await api.post('/payments/status/callback', { trans_id: transId });
+        console.log('📥 Received webhook response:', {
+          success: data.success,
+          status: data.data?.status,
+          attempt: attempts + 1,
+          timeElapsed: `${((attempts + 1) * pollInterval) / 1000}s`
+        });
+        
+        // Only handle final states from webhook
+        if (data.data?.status === 'COMPLETED') {
+          console.log('✅ Payment completed successfully:', {
+            transId,
+            totalAttempts: attempts + 1,
+            totalTime: `${((attempts + 1) * pollInterval) / 1000}s`
+          });
+          onPaymentStatusChange(PAYMENT_STATES.SUCCESS);
+          queryClient.invalidateQueries(['userPackage']);
+          navigate('/dashboard');
+          return true;
+        }
+        
+        if (data.data?.status === 'FAILED') {
+          console.log('❌ Payment failed:', {
+            transId,
+            totalAttempts: attempts + 1,
+            totalTime: `${((attempts + 1) * pollInterval) / 1000}s`
+          });
+          onPaymentStatusChange(PAYMENT_STATES.FAILED);
+          return true;
+        }
+
+        console.log('⏳ Still waiting for final payment status:', {
+          transId,
+          currentAttempt: attempts + 1,
+          timeElapsed: `${((attempts + 1) * pollInterval) / 1000}s`,
+          remainingAttempts: maxAttempts - (attempts + 1)
+        });
+        
+        // If no final state yet, continue polling
+        return false;
+      } catch (error) {
+        console.error('❌ Payment status check failed:', {
+          transId,
+          attempt: attempts + 1,
+          error: error.message,
+          timeElapsed: `${((attempts + 1) * pollInterval) / 1000}s`
+        });
+        onPaymentStatusChange(PAYMENT_STATES.FAILED);
+        return true;
+      }
+    };
+
+    const poll = async () => {
+      if (attempts >= maxAttempts) {
+        console.log('⏰ Payment polling timed out:', {
+          transId,
+          totalAttempts: attempts,
+          totalTime: `${(attempts * pollInterval) / 1000}s`
+        });
+        onPaymentStatusChange(PAYMENT_STATES.TIMEOUT);
+        return;
+      }
+
+      const shouldStop = await pollStatus();
+      if (!shouldStop) {
+        attempts++;
+        console.log(`🔄 Scheduling next poll in ${pollInterval}ms:`, {
+          transId,
+          nextAttempt: attempts + 1,
+          remainingAttempts: maxAttempts - attempts
+        });
+        setTimeout(poll, pollInterval);
+      }
+    };
+
+    poll();
+  };
 
   // Package upgrade mutation
   const upgradePackageMutation = useMutation({
@@ -267,12 +311,12 @@ export function usePackages(options = {}) {
     // Packages data
     availablePackages,
     userPackage,
-    upgradeOptions,
+  
 
     // Loading states
     packagesLoading: packagesLoading || !isAuthenticated(),
     isLoadingUserPackage: isLoadingUserPackage || !isAuthenticated(),
-    upgradeOptionsLoading: upgradeOptionsLoading || !isAuthenticated(),
+    
 
     // Errors
     packagesError,
@@ -305,9 +349,10 @@ export function usePackagePurchase() {
         description: data.message || 'Package purchased successfully',
         variant: 'default'
       })
-      
+      navigate('/dashboard')
       queryClient.invalidateQueries(['userPackage'])
       queryClient.invalidateQueries(['packages'])
+      
     },
     onError: (error) => {
       toast({

@@ -1,11 +1,13 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLoaderData } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
 import { DashboardLayout } from '../layouts/DashboardLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { SupportLayout } from '../layouts/SupportLayout'
 import { AuthLayout } from '../layouts/AuthLayout'
 import UpgradePage from '@/pages/dashboard/packages/upgrade'
+import { usePackages } from '../hooks/usePackages'
+import { toast } from '../components/ui/use-toast'
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -16,10 +18,13 @@ const ResetPasswordPage = lazy(() => import('../pages/auth/reset-password'))
 const DashboardPage = lazy(() => import('../pages/dashboard/overview'))
 const NetworkPage = lazy(() => import('../pages/dashboard/network'))
 const CommissionsPage = lazy(() => import('../pages/dashboard/commissions'))
-const PackagesPage = lazy(() => import('../pages/dashboard/packages'))
+const PackagesPage = lazy(() => import('../pages/dashboard/packages/packages'))
 const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))
 const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
 const PaymentPage = lazy(() => import('../pages/payments/payments'))
+const ActivationPage = lazy(() => import('../pages/auth/activation'))
+const ActivatePaymentPage = lazy(() => import('../pages/auth/payments'))
+
 
 // Legal Pages
 const TermsPage = lazy(() => import('../pages/legal/terms'))
@@ -51,6 +56,7 @@ const Loading = () => (
   </div>
 )
 
+
 export function AppRouter() {
   return (
     <Suspense fallback={<Loading />}>
@@ -68,10 +74,13 @@ export function AppRouter() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/activation" element={<ActivationPage />} />
+          <Route path="/activate/payment" element={<ActivatePaymentPage />} />
+         
         </Route>
 
         {/* Dashboard Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<DashboardLayout />} >
           <Route index element={<DashboardPage />} />
           <Route path="network" element={<NetworkPage />} />
           <Route path="commissions" element={<CommissionsPage />} />

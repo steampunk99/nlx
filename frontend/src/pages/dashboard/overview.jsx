@@ -36,7 +36,7 @@ function DashboardOverview() {
   const { data: recentActivities, isLoading: isLoadingActivities } = useRecentActivities()
   const { data: earnings, isLoading: isLoadingEarnings } = useEarnings()
   
-  const { activePackages} = usePackages()
+  const { userPackage} = usePackages()
   // Sample earnings data - will replace with actual API data when available
   const earningsData = [
     { date: 'Jan', amount: 400 },
@@ -66,7 +66,7 @@ function DashboardOverview() {
 
   const stats = [
     {
-      title: "Total Network",
+      title: "Direct Referrals",
       value: dashboardStats?.networkSize || "0",
       description: "Active members in your network",
       icon: Users,
@@ -88,12 +88,12 @@ function DashboardOverview() {
     },
     {
       title: "Active Packages",
-      value: activePackages?.length || "0",
+      value: userPackage ? "1" : "0",
       description: "Current investment packages",
       icon: Package,
       color: "text-yellow-500",
       bgColor: "bg-yellow-500/10",
-      secondaryValue: formatCurrency(activePackages?.reduce((acc, pkg) => acc + pkg.package.price, 0) || 0),
+      secondaryValue: formatCurrency(userPackage?.package?.price || 0),
       secondaryLabel: "Total value"
     }
   ]
@@ -244,14 +244,11 @@ function DashboardOverview() {
               <div>
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5 text-yellow-500" />
-                  <span>Recent Activity</span>
+                  <span className="text-sm font-medium text-center">Recent Activity</span>
                 </CardTitle>
                 <CardDescription>Latest updates from your network</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/dashboard/activity')}>
-                View All
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
+             
             </div>
           </CardHeader>
           <CardContent className="p-0">

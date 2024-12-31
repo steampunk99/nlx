@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `commissions` ADD COLUMN `level` VARCHAR(191) NOT NULL DEFAULT 'LEVEL 1';
+
+-- AlterTable
+ALTER TABLE `users` MODIFY `status` VARCHAR(191) NOT NULL DEFAULT 'INACTIVE';

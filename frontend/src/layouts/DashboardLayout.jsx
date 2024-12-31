@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { useToast } from '../components/ui/use-toast'
 import { useAuth } from '../hooks/useAuth'
+import { usePackages } from '../hooks/usePackages';
 import { cn } from "../lib/utils"
 import { 
   LayoutDashboard, 
@@ -30,6 +31,7 @@ export function DashboardLayout() {
   const location = useLocation()
   const { toast } = useToast()
   const { logout, user } = useAuth()
+  const { data: userPackage, isLoading } = usePackages();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
@@ -46,6 +48,8 @@ export function DashboardLayout() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [isMobile])
+
+ 
 
   const handleLogout = async () => {
     try {
@@ -167,6 +171,8 @@ export function DashboardLayout() {
       )}
     </>
   )
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">

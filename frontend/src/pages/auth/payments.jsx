@@ -1,5 +1,5 @@
 // frontend/src/pages/auth/payments.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePackages } from '../../hooks/usePackages';
 import { toast } from 'sonner';
@@ -88,6 +88,7 @@ export default function PaymentPage() {
 
   const handleTimeout = () => {
     setPaymentStatus(PAYMENT_STATES.TIMEOUT);
+    toast('You can close this window. We\'ll notify you when the payment completes.');
   };
 
   if (!selectedPackage) {

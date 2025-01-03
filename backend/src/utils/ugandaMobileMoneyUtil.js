@@ -5,21 +5,20 @@ const logger = require('../services/logger.service');
 class UgandaMobileMoneyUtil {
   async requestToPay(payment) {
     try {
-      // const baseUrl = process.env.API_URL || 'http://localhost:3000';
-      // const callbackUrl = `${baseUrl}/api/v1/payments/status/callback`;
-      
-      // logger.info('Requesting mobile money payment with callback URL:', { callbackUrl });
-      logger.info('Requesting mobile money payment with webhook URL:', { webhookUrl: config.scriptNetworks.webhookUrl });
-
       const response = await axios.post(
         `${config.scriptNetworks.baseUrl}/deposit`,
         {
           amount: payment.amount,
           phone: payment.phone,
           trans_id: payment.trans_id,
-          webhook_url: config.scriptNetworks.webhookUrl,
-          // webhook_url: callbackUrl,
-          payment_id: payment.paymentId
+
+          callback_url: config.scriptNetworks.webhookUrl,
+          callback_method: 'POST',
+          callback_data: JSON.stringify({
+            trans_id: payment.trans_id,
+            amount: payment.amount,
+            phone: payment.phone,
+          })
         },
         {
           headers: {

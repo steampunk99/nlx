@@ -45,15 +45,21 @@ router.post('/package', auth, [
 
 /**
  * @swagger
- * /payments/status/callback:
+ * /payments/status/check:
  *   post:
- *     summary: Check payment status or handle Script Networks callback
+ *     summary: Check payment status (frontend polling)
  *     tags: [Payments]
- *     description: |
- *       - When called by frontend: Checks current payment status
- *       - When called by Script Networks: Updates payment status
  */
-router.post('/status/callback', mobileMoneyController.handleCallback);
+router.post('/status/check', auth, mobileMoneyController.checkPaymentStatus);
+
+/**
+ * @swagger
+ * /payments/webhook/callback:
+ *   post:
+ *     summary: Handle Script Networks webhook callback
+ *     tags: [Payments]
+ */
+router.post('/webhook/callback', mobileMoneyController.handleCallback);
 
 /**
  * @swagger

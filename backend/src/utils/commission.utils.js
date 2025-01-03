@@ -91,7 +91,7 @@ async function calculateCommissions(nodeId, amount, tx) {
                             data: {
                                 userId: sponsor.id,
                                 amount: commissionAmount,
-                                type: "Level",
+                                type: level === 1 ? "DIRECT" : "LEVEL",
                                 level: `Level ${level}`,
                                 description: `Level ${level} commission from ${node.user.username}'s package purchase`,
                                 status: 'PROCESSED',

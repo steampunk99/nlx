@@ -86,6 +86,7 @@ class WithdrawalController {
                         nodeId: user.node.id,
                         amount: amount,
                         status: 'PENDING',
+                        transactionId: trans_id,
                         paymentPhone: phone,
                         paymentType: 'MOBILE MONEY',
                         reason: 'Commission withdrawal',
@@ -177,8 +178,9 @@ class WithdrawalController {
                             where: { id: user.node.id },
                             data: {
                                 availableBalance: {
-                                    decrement: amount
-                                }
+                                    decrement: withdrawal.amount
+                                },
+                                updatedAt: new Date()
                             }
                         })
                     ]);

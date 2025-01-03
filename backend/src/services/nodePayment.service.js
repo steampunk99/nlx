@@ -7,44 +7,53 @@ class NodePaymentService {
     constructor() {}
 
     async createMobileMoneyPayment(data, tx = prisma) {
-        logger.info('Creating mobile money payment:', data);
 
-        const paymentData = {
-            transactionDetails: data.transactionDetails,
-            amount: data.amount,
-            packageId: data.packageId,
-            nodeId: data.nodeId,
-            status: 'PENDING',
-            createdAt: new Date(),
-            paymentMethod: 'mobile-money',
-            phoneNumber: data.phone,
-            reference: data.reference,
-            transactionId: data.transactionId,
-            type: 'mobile-money'
-        };
+        try {
+            const existingPayment = await tx.nodePayment.findFirst({
+                where: {
+                    transactionId: data.transactionId
+                }
+            });
 
-        logger.info('Payment data prepared:', paymentData);
-    
-        return tx.nodePayment.create({
-            data: paymentData,
-            include: {
-                node: {
-                    include: {
-                        user: true
-                    }
-                },
-                package: true
+            if (existingPayment) {
+                logger.info(`Payment with transactionId ${data.transactionId} already exists. Skipping creation.`);
+                return existingPayment;
             }
-        });
+
+            const payment = await tx.nodePayment.create({   
+                data: {
+                transactionDetails: data.transactionDetails,
+                amount: data.amount,
+                packageId: data.packageId,
+                nodeId: data.nodeId,
+                status: 'PENDING',
+                    createdAt: new Date(),
+                    paymentMethod: 'mobile-money',
+                    phoneNumber: data.phone,
+                    reference: data.reference,
+                    transactionId: data.transactionId,
+                    type: 'mobile-money'
+                }
+            });
+
+            logger.info('Payment created successfully:', {
+                paymentId: payment.id,
+                transactionId: payment.transactionId,
+                status: payment.status
+            });
+
+            return payment;
+
+        } catch (error) {
+            logger.error('Error creating payment:', error);
+            throw error;
+        }
+       
     }
 
     async updateMobileMoneyPaymentStatus(id, status, tx = prisma) {
-        logger.info('Updating mobile money payment status:', {
-            id,
-            status
-        });
-
-        const data = {
+     
+       const data = {
             status,
             // Only set activatedAt when payment is successful
             ...(status === 'SUCCESSFUL' && {
@@ -176,14 +185,12 @@ class NodePaymentService {
     }
 
     async updateStatus(id, status, reason = null, tx = prisma) {
-        logger.info('Updating payment status:', {
-            id,
-            status
-        });
+       
 
         const data = {
             status,
-            
+            ...(reason && { statusReason: reason }),
+            updatedAt: new Date()
         };
 
         return tx.nodePayment.update({
@@ -204,7 +211,7 @@ class NodePaymentService {
     async getTotalPayments(nodeId, { startDate, endDate, type } = {}) {
         const where = {
             nodeId,
-            status: 'COMPLETED'
+            status: 'SUCCESSFUL'
         };
 
         if (startDate && endDate) {
@@ -238,7 +245,7 @@ class NodePaymentService {
             prisma.nodePayment.count({
                 where: {
                     nodeId,
-                    status: 'COMPLETED'
+                    status: 'SUCCESSFUL'
                 }
             }),
             prisma.nodePayment.count({
@@ -257,8 +264,8 @@ class NodePaymentService {
     }
 
     async findByReference(reference) {
-        return prisma.nodePayment.findUnique({
-            where: { transactionId: reference }
+        return prisma.nodePayment.findFirst({
+            where: { reference }
         });
     }
 

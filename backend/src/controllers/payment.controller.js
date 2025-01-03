@@ -30,12 +30,13 @@ class PaymentController {
                 const payment = await nodePaymentService.createMobileMoneyPayment({
                     transactionDetails: trans_id,
                     amount,
+                    transactionId: trans_id,
                     reference: trans_id,
-                    phone,
+                    phoneNumber: phone,
                     packageId,
                     nodeId: node.id,
                     status: 'PENDING',
-                    transactionId: trans_id
+                    
                 }, tx);
 
                 return { payment };
@@ -63,10 +64,15 @@ class PaymentController {
                 success: true,
                 data: {
                     trans_id,
-                    status: 'PENDING',
+                    status: mobileMoneyResponse.status,
                     payment_id: payment.id
                 }
+               
             });
+            console.log('Payment processed successfully:', {
+                paymentId: payment.id,
+                status: payment.status
+            })
 
         } catch (error) {
             logger.error('Payment processing error:', error);
@@ -98,8 +104,8 @@ class PaymentController {
 
     async getPaymentStatus(req, res) {
         try {
-            const { transId } = req.params;
-            const payment = await nodePaymentService.findByTransactionId(transId);
+            const { trans_id } = req.params;
+            const payment = await nodePaymentService.findByTransactionId(trans_id);
             
             if (!payment) {
                 return res.status(404).json({

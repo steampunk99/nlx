@@ -69,3 +69,7 @@ logs
 
 # Yarn Integrity file
 .yarn-integrity
+
+
+# windsurf rules
+.windsurfrules

@@ -161,96 +161,81 @@ export function usePackages(options = {}) {
 
   // Payment status polling
   const startPaymentStatusPolling = async (transId) => {
-    const pollInterval = 5000; // 5 seconds
-    const maxAttempts = 24; // 2 minutes total
+    const pollInterval = 4000; // 2 seconds
+    const maxAttempts = 20; // 2 minutes total (60 attempts * 2 seconds)
     let attempts = 0;
 
-    console.log('🚀 Starting payment status polling:', {
-      transId,
-      maxAttempts,
-      pollInterval: `${pollInterval}ms`
-    });
-
-    const pollStatus = async () => {
+    const poll = async () => {
       try {
-        console.log(`📡 Polling attempt ${attempts + 1}/${maxAttempts} for transaction:`, transId);
+        attempts++;
+        console.log(`📡 Polling attempt ${attempts}/${maxAttempts} for transaction:`, transId);
         
-        const { data } = await api.post('/payments/status/callback', { trans_id: transId });
-        console.log('📥 Received webhook response:', {
+        const { data } = await api.post('/payments/status/check', { trans_id: transId });
+        console.log('📥 Received status response:', {
           success: data.success,
           status: data.data?.status,
-          attempt: attempts + 1,
-          timeElapsed: `${((attempts + 1) * pollInterval) / 1000}s`
         });
-        
-        // Only handle final states from webhook
-        if (data.data?.status === 'COMPLETED') {
-          console.log('✅ Payment completed successfully:', {
+
+        if (attempts >= maxAttempts) {
+          console.log('⏰ Maximum polling attempts reached:', {
             transId,
-            totalAttempts: attempts + 1,
-            totalTime: `${((attempts + 1) * pollInterval) / 1000}s`
+            attempts,
+            totalTime: `${(attempts * pollInterval) / 1000}s`
           });
-          onPaymentStatusChange(PAYMENT_STATES.SUCCESS);
-          queryClient.invalidateQueries(['userPackage']);
-          navigate('/dashboard');
-          return true;
-        }
-        
-        if (data.data?.status === 'FAILED') {
-          console.log('❌ Payment failed:', {
-            transId,
-            totalAttempts: attempts + 1,
-            totalTime: `${((attempts + 1) * pollInterval) / 1000}s`
-          });
-          onPaymentStatusChange(PAYMENT_STATES.FAILED);
+          onPaymentStatusChange(PAYMENT_STATES.TIMEOUT);
           return true;
         }
 
-        console.log('⏳ Still waiting for final payment status:', {
-          transId,
-          currentAttempt: attempts + 1,
-          timeElapsed: `${((attempts + 1) * pollInterval) / 1000}s`,
-          remainingAttempts: maxAttempts - (attempts + 1)
-        });
-        
-        // If no final state yet, continue polling
-        return false;
+        switch (data.data?.status) {
+          case 'COMPLETED':
+            console.log('✅ Payment completed successfully:', {
+              transId,
+              totalAttempts: attempts,
+              totalTime: `${(attempts * pollInterval) / 1000}s`
+            });
+            onPaymentStatusChange(PAYMENT_STATES.SUCCESS);
+            queryClient.invalidateQueries(['userPackage']);
+            navigate('/dashboard');
+            return true;
+
+          case 'FAILED':
+            console.log('❌ Payment failed:', {
+              transId,
+              totalAttempts: attempts
+            });
+            onPaymentStatusChange(PAYMENT_STATES.FAILED);
+            return true;
+
+          case 'PENDING':
+            console.log('⏳ Payment still pending:', {
+              transId,
+              attempt: attempts
+            });
+            return false;
+
+          default:
+            console.warn('⚠️ Unknown payment status:', {
+              status: data.data?.status,
+              transId
+            });
+            return false;
+        }
       } catch (error) {
-        console.error('❌ Payment status check failed:', {
-          transId,
-          attempt: attempts + 1,
+        console.error('💥 Error polling payment status:', {
           error: error.message,
-          timeElapsed: `${((attempts + 1) * pollInterval) / 1000}s`
+          attempt: attempts,
+          transId
         });
-        onPaymentStatusChange(PAYMENT_STATES.FAILED);
-        return true;
+        return false;
       }
     };
 
-    const poll = async () => {
-      if (attempts >= maxAttempts) {
-        console.log('⏰ Payment polling timed out:', {
-          transId,
-          totalAttempts: attempts,
-          totalTime: `${(attempts * pollInterval) / 1000}s`
-        });
-        onPaymentStatusChange(PAYMENT_STATES.TIMEOUT);
-        return;
-      }
-
-      const shouldStop = await pollStatus();
-      if (!shouldStop) {
-        attempts++;
-        console.log(`🔄 Scheduling next poll in ${pollInterval}ms:`, {
-          transId,
-          nextAttempt: attempts + 1,
-          remainingAttempts: maxAttempts - attempts
-        });
-        setTimeout(poll, pollInterval);
-      }
+    const pollIntervalId = setInterval(poll, pollInterval);
+    const stopPolling = async () => {
+      clearInterval(pollIntervalId);
     };
 
-    poll();
+    await poll();
   };
 
   // Package upgrade mutation

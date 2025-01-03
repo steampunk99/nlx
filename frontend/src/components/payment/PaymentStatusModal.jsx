@@ -11,7 +11,7 @@ const PAYMENT_STATES = {
   TIMEOUT: 'timeout'
 }
 
-const TIMEOUT_SECONDS = 180;
+const TIMEOUT_SECONDS = 30;
 
 const modalContent = {
   waiting: {
@@ -46,37 +46,41 @@ const modalContent = {
   }
 }
 
-export function PaymentStatusModal({ isOpen, status, onClose, onTimeout }) {
+const PaymentStatusModal = ({ isOpen, status, onClose, onTimeout }) => {
+  const [timeout, setTimeoutState] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TIMEOUT_SECONDS);
-  const content = modalContent[status] || modalContent.processing;
 
   useEffect(() => {
-    let timer;
-    if (isOpen && status === PAYMENT_STATES.WAITING) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
+    if (status === PAYMENT_STATES.WAITING) {
+      const timer = setInterval(() => {
+        setTimeLeft(prevTime => {
+          if (prevTime <= 0) {
             clearInterval(timer);
             onTimeout?.();
             return 0;
           }
-          return prev - 1;
+          return prevTime - 1;
         });
       }, 1000);
+
+      return () => clearInterval(timer);
     }
+  }, [status, onTimeout]);
 
-    return () => {
-      clearInterval(timer);
+  useEffect(() => {
+    if (status !== PAYMENT_STATES.WAITING) {
       setTimeLeft(TIMEOUT_SECONDS);
-    };
-  }, [isOpen, status, onTimeout]);
+    }
+  }, [status]);
 
+  const content = modalContent[status] || modalContent.waiting;
+ 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <div className="flex flex-col items-center justify-center space-y-4 p-6">
           <div className={cn("rounded-full p-3 bg-opacity-10", content.color)}>
-            {content.icon}
+          {content.icon}
           </div>
           <h3 className={cn("text-xl font-semibold", content.color)}>
             {content.title}
@@ -95,4 +99,4 @@ export function PaymentStatusModal({ isOpen, status, onClose, onTimeout }) {
   );
 }
 
-export { PAYMENT_STATES } 
+export { PaymentStatusModal, PAYMENT_STATES }

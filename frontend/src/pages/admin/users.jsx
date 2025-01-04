@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAdmin } from '../../hooks/useAdmin'
-import { useToast } from '../../hooks/use-toast'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,16 +39,9 @@ export default function UsersPage() {
   const handleStatusChange = async (userId, newStatus) => {
     try {
       await updateStatus.mutateAsync({ userId, newStatus })
-      toast({
-        title: 'Success',
-        description: 'User status updated successfully',
-      })
+      toast.success('User status updated successfully')
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update user status',
-        variant: 'destructive',
-      })
+      toast.error(error.message || 'Failed to update user status')
     }
   }
 
@@ -58,16 +51,9 @@ export default function UsersPage() {
     try {
       await deleteUser.mutateAsync(deleteUserId)
       setDeleteUserId(null)
-      toast({
-        title: 'Success',
-        description: 'User deleted successfully',
-      })
+      toast.success('User deleted successfully')
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete user',
-        variant: 'destructive',
-      })
+      toast.error(error.message || 'Failed to delete user')
     }
   }
 

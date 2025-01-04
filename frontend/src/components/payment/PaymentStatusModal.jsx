@@ -11,6 +11,8 @@ const PAYMENT_STATES = {
   TIMEOUT: 'timeout'
 }
 
+
+
 const TIMEOUT_SECONDS = 30;
 
 const modalContent = {

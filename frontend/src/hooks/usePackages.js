@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../lib/axios'
-import { useToast } from '../components/ui/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { getAuthTokens } from '../lib/auth'
 import { PaymentStatusModal, PAYMENT_STATES } from '@/components/payment/PaymentStatusModal'
+import toast from 'react-hot-toast'
+import { api } from '../lib/axios'
 
 export function usePackages(options = {}) {
-  const { toast } = useToast()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -31,40 +30,20 @@ export function usePackages(options = {}) {
     if (error.response) {
       switch (error.response.status) {
         case 403:
-          toast({
-            title: 'Access Denied',
-            description: 'You do not have permission to access this resource.',
-            variant: 'destructive'
-          })
+          toast.error('Access Denied, You do not have permission to perform this action.')
           break
         case 404:
-          toast({
-            title: 'Resource Not Found',
-            description: 'The requested resource could not be found.',
-            variant: 'destructive'
-          })
+          toast.error('Resource Not Found')
           break
         default:
-          toast({
-            title: 'Error',
-            description: `An unexpected error occurred: ${error.message}`,
-            variant: 'destructive'
-          })
+          toast.error(`Error: ${error.response.status} - ${error.response.statusText}`)
       }
     } else if (error.request) {
       // The request was made but no response was received
-      toast({
-        title: 'Network Error',
-        description: 'No response received from server. Check your internet connection.',
-        variant: 'destructive'
-      })
+      toast.error('No response received from server. Check your internet connection.')
     } else {
       // Something happened in setting up the request
-      toast({
-        title: 'Request Error',
-        description: `Error: ${error.message}`,
-        variant: 'destructive'
-      })
+      toast.error('Request Error: ' + error.message)
     }
   }
 
@@ -109,10 +88,8 @@ export function usePackages(options = {}) {
         if(!packageData){
           navigate('/activation')
         } else {
-          toast({
-            message: 'You have a package already'
-          })
-          navigate('/dashboard')
+          toast.success('You have an active package..redirecting')
+          setTimeout(() => navigate('/dashboard'), 3000)
         }
         
         if (packageData) {
@@ -148,9 +125,20 @@ export function usePackages(options = {}) {
     },
     onSuccess: (data) => {
       if (data.success) {
-        // Move to processing state and start polling
+        // Move to processing state and navigate to status page
         onPaymentStatusChange(PAYMENT_STATES.PROCESSING);
-        startPaymentStatusPolling(data.data.trans_id);
+        
+        // Log the response data for debugging
+        console.log('Payment Response:', data.data);
+        
+        // Navigate with available data
+        const params = new URLSearchParams({
+          trans_id: data.data.trans_id,
+          ...(data.data.package?.name && { package: data.data.package.name }),
+          ...(data.data.amount && { amount: data.data.amount })
+        });
+        
+        navigate(`/payment/status?${params.toString()}`);
       }
     },
     onError: (error) => {
@@ -158,85 +146,6 @@ export function usePackages(options = {}) {
       handleAuthError(error, 'Package Purchase');
     }
   });
-
-  // Payment status polling
-  const startPaymentStatusPolling = async (transId) => {
-    const pollInterval = 4000; // 2 seconds
-    const maxAttempts = 20; // 2 minutes total (60 attempts * 2 seconds)
-    let attempts = 0;
-
-    const poll = async () => {
-      try {
-        attempts++;
-        console.log(`📡 Polling attempt ${attempts}/${maxAttempts} for transaction:`, transId);
-        
-        const { data } = await api.post('/payments/status/check', { trans_id: transId });
-        console.log('📥 Received status response:', {
-          success: data.success,
-          status: data.data?.status,
-        });
-
-        if (attempts >= maxAttempts) {
-          console.log('⏰ Maximum polling attempts reached:', {
-            transId,
-            attempts,
-            totalTime: `${(attempts * pollInterval) / 1000}s`
-          });
-          onPaymentStatusChange(PAYMENT_STATES.TIMEOUT);
-          return true;
-        }
-
-        switch (data.data?.status) {
-          case 'COMPLETED':
-            console.log('✅ Payment completed successfully:', {
-              transId,
-              totalAttempts: attempts,
-              totalTime: `${(attempts * pollInterval) / 1000}s`
-            });
-            onPaymentStatusChange(PAYMENT_STATES.SUCCESS);
-            queryClient.invalidateQueries(['userPackage']);
-            navigate('/dashboard');
-            return true;
-
-          case 'FAILED':
-            console.log('❌ Payment failed:', {
-              transId,
-              totalAttempts: attempts
-            });
-            onPaymentStatusChange(PAYMENT_STATES.FAILED);
-            return true;
-
-          case 'PENDING':
-            console.log('⏳ Payment still pending:', {
-              transId,
-              attempt: attempts
-            });
-            return false;
-
-          default:
-            console.warn('⚠️ Unknown payment status:', {
-              status: data.data?.status,
-              transId
-            });
-            return false;
-        }
-      } catch (error) {
-        console.error('💥 Error polling payment status:', {
-          error: error.message,
-          attempt: attempts,
-          transId
-        });
-        return false;
-      }
-    };
-
-    const pollIntervalId = setInterval(poll, pollInterval);
-    const stopPolling = async () => {
-      clearInterval(pollIntervalId);
-    };
-
-    await poll();
-  };
 
   // Package upgrade mutation
   const upgradePackageMutation = useMutation({
@@ -329,29 +238,21 @@ export function usePackagePurchase() {
       return data
     },
     onSuccess: (data) => {
-      toast({
-        title: 'Package Purchased',
-        description: data.message || 'Package purchased successfully',
-        variant: 'default'
-      })
+      toast.success(data.message || 'Package purchased successfully')
       navigate('/dashboard')
       queryClient.invalidateQueries(['userPackage'])
       queryClient.invalidateQueries(['packages'])
       
     },
     onError: (error) => {
-      toast({
-        title: 'Purchase Failed',
-        description: error.response?.data?.message || 'Failed to purchase package',
-        variant: 'destructive'
-      })
+      toast.error(error.response?.data?.message || 'Failed to purchase package')
     }
   })
 }
 
 // Specific hook for package upgrade
 export function usePackageUpgrade() {
-  const { toast } = useToast()
+
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -365,21 +266,12 @@ export function usePackageUpgrade() {
       return data
     },
     onSuccess: (data) => {
-      toast({
-        title: 'Package Upgraded',
-        description: data.message || 'Package upgraded successfully',
-        variant: 'default'
-      })
-      
+      toast.success(data.message || 'Package upgraded successfully')
       queryClient.invalidateQueries(['userPackage'])
       queryClient.invalidateQueries(['packages'])
     },
     onError: (error) => {
-      toast({
-        title: 'Upgrade Failed',
-        description: error.response?.data?.message || 'Failed to upgrade package',
-        variant: 'destructive'
-      })
+      toast.error(error.response?.data?.message || 'Failed to upgrade package')
     }
   })
 }

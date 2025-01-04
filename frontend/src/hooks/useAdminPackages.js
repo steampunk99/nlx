@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/axios';
-import { useToast } from '../components/ui/use-toast';
+import toast from 'react-hot-toast';
+
 
 export function useAdminPackages() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+
 
   const createPackage = useMutation({
     mutationFn: async (data) => {
@@ -25,18 +26,11 @@ export function useAdminPackages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['packages']);
-      toast({
-        title: "Success",
-        description: "Package created successfully",
-      });
+      toast.success('Package created successfully');
     },
     onError: (error) => {
       console.error('Create package error:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to create package",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || 'Failed to create package');
     },
   });
 
@@ -59,18 +53,11 @@ export function useAdminPackages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['packages']);
-      toast({
-        title: "Success",
-        description: "Package updated successfully",
-      });
+      toast.success('Package updated successfully');
     },
     onError: (error) => {
       console.error('Update package error:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update package",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || 'Failed to update package');
     },
   });
 
@@ -78,18 +65,13 @@ export function useAdminPackages() {
     mutationFn: (id) => api.patch(`/packages/admin/${id}/toggle`),
     onSuccess: () => {
       queryClient.invalidateQueries(['packages']);
-      toast({
-        title: "Success",
-        description: "Package status updated successfully",
-      });
+      toast.success('Package status toggled successfully');
     },
     onError: (error) => {
       console.error('Toggle package status error:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update package status",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || 'Failed to toggle package status'
+      );
     },
   });
 
@@ -97,18 +79,13 @@ export function useAdminPackages() {
     mutationFn: (id) => api.delete(`/packages/admin/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['packages']);
-      toast({
-        title: "Success",
-        description: "Package deleted successfully",
-      });
+      toast.success('Package deleted successfully');
     },
     onError: (error) => {
       console.error('Delete package error:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete package",
-        variant: "destructive",
-      });
+      toast.error(
+        error.response?.data?.message || 'Failed to delete package'
+      );
     },
   });
 

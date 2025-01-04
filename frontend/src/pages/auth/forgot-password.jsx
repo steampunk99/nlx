@@ -4,6 +4,7 @@ import * as z from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
+import toast from 'react-hot-toast'
 import {
   Form,
   FormControl,
@@ -33,11 +34,30 @@ export default function ForgotPasswordPage() {
   async function onSubmit(values) {
     setIsLoading(true)
     try {
-      // TODO: Implement password reset logic
-      console.log(values)
-      navigate('/login')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: values.email }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Check your email for password reset instructions');
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        toast.error(data.message || 'Failed to send reset email');
+        setTimeout(() => {
+          navigate('/forgot-password');
+        }, 3000);
+      }
     } catch (error) {
-      console.error(error)
+      console.error(error);
+      toast.error('An error occurred. Please try again later.');
     } finally {
       setIsLoading(false)
     }

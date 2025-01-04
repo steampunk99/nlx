@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePackages } from '../../hooks/usePackages';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
@@ -10,6 +10,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { PaymentMethodSelector } from '../../pages/dashboard/packages/payment-method-btn';
 import { PaymentSummary } from '../../pages/dashboard/packages/payment-summary';
 import { PaymentStatusModal, PAYMENT_STATES } from '@/components/payment/PaymentStatusModal';
+
+
+
 
 export default function PaymentPage() {
   const location = useLocation();
@@ -30,8 +33,10 @@ export default function PaymentPage() {
 
   function handlePaymentStatusChange(status) {
     setPaymentStatus(status);
-    if (status === PAYMENT_STATES.SUCCESS) {
-      toast.success('Payment successful! Redirecting to dashboard...');
+    if (status === PAYMENT_STATES.SUCCESSFUL) {
+      toast.success('Payment successful. You can now access the package.');
+      setIsSubmitting(false);
+      setShowStatusModal(true);
     } else if (status === PAYMENT_STATES.FAILED) {
       toast.error('Payment failed. Please try again.');
       setIsSubmitting(false);

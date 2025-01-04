@@ -17,7 +17,7 @@ import { Input } from "../../components/ui/input"
 import { Copy, Check, Share2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/axios'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { useAuth } from '../../hooks/useAuth'   
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'

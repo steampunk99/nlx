@@ -8,6 +8,8 @@ import { AuthLayout } from '../layouts/AuthLayout'
 import UpgradePage from '@/pages/dashboard/packages/upgrade'
 import { usePackages } from '../hooks/usePackages'
 import { toast } from '../components/ui/use-toast'
+import PaymentStatusPage from '@/pages/auth/payment-status'
+import NotFoundPage from '../pages/NotFound'
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -61,6 +63,7 @@ export function AppRouter() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
+      <Route path="*" element={<NotFoundPage />} />
         {/* Public Routes */}
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
@@ -76,6 +79,7 @@ export function AppRouter() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/activation" element={<ActivationPage />} />
           <Route path="/activate/payment" element={<ActivatePaymentPage />} />
+          <Route path="/payment/status" element={<PaymentStatusPage />} />
          
         </Route>
 

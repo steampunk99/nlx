@@ -1,4 +1,4 @@
-"use client";
+
 
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,7 +15,8 @@ import {
   TooltipTrigger,
 } from "./tooltip";
 import { useAuth } from "../../context/AuthContext";
-import { useToast } from "./use-toast";
+import toast from "react-hot-toast";
+
 
 export function SidebarNav({ items, secondary = false, role = "student", className }) {
   const { open } = useSidebar();
@@ -27,7 +28,7 @@ export function SidebarNav({ items, secondary = false, role = "student", classNa
   } = useSidebarNav();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { toast } = useToast();
+
 
   // Filter items based on role
   const filteredItems = React.useMemo(() => {
@@ -38,10 +39,7 @@ export function SidebarNav({ items, secondary = false, role = "student", classNa
   const handleItemClick = (item) => {
     if (item.action) {
       item.action(navigate, logout);
-      toast({
-        title: "Success",
-        description: "Logout successful",
-      });
+      toast.success('Logged out successfully')
     } else if (item.path) {
       navigate(item.path);
     }

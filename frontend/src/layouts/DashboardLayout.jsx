@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../components/ui/button'
-import { useToast } from '../components/ui/use-toast'
+
 import { useAuth } from '../hooks/useAuth'
 import { usePackages } from '../hooks/usePackages';
 import { cn } from "../lib/utils"
@@ -29,7 +29,7 @@ import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 export function DashboardLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { toast } = useToast()
+
   const { logout, user } = useAuth()
   const { data: userPackage, isLoading } = usePackages();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -55,18 +55,11 @@ export function DashboardLayout() {
     try {
       await logout()
       
-      toast({
-        title: "Success",
-        description: "Logged out successfully",
-      })
+      toast.success('Logged out successfully')
       
       navigate('/login')
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to logout",
-      })
+      toast.error(error.message)
     }
   }
 

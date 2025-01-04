@@ -6,6 +6,7 @@ const commissionService = require('../services/commission.service');
 const { validatePackagePurchase, validatePackageCreate } = require('../middleware/package.validate');
 const { calculateCommissions } = require('../utils/commission.utils');
 const prisma = require('../config/prisma');
+const nodePaymentService = require('../services/nodePayment.service');
 
 class PackageController {
   /**
@@ -30,6 +31,36 @@ class PackageController {
       });
     }
   }
+
+  // get payment status
+  async getPaymentStatus(req, res) {
+    try {
+        const { transId } = req.params;
+        const payment = await nodePaymentService.findByTransactionId(transId);
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Payment not found'
+            });
+        }
+
+        return res.json({
+            success: true,
+            data: {
+                status: payment.status,
+                updatedAt: payment.updatedAt
+            }
+        });
+
+    } catch (error) {
+        console.error('Get payment status error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch payment status'
+        });
+    }
+}
 
   /**
    * Get user's purchased packages

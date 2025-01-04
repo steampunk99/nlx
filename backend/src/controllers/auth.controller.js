@@ -7,6 +7,7 @@ const nodeService = require('../services/node.service');
 const { generateUsername } = require('../utils/userUtils');
 const crypto = require('crypto');
 const { JWT_SECRET } = require('../config/environment');
+const emailService = require('../services/email.service');
 
 class AuthController {
   /**
@@ -304,7 +305,7 @@ class AuthController {
           id: sessionId,
           userId: user.id,
           userAgent: req.headers['user-agent'],
-          ipAddress: req.ip,
+          ipAddress: req.ip
         }
       });
       console.log('💾 Session created');
@@ -563,21 +564,29 @@ class AuthController {
 
       const user = await userService.findByEmail(email);
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
+        // For security reasons, we still return success even if user not found
+        return res.json({
+          success: true,
+          message: 'If your email is registered, you will receive a password reset link shortly'
         });
       }
 
       // Generate reset token
       const resetToken = await userService.generatePasswordResetToken(user.id);
 
-      // TODO: Send reset token via email
-      // For now, just return it in response
+      // Send reset token via email
+      const emailSent = await emailService.sendPasswordResetEmail(email, resetToken);
+      
+      if (!emailSent) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send password reset email. Please try again later.'
+        });
+      }
+
       res.json({
         success: true,
-        message: 'Password reset token generated',
-        data: { resetToken }
+        message: 'If your email is registered, you will receive a password reset link shortly'
       });
 
     } catch (error) {

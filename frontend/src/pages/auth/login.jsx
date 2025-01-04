@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight, Mail, Lock } from 'lucide-react'
+import { ChevronRight, Mail, Lock, Loader, Loader2, LockOpen } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from '../../hooks/useAuth'
+import toast from 'react-hot-toast'
 
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
@@ -22,6 +23,8 @@ const LoginPage = () => {
         email: formData.get('email'),
         password: formData.get('password')
       })
+      toast.success('Welcome back!')
+    
    
     } catch (err) {
       console.error('Login failed:', err)
@@ -166,14 +169,14 @@ const LoginPage = () => {
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       className="mr-2"
                     >
-                      <ChevronRight className="h-5 w-5" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     </motion.div>
                     Signing in...
                   </span>
                 ) : (
                   <span className="flex items-center justify-center">
                     Sign In
-                    <ChevronRight className="ml-2 h-5 w-5" />
+                    <LockOpen className="ml-2 h-5 w-5 " />
                   </span>
                 )}
               </Button>

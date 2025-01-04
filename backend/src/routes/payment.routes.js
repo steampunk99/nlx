@@ -6,6 +6,7 @@ const { validate } = require('../middleware/validate');
 const paymentController = require('../controllers/payment.controller');
 const mobileMoneyController = require('../controllers/mobileMoney.controller');
 const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
+const packageController = require('../controllers/package.controller');
 
 /**
  * @swagger
@@ -50,16 +51,9 @@ router.post('/package', auth, [
  *     summary: Check payment status (frontend polling)
  *     tags: [Payments]
  */
-router.post('/status/check', auth, mobileMoneyController.checkPaymentStatus);
+router.post('/status/check', auth, packageController.getPaymentStatus);
 
-/**
- * @swagger
- * /payments/webhook/callback:
- *   post:
- *     summary: Handle Script Networks webhook callback
- *     tags: [Payments]
- */
-router.post('/webhook/callback', mobileMoneyController.handleCallback);
+router.post("/status/callback", mobileMoneyController.handleCallback )
 
 /**
  * @swagger

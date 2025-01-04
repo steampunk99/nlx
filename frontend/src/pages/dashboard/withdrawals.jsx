@@ -4,7 +4,7 @@ import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { useForm } from "react-hook-form"
 import { api } from "../../lib/axios"
-import { toast } from "sonner"
+import toast from "react-hot-toast"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
@@ -72,7 +72,7 @@ export default function WithdrawalsPage() {
 
   // Calculate total withdrawn amount
   const totalWithdrawn = withdrawalHistory.reduce((total, withdrawal) => 
-    total + (withdrawal.status === 'COMPLETED' ? Number(withdrawal.amount) : 0)
+    total + (withdrawal.status === 'SUCCESSFUL' ? Number(withdrawal.amount) : 0)
   , 0)
 
   const getStatusColor = (status) => {

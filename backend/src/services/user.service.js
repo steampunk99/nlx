@@ -1,5 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/environment');
 const prisma = new PrismaClient();
 
 class UserService {
@@ -203,9 +205,38 @@ class UserService {
             }
         });
     }
+
+    async generatePasswordResetToken(userId) {
+        // Generate a JWT token that expires in 1 hour
+        return jwt.sign(
+            { userId, type: 'password_reset' },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+    }
+
+    async verifyPasswordResetToken(token) {
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            if (decoded.type !== 'password_reset') {
+                return null;
+            }
+            return decoded.userId;
+        } catch (error) {
+            console.error('Token verification error:', error);
+            return null;
+        }
+    }
+
+    async updatePassword(userId, newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        return prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        });
+    }
 }
 
 // add password reset
-
 
 module.exports = new UserService();

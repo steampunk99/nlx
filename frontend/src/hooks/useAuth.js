@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { api } from '../lib/axios'
 import { clearAuthTokens } from '../lib/auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAtom } from 'jotai'
 import { userAtom, setAuthTokens } from '../lib/auth'
 import  {usePackages}  from './usePackages'
+import toast from 'react-hot-toast'
 
 export function useAuth() {
   const [user, setUser] = useAtom(userAtom)
@@ -175,21 +175,25 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: () => {
-      return api.post('/auth/logout').then(() => {
-        clearAuthTokens()
-        setUser(null)
-        return true
-      })
-    },
-    onMutate: () => {
-      toast('Signing out...')
-    },
+        try {
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          clearAuthTokens()
+          setUser(null)
+          return true
+        } catch (error) {
+          console.error('Logout error:', error)
+          return false
+        }
+      },
+   
     onSuccess: () => {
-      toast('Signed out successfully')
-      navigate('/login')
+     toast.success('Logged out successfully')
+     setTimeout(() => navigate('/login'), 2000)
+      
     },
     onError: (error) => {
-      toast('Success.')
+      toast.error('Failed to sign out')
       
       setUser(null)
       navigate('/login')

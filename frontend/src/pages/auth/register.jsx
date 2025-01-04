@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../../hooks/useAuth'
-import { ChevronRight, Loader2, Building2, User2, Check, X } from 'lucide-react'
+import { ChevronRight, Loader2, Building2, User2, Check, X, LockKeyhole } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { trackReferralClick } from '../../services/tracking.service'
 
@@ -112,19 +112,13 @@ export default function RegisterPage() {
       console.log('Submitting registration form with data:', formData)
       const { confirmPassword, acceptTerms, ...registrationData } = formData
       await register(registrationData)
-      toast({
-        title: 'Success',
-        description: 'Registration successful'
-      })
+      toast.success('Registration successful')
       console.log('Registration successful')
     } catch (err) {
       console.error('Registration failed:', err)
       const errorMessage = err.response?.data?.message || err.message || 'Registration failed. Please try again.'
       setSubmitError(errorMessage)
-      toast({
-        title: 'Error',
-        description: errorMessage
-      })
+      toast.error(errorMessage)
     }
   }
 
@@ -380,7 +374,7 @@ export default function RegisterPage() {
                 ) : (
                   <span className="flex items-center justify-center">
                     Create Account
-                    <ChevronRight className="ml-2 h-5 w-5" />
+                    <LockKeyhole className="ml-2 h-5 w-5" />
                   </span>
                 )}
               </Button>

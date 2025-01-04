@@ -185,11 +185,8 @@ class NodePaymentService {
     }
 
     async updateStatus(id, status, reason = null, tx = prisma) {
-       
-
         const data = {
             status,
-            ...(reason && { statusReason: reason }),
             updatedAt: new Date()
         };
 

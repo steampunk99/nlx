@@ -47,54 +47,46 @@ class PaymentController {
                 amount,
                 phone,
                 trans_id,
-                paymentId: payment.id
             });
 
-            if (!mobileMoneyResponse || mobileMoneyResponse.error) {
-                await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED');
-                return res.status(400).json({
-                    success: false,
-                    message: 'Mobile money request failed',
-                    error: mobileMoneyResponse?.error || 'Unknown error'
-                });
-            }
-
-            // 3. Send Response
+            // Get initial status from Script Networks
+            const initialStatus = await mobileMoneyUtil.webhookResponse(trans_id);
+            
+            // Return early response with initial status
             res.status(201).json({
                 success: true,
                 data: {
                     trans_id,
-                    status: mobileMoneyResponse.status,
-                    payment_id: payment.id
+                    status: "PENDING",
+                    payment_id: payment.id,
+                    mobileMoneyResponse
                 }
-               
             });
-            console.log('Payment processed successfully:', {
-                paymentId: payment.id,
-                status: payment.status
-            })
+
+            // Update payment status if not pending
+            if (initialStatus && initialStatus.status === 'FAILED') {
+                await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED');
+
+            } else if (initialStatus && initialStatus.status === 'SUCCESSFUL') {
+                await this.processSuccessfulPayment(payment.id);
+            }
 
         } catch (error) {
-            logger.error('Payment processing error:', error);
-            if (!res.headersSent) {
-                return res.status(500).json({
-                    success: false,
-                    message: error.message || 'Payment processing failed'
-                });
-            }
+            console.log('Payment processing error:', error);
+         
         }
     }
 
     // Shared method for processing successful payments
     async processSuccessfulPayment(paymentId) {
-        logger.info('Processing successful payment:', { paymentId });
+        console.log('Processing successful payment:', { paymentId });
         
         const payment = await nodePaymentService.updateMobileMoneyPaymentStatus(paymentId, 'SUCCESSFUL');
         
         // Fetch full payment details with package info
         const fullPayment = await nodePaymentService.findById(payment.id);
         
-        logger.info('Payment updated successfully:', {
+        console.log('Payment updated successfully:', {
             paymentId: payment.id,
             status: payment.status
         });
@@ -102,34 +94,7 @@ class PaymentController {
         return fullPayment;
     }
 
-    async getPaymentStatus(req, res) {
-        try {
-            const { trans_id } = req.params;
-            const payment = await nodePaymentService.findByTransactionId(trans_id);
-            
-            if (!payment) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Payment not found'
-                });
-            }
 
-            return res.json({
-                success: true,
-                data: {
-                    status: payment.status,
-                    updatedAt: payment.updatedAt
-                }
-            });
-
-        } catch (error) {
-            logger.error('Payment status check error:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to fetch payment status'
-            });
-        }
-    }
 
     async processUpgradePayment(req, res) {
         try {

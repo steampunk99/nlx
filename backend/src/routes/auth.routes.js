@@ -145,6 +145,18 @@ router.post('/refresh', authController.refreshToken);
  *   post:
  *     summary: Request password reset
  *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
  */
 router.post('/forgot-password', authController.requestPasswordReset);
 
@@ -152,8 +164,24 @@ router.post('/forgot-password', authController.requestPasswordReset);
  * @swagger
  * /auth/reset-password:
  *   post:
- *     summary: Reset password using token
+ *     summary: Reset password with token
  *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 6
  */
 router.post('/reset-password', authController.resetPassword);
 

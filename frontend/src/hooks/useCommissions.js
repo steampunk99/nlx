@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/axios';
-import { useToast } from '../components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export function useCommissions(options = {}) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { 
     page = 1, 
@@ -69,11 +68,7 @@ export function useCommissions(options = {}) {
         };
       } catch (error) {
         console.error('Commission history error:', error);
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to fetch commission history',
-          variant: 'destructive'
-        });
+        toast.error(error.message || 'Failed to fetch commission history');
         throw error;
       }
     },
@@ -87,20 +82,12 @@ export function useCommissions(options = {}) {
       return data;
     },
     onSuccess: (data) => {
-      toast({
-        title: 'Withdrawal Successful',
-        description: `Withdrawal of ${data.amount} processed successfully.`,
-        variant: 'success'
-      });
+      toast.success(`Withdrawal of ${data.amount} processed successfully.`);
       queryClient.invalidateQueries(['commissionStats']);
       queryClient.invalidateQueries(['commissionHistory']);
     },
     onError: (error) => {
-      toast({
-        title: 'Withdrawal Failed',
-        description: error.response?.data?.message || 'An error occurred during withdrawal.',
-        variant: 'destructive'
-      });
+      toast.error(error.response?.data?.message || 'Failed to process withdrawal.');
     }
   });
 
@@ -111,20 +98,12 @@ export function useCommissions(options = {}) {
       return data;
     },
     onSuccess: () => {
-      toast({
-        title: 'Queue Processed',
-        description: 'Commission queue processed successfully.',
-        variant: 'success'
-      });
+      toast.success('Commission queue processed successfully.');
       queryClient.invalidateQueries(['commissionStats']);
       queryClient.invalidateQueries(['commissionHistory']);
     },
     onError: (error) => {
-      toast({
-        title: 'Processing Failed',
-        description: error.response?.data?.message || 'Failed to process commission queue.',
-        variant: 'destructive'
-      });
+      toast.error(error.response?.data?.message || 'Failed to process commission queue.');
     }
   });
 

@@ -9,6 +9,7 @@ import logo from '@/assets/logo.png'
 import { useAuth } from '../../hooks/useAuth';
 import { usePackages } from '../../hooks/usePackages';
 import { Avatar } from '../ui/avatar';
+import toast from "react-hot-toast"
 
 const navigation = [
   { 
@@ -31,7 +32,6 @@ export function Header() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
   };
 
   useEffect(() => {

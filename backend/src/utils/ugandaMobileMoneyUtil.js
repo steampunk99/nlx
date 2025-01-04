@@ -8,17 +8,11 @@ class UgandaMobileMoneyUtil {
       const response = await axios.post(
         `${config.scriptNetworks.baseUrl}/deposit`,
         {
+
           amount: payment.amount,
           phone: payment.phone,
           trans_id: payment.trans_id,
-
-          callback_url: config.scriptNetworks.webhookUrl,
-          callback_method: 'POST',
-          callback_data: JSON.stringify({
-            trans_id: payment.trans_id,
-            amount: payment.amount,
-            phone: payment.phone,
-          })
+          webhook_url: config.scriptNetworks.webhookUrl,
         },
         {
           headers: {
@@ -30,18 +24,38 @@ class UgandaMobileMoneyUtil {
         }
       );
 
-      logger.info('Mobile money request successful:', {
-        trans_id: payment.trans_id,
-        response: response.data
-      });
+      console.log('Mobile money payment response:', response.data);
 
       return response.data;
     } catch (error) {
-      logger.error('Mobile money payment error:', {
+      console.log('Mobile money payment error:', {
         error: error.message,
         response: error.response?.data
       });
       throw error;
+    }
+  }
+
+  async webhookResponse(trans_id) {
+    try {
+      const response = await axios.post(config.scriptNetworks.webhookUrl, {
+        trans_id: trans_id,
+      }, {
+        headers: {
+          'Accept': 'application/json',
+          'user-agent': 'GuzzleHttp/7',
+          'host': 'webhook.site',
+          'Content-Type': 'application/json',
+          'Content-Length': 80
+        }
+      });
+      console.log('Webhook response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.log('Webhook response error:', {
+        error: error.message,
+        response: error.response?.data
+      });
     }
   }
 

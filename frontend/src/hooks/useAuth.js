@@ -160,7 +160,7 @@ export function useAuth() {
     onSuccess: () => {
       toast('Account created successfully!, please proceed to activate your account and start earning')
 
-      navigate('/activation')
+      setTimeout(() => navigate('/login'), 2000)
     },
     onError: (error) => {
     

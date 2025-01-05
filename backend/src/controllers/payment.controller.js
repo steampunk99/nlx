@@ -27,16 +27,24 @@ class PaymentController {
                     throw new Error('Package not found');
                 }
 
+                // Create payment with correct phone parameter
                 const payment = await nodePaymentService.createMobileMoneyPayment({
                     transactionDetails: trans_id,
                     amount,
                     transactionId: trans_id,
                     reference: trans_id,
-                    phoneNumber: phone,
+                    phone: phone,  
                     packageId,
                     nodeId: node.id,
                     status: 'PENDING',
                 }, tx);
+
+                logger.info('Created payment record:', {
+                    payment_id: payment.id,
+                    trans_id,
+                    phone,
+                    amount
+                });
 
                 return { payment };
             });
@@ -51,6 +59,7 @@ class PaymentController {
             logger.info('Mobile money request initiated:', {
                 trans_id,
                 payment_id: payment.id,
+                response: mobileMoneyResponse
             });
 
             // Get initial status from Script Networks

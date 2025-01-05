@@ -43,8 +43,7 @@ class UgandaMobileMoneyUtil {
       }, {
         headers: {
           'Accept': 'application/json',
-          'user-agent': 'GuzzleHttp/7',
-          'host': 'webhook.site',
+          'Authorization': `Bearer ${config.scriptNetworks.authToken}`,
           'Content-Type': 'application/json',
           'Content-Length': 80
         }

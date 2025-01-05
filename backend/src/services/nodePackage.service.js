@@ -294,27 +294,27 @@ class NodePackageService {
             });
         }
 
-        // Create new active package
-        const newPackage = await this.create({
-            nodeId: payment.nodeId,
-            packageId: payment.packageId,
-            status: 'ACTIVE',
-            activatedAt: new Date(),
-            expiresAt: addDays(new Date(), payment.package.duration)
-        }, tx);
-
-        // Update node status to ACTIVE
-        await tx.node.update({
-            where: { id: payment.nodeId },
-            data: { 
+        // Create new active package and update node status
+        const [newPackage, updatedNode] = await Promise.all([
+            this.create({
+                nodeId: payment.nodeId,
+                packageId: payment.packageId,
                 status: 'ACTIVE',
-                updatedAt: new Date()
-            }
-        });
+                expiresAt: addDays(new Date(), 30),
+                activatedAt: new Date(),
+            }, tx),
+            tx.node.update({
+                where: { id: payment.nodeId },
+                data: { 
+                    status: 'ACTIVE',
+                    updatedAt: new Date()
+                }
+            })
+        ]);
 
         logger.info('Package and node activated successfully:', {
-            nodePackageId: newPackage.id,
-            nodeId: payment.nodeId,
+            packageId: newPackage.id,
+            nodeId: updatedNode.id,
             status: 'ACTIVE'
         });
 

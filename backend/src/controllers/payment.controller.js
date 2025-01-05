@@ -15,8 +15,8 @@ class PaymentController {
             const { trans_id, amount, phone, packageId } = req.body;
             const userId = req.user.id;
 
-            // 1. Initial Database Transaction
-            const { payment } = await prisma.$transaction(async (tx) => {
+            // Combined Database Transaction for payment and package
+            const { payment, nodePackage } = await prisma.$transaction(async (tx) => {
                 const node = await nodeService.findByUserId(userId, tx);
                 if (!node) {
                     throw new Error('Node not found for user');
@@ -36,10 +36,18 @@ class PaymentController {
                     packageId,
                     nodeId: node.id,
                     status: 'PENDING',
-                    
                 }, tx);
 
-                return { payment };
+                // Create nodePackage within the same transaction
+                const nodePackage = await nodePackageService.create({
+                    nodeId: payment.nodeId,
+                    packageId: payment.packageId,
+                    expiresAt: addDays(new Date(), 30),
+                    status: 'INACTIVE',
+                    activatedAt: new Date(),
+                }, tx);
+
+                return { payment, nodePackage };
             });
 
             // 2. Initiate Mobile Money Request
@@ -47,6 +55,12 @@ class PaymentController {
                 amount,
                 phone,
                 trans_id,
+            });
+
+            logger.info('Mobile money request initiated:', {
+                trans_id,
+                payment_id: payment.id,
+                node_package_id: nodePackage.id
             });
 
             // Get initial status from Script Networks
@@ -64,27 +78,44 @@ class PaymentController {
             });
 
             // Update payment status if not pending
-            if (initialStatus && initialStatus.status === 'FAILED') {
-                await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED');
-
-            } else if (initialStatus && initialStatus.status === 'SUCCESSFUL') {
-                await this.processSuccessfulPayment(payment.id);
+            if (initialStatus) {
+                await prisma.$transaction(async (tx) => {
+                    if (initialStatus.status === 'FAILED') {
+                        await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED', tx);
+                        logger.error('Initial payment status failed:', { trans_id, payment_id: payment.id });
+                    } else if (initialStatus.status === 'SUCCESSFUL') {
+                        await this.processSuccessfulPayment(payment.id, tx);
+                        logger.info('Initial payment status successful:', { trans_id, payment_id: payment.id });
+                    }
+                });
             }
 
         } catch (error) {
-            console.log('Payment processing error:', error);
-         
+            logger.error('Payment processing error:', {
+                error: error.message,
+                stack: error.stack,
+                trans_id: req.body?.trans_id
+            });
+            
+            // Send error response if not already sent
+            if (!res.headersSent) {
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to process payment',
+                    error: error.message
+                });
+            }
         }
     }
 
     // Shared method for processing successful payments
-    async processSuccessfulPayment(paymentId) {
+    async processSuccessfulPayment(paymentId, tx) {
         console.log('Processing successful payment:', { paymentId });
         
-        const payment = await nodePaymentService.updateMobileMoneyPaymentStatus(paymentId, 'SUCCESSFUL');
+        const payment = await nodePaymentService.updateMobileMoneyPaymentStatus(paymentId, 'SUCCESSFUL', tx);
         
         // Fetch full payment details with package info
-        const fullPayment = await nodePaymentService.findById(payment.id);
+        const fullPayment = await nodePaymentService.findById(payment.id, tx);
         
         console.log('Payment updated successfully:', {
             paymentId: payment.id,

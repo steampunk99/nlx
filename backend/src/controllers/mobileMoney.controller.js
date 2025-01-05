@@ -21,13 +21,34 @@ class MobileMoneyCallbackController {
     }
 
     try {
+      logger.info('Checking payment status:', { trans_id });
+      
       const payment = await nodePaymentService.findByReference(trans_id);
       
       if (!payment) {
-        return res.status(404).json({
-          success: false,
-          message: 'Payment not found',
-          data: { trans_id }
+        logger.info('Payment not found yet:', { trans_id });
+        return res.status(200).json({
+          success: true,
+          data: { 
+            trans_id,
+            status: 'PENDING',
+            message: 'Payment processing initiated'
+          }
+        });
+      }
+
+      logger.info('Payment status check:', {
+        trans_id,
+        status: payment.status,
+        payment_id: payment.id
+      });
+
+      // Get associated node package if payment is successful
+      let nodePackage = null;
+      if (payment.status === 'SUCCESSFUL') {
+        nodePackage = await prisma.nodePackage.findUnique({
+          where: { nodeId: payment.nodeId },
+          include: { node: true }
         });
       }
 
@@ -36,14 +57,17 @@ class MobileMoneyCallbackController {
         data: {
           trans_id,
           status: payment.status,
-          payment_id: payment.id
+          payment_id: payment.id,
+          node_status: nodePackage?.node?.status,
+          package_status: nodePackage?.status
         }
       });
 
     } catch (error) {
       logger.error('Status check error:', {
         trans_id,
-        error: error.message
+        error: error.message,
+        stack: error.stack
       });
       return res.status(500).json({
         success: false,
@@ -102,22 +126,15 @@ class MobileMoneyCallbackController {
         if (status === 'SUCCESSFUL') {
           logger.info('✅ Processing successful payment:', { trans_id });
           
-          // Update payment status
-          const updatedPayment = await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'SUCCESSFUL', tx);
-          
-          // Activate package
-          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);
-          
-          // Calculate commissions
-          await calculateCommissions(payment.nodeId, payment.amount, tx);
+          // Process successful payment (creates nodePackage and updates statuses)
+          const updatedPayment = await paymentController.processSuccessfulPayment(payment.id, tx);
           
           logger.info('💰 Payment processed successfully:', { 
             trans_id,
-            payment_id: payment.id,
-            node_package_id: nodePackage.id
+            payment_id: payment.id
           });
 
-          return { payment: updatedPayment, nodePackage };
+          return { payment: updatedPayment };
         } else if (status === 'FAILED') {
           logger.info('❌ Processing failed payment:', { trans_id });
           
@@ -157,7 +174,6 @@ class MobileMoneyCallbackController {
         stack: error.stack
       });
 
-      // Don't expose internal errors to the client
       return res.status(error.message.includes('Payment not found') ? 404 : 500).json({
         success: false,
         message: error.message.includes('Payment not found') ? 

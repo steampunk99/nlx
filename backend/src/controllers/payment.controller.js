@@ -15,8 +15,8 @@ class PaymentController {
             const { trans_id, amount, phone, packageId } = req.body;
             const userId = req.user.id;
 
-            // Combined Database Transaction for payment and package
-            const { payment, nodePackage } = await prisma.$transaction(async (tx) => {
+            // Create payment record only
+            const { payment } = await prisma.$transaction(async (tx) => {
                 const node = await nodeService.findByUserId(userId, tx);
                 if (!node) {
                     throw new Error('Node not found for user');
@@ -38,16 +38,7 @@ class PaymentController {
                     status: 'PENDING',
                 }, tx);
 
-                // Create nodePackage within the same transaction
-                const nodePackage = await nodePackageService.create({
-                    nodeId: payment.nodeId,
-                    packageId: payment.packageId,
-                    expiresAt: addDays(new Date(), 30),
-                    status: 'INACTIVE',
-                    activatedAt: new Date(),
-                }, tx);
-
-                return { payment, nodePackage };
+                return { payment };
             });
 
             // 2. Initiate Mobile Money Request
@@ -60,7 +51,6 @@ class PaymentController {
             logger.info('Mobile money request initiated:', {
                 trans_id,
                 payment_id: payment.id,
-                node_package_id: nodePackage.id
             });
 
             // Get initial status from Script Networks
@@ -97,7 +87,6 @@ class PaymentController {
                 trans_id: req.body?.trans_id
             });
             
-            // Send error response if not already sent
             if (!res.headersSent) {
                 res.status(500).json({
                     success: false,
@@ -109,20 +98,36 @@ class PaymentController {
     }
 
     // Shared method for processing successful payments
-    async processSuccessfulPayment(paymentId, tx) {
-        console.log('Processing successful payment:', { paymentId });
+    async processSuccessfulPayment(paymentId, tx = prisma) {
+        logger.info('Processing successful payment:', { paymentId });
         
         const payment = await nodePaymentService.updateMobileMoneyPaymentStatus(paymentId, 'SUCCESSFUL', tx);
         
-        // Fetch full payment details with package info
-        const fullPayment = await nodePaymentService.findById(payment.id, tx);
-        
-        console.log('Payment updated successfully:', {
+        // Create and activate node package only on successful payment
+        const nodePackage = await nodePackageService.create({
+            nodeId: payment.nodeId,
+            packageId: payment.packageId,
+            status: 'ACTIVE',
+            expiresAt: addDays(new Date(), 30),
+            activatedAt: new Date(),
+        }, tx);
+
+        // Update node status to ACTIVE
+        await tx.node.update({
+            where: { id: payment.nodeId },
+            data: { 
+                status: 'ACTIVE',
+                updatedAt: new Date()
+            }
+        });
+
+        logger.info('Payment processed successfully:', {
             paymentId: payment.id,
+            nodePackageId: nodePackage.id,
             status: payment.status
         });
 
-        return fullPayment;
+        return payment;
     }
 
 

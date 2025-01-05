@@ -118,11 +118,11 @@ export default function PaymentStatusPage() {
           return false;
         }
         
-        const newStatus = response.data.data?.status?.toLowerCase() || 'pending';
+        const newStatus = response.data.data?.status?.toLowerCase() || 'PENDING';
         setStatus(newStatus);
 
         // Handle definitive statuses
-        if (newStatus === 'successful' || newStatus === 'completed') {
+        if (newStatus === 'SUCCESSFUL') {
           console.log('✅ Payment successful');
           queryClient.invalidateQueries(['userPackage']);
           toast.success('Payment successful');
@@ -130,13 +130,14 @@ export default function PaymentStatusPage() {
           return true;
         } else if (newStatus === 'failed') {
           console.log('❌ Payment failed');
-          toast.error('Payment failed');
+          toast.error('Payment failed, please try again');
           setTimeout(() => navigate('/activation'), 3000);
           return true;
         }
         
         return false;
       } catch (error) {
+        toast.error('An error occurred while checking payment status');
         console.error('💥 Error checking payment status:', error);
         return false;
       }
@@ -170,12 +171,11 @@ export default function PaymentStatusPage() {
 
   const getStatusMessage = () => {
     switch (status) {
-      case 'successful':
-      case 'completed':
+      case 'SUCCESSFUL':
         return 'Payment successful! Redirecting...';
-      case 'failed':
+      case 'FAILED':
         return 'Payment failed. Redirecting...';
-      case 'pending':
+      case 'PENDING':
         return 'Please wait while we confirm your payment...';
       default:
         return 'Checking payment status...';

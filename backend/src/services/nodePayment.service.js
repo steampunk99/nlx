@@ -7,57 +7,80 @@ class NodePaymentService {
     constructor() {}
 
     async createMobileMoneyPayment(data, tx = prisma) {
-
         try {
+            logger.info('Creating mobile money payment:', {
+                trans_id: data.transactionId,
+                phone: data.phone,
+                amount: data.amount
+            });
+
             const existingPayment = await tx.nodePayment.findFirst({
                 where: {
-                    transactionId: data.transactionId
+                    OR: [
+                        { transactionId: data.transactionId },
+                        { reference: data.reference }
+                    ]
                 }
             });
 
             if (existingPayment) {
-                logger.info(`Payment with transactionId ${data.transactionId} already exists. Skipping creation.`);
+                logger.info('Payment already exists:', {
+                    payment_id: existingPayment.id,
+                    trans_id: existingPayment.transactionId
+                });
                 return existingPayment;
             }
 
             const payment = await tx.nodePayment.create({   
                 data: {
-                transactionDetails: data.transactionDetails,
-                amount: data.amount,
-                packageId: data.packageId,
-                nodeId: data.nodeId,
-                status: 'PENDING',
+                    transactionDetails: data.transactionDetails,
+                    amount: data.amount,
+                    packageId: data.packageId,
+                    nodeId: data.nodeId,
+                    status: 'PENDING',
                     createdAt: new Date(),
-                    paymentMethod: 'mobile-money',
+                    paymentMethod: 'MOBILE_MONEY',
                     phoneNumber: data.phone,
                     reference: data.reference,
                     transactionId: data.transactionId,
-                    type: 'mobile-money'
+                    type: 'PACKAGE_PURCHASE'
                 }
             });
 
             logger.info('Payment created successfully:', {
-                paymentId: payment.id,
-                transactionId: payment.transactionId,
-                status: payment.status
+                payment_id: payment.id,
+                trans_id: payment.transactionId,
+                status: payment.status,
+                phone: payment.phoneNumber
             });
 
             return payment;
 
         } catch (error) {
-            logger.error('Error creating payment:', error);
+            logger.error('Error creating payment:', {
+                error: error.message,
+                stack: error.stack,
+                data: {
+                    trans_id: data.transactionId,
+                    phone: data.phone,
+                    amount: data.amount
+                }
+            });
             throw error;
         }
-       
     }
 
     async updateMobileMoneyPaymentStatus(id, status, tx = prisma) {
      
        const data = {
             status,
-            // Only set activatedAt when payment is successful
+            // Set timestamps for final states
             ...(status === 'SUCCESSFUL' && {
-                activatedAt: new Date()
+                activatedAt: new Date(),
+                completedAt: new Date()
+            }),
+            ...(status === 'FAILED' && {
+                completedAt: new Date()
             })
         };
     

@@ -1,14 +1,14 @@
 const { PrismaClient } = require('@prisma/client');
-const { calculateCommissions } = require('./src/utils/commission.utils');
+const { calculateCommissions } = require('../src/utils/commission.utils');
 
 const prisma = new PrismaClient();
 
 async function seedPackagePurchase() {
   try {
-    const referredUserId = 1;
+    const referredUserId = 2;
   
-    const packageId = 4;
-    const nodeId = 1;
+    const packageId =3;
+    const nodeId = 2;
 
     // Start a transaction
     await prisma.$transaction(async (tx) => {
@@ -22,7 +22,7 @@ async function seedPackagePurchase() {
         data: {
           nodeId,
           packageId,
-          amount: packagePrice.price,
+          amount: "250000",
           transactionId:"TRX6434U9843U8FCN3",
           transactionDetails:"TRX6434U9843U8FCN3",
           status: 'SUCCESSFUL',

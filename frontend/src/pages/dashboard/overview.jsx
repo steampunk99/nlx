@@ -72,7 +72,7 @@ function DashboardOverview() {
       description: "Active members in your network",
       icon: Users,
       color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
+      bgColor: "bg-transparent",
       secondaryValue: dashboardStats?.networkSize || "0",
       secondaryLabel: "New this month"
     },
@@ -83,7 +83,7 @@ function DashboardOverview() {
       description: "Your available balance",
       icon: DollarSign,
       color: "text-green-500",
-      bgColor: "bg-green-500/10",
+      bgColor: "bg-transparent",
       secondaryValue: formatCurrency(earnings?.availableBalance || 0),
       secondaryLabel: "This month"
     },
@@ -93,7 +93,7 @@ function DashboardOverview() {
       description: "Current investment packages",
       icon: Package,
       color: "text-yellow-500",
-      bgColor: "bg-yellow-500/10",
+      bgColor: "bg-transparent",
       secondaryValue: formatCurrency(userPackage?.package?.price || 0),
       secondaryLabel: "Total value"
     }

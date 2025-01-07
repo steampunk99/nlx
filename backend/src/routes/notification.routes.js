@@ -18,10 +18,5 @@ router.put('/mark-all-read', isActive, notificationController.markAllAsRead);
 // Delete notification
 router.delete('/:notificationId', isActive, notificationController.deleteNotification);
 
-// Get notification preferences
-// router.get('/preferences', isActive, notificationController.getNotificationPreferences);
-
-// Update notification preferences
-// router.put('/preferences', isActive, notificationController.updateNotificationPreferences);
 
 module.exports = router;

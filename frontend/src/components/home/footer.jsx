@@ -18,7 +18,7 @@ export function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <Link to="/" className="text-2xl font-bold text-gray-900 hover:text-[#0095E7]">
-              TriplePride
+              Earn Drip
             </Link>
             <p className="text-sm text-gray-600">
               Empowering your financial journey through network marketing excellence.
@@ -27,8 +27,8 @@ export function Footer() {
               <a href="tel:+256700000000" className="text-sm text-gray-600 hover:text-[#0095E7]">
                 +256 700 000 000
               </a>
-              <a href="mailto:support@TriplePride.com" className="text-sm text-gray-600 hover:text-[#0095E7]">
-                support@TriplePride.com
+              <a href="mailto:admin@earndrip.com" className="text-sm text-gray-600 hover:text-[#0095E7]">
+                admin@earndrip.com
               </a>
             </div>
           </div>

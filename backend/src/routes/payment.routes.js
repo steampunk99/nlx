@@ -39,9 +39,8 @@ const packageController = require('../controllers/package.controller');
  *     tags: [Payments]
  */
 router.post('/package', auth, [
-    body('trans_id'),
     body('amount'),
-    body('phoneNumber')
+    body('phone')
 ], paymentController.processPackagePayment);
 
 /**
@@ -51,7 +50,7 @@ router.post('/package', auth, [
  *     summary: Check payment status (frontend polling)
  *     tags: [Payments]
  */
-router.post('/status/check', auth, packageController.getPaymentStatus);
+router.post('/status/check', auth, [body('trans_id')], mobileMoneyController.checkPaymentStatus);
 
 router.post("/status/callback", mobileMoneyController.handleCallback )
 

@@ -37,7 +37,7 @@ class UgandaMobileMoneyUtil {
   }
 
   async webhookResponse(trans_id) {
-    try {
+    try {     
       const response = await axios.post(config.scriptNetworks.webhookUrl, {
         trans_id: trans_id,
       }, {

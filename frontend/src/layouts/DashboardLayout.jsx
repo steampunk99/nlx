@@ -190,7 +190,7 @@ export function DashboardLayout() {
             <Menu className="h-6 w-6" />
           </Button>
           <div className="flex-1">
-            <span className="font-bold text-white">TriplePride</span>
+            <span className="font-bold text-white">EARN DRIP</span>
           </div>
         </div>
       )}
@@ -213,7 +213,7 @@ export function DashboardLayout() {
         !isMobile && (isCollapsed ? "pl-16" : "pl-64"),
         isMobile && "pl-0"
       )}>
-        <div className="container py-6">
+        <div className="container min-h-screen bg-gradient-to-tr from-yellow-500/10 to-purple-500/10 py-6">
           <Outlet />
           <DashboardFooter />
         </div>

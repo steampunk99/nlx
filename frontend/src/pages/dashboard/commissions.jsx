@@ -156,19 +156,19 @@ export default function CommissionsPage() {
 
     return (
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>
             <CardTitle>Commission History</CardTitle>
             <CardDescription>
               Showing {commissionHistory.length} of {totalCommissions} transactions
             </CardDescription>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
             <Select 
               value={filterType} 
               onValueChange={(value) => handleFilterChange('type', value)}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Filter Type" />
               </SelectTrigger>
               <SelectContent>
@@ -182,7 +182,7 @@ export default function CommissionsPage() {
               value={filterStatus} 
               onValueChange={(value) => handleFilterChange('status', value)}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Filter Status" />
               </SelectTrigger>
               <SelectContent>
@@ -196,59 +196,68 @@ export default function CommissionsPage() {
               variant="outline" 
               size="sm" 
               onClick={() => refetchHistory()}
+              className="w-full sm:w-auto"
             >
               <RefreshCw className="h-4 w-4 mr-2" /> Refresh
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {/* <TableHead>ID</TableHead> */}
-                <TableHead>Description</TableHead>
-                <TableHead >Amount</TableHead>
-                <TableHead>From</TableHead>
-                <TableHead>Package</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {commissionHistory.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    No commission records found
-                  </TableCell>
+                  <TableHead className="w-[30%] min-w-[200px]">Description</TableHead>
+                  <TableHead className="w-[15%] min-w-[100px]">Amount</TableHead>
+                  <TableHead className="hidden md:table-cell">From</TableHead>
+                  <TableHead className="hidden lg:table-cell">Package</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ) : (
-                commissionHistory.map((commission) => (
-                  <TableRow key={commission.id}>
-                   
-                    {/* <TableCell>{commission.id}</TableCell> */}
-                    <TableCell>{commission.description}</TableCell>
-                    <TableCell className="font-medium font-mono font-bold">
-                      {formatCurrency(commission.amount)}
-                    </TableCell>
-                    <TableCell>{commission.sourceUser?.username || 'System'}</TableCell>
-                    <TableCell>{commission.package.name}</TableCell>
-                    <TableCell>{new Date(commission.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        className="bg-green-400"
-                      >
-                        {commission.status}
-                      </Badge>
+              </TableHeader>
+              <TableBody>
+                {commissionHistory.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      No commission records found
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  commissionHistory.map((commission) => (
+                    <TableRow key={commission.id}>
+                      <TableCell className="font-medium">
+                        {commission.description}
+                        <div className="block sm:hidden text-xs text-muted-foreground">
+                          {new Date(commission.createdAt).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium font-mono">
+                        {formatCurrency(commission.amount)}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {commission.sourceUser?.username || 'System'}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {commission.package.name}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {new Date(commission.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-400 whitespace-nowrap">
+                          {commission.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
           
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between py-4">
+            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 py-4">
               <div className="text-sm text-muted-foreground">
                 Page {currentPage} of {totalPages}
               </div>
@@ -278,15 +287,15 @@ export default function CommissionsPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Commissions</h1>
-        <div className="flex items-center space-x-4">
+    <div className="space-y-6 p-4 sm:p-6">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <h1 className="text-2xl sm:text-3xl font-bold">My Commissions</h1>
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
           <Select 
             value={selectedPeriod} 
             onValueChange={setSelectedPeriod}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
@@ -297,7 +306,7 @@ export default function CommissionsPage() {
             </SelectContent>
           </Select>
       
-          <Button variant="outline">
+          <Button variant="outline" className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" /> Export
           </Button>
         </div>

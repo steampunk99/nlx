@@ -55,6 +55,7 @@ function DashboardOverview() {
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-40" />
           ))}
+
         </div>
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-[400px]" />
@@ -71,7 +72,7 @@ function DashboardOverview() {
       description: "Active members in your network",
       icon: Users,
       color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
+      bgColor: "bg-transparent",
       secondaryValue: dashboardStats?.networkSize || "0",
       secondaryLabel: "New this month"
     },
@@ -82,7 +83,7 @@ function DashboardOverview() {
       description: "Your available balance",
       icon: DollarSign,
       color: "text-green-500",
-      bgColor: "bg-green-500/10",
+      bgColor: "bg-transparent",
       secondaryValue: formatCurrency(earnings?.availableBalance || 0),
       secondaryLabel: "This month"
     },
@@ -92,7 +93,7 @@ function DashboardOverview() {
       description: "Current investment packages",
       icon: Package,
       color: "text-yellow-500",
-      bgColor: "bg-yellow-500/10",
+      bgColor: "bg-transparent",
       secondaryValue: formatCurrency(userPackage?.package?.price || 0),
       secondaryLabel: "Total value"
     }
@@ -109,6 +110,15 @@ function DashboardOverview() {
       default:
         return Activity
     }
+  }
+
+  //format date to display like "Jan 1, 2023"
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
   }
 
   const getActivityColor = (type) => {
@@ -277,10 +287,10 @@ function DashboardOverview() {
                     )}
                     <div className="flex items-start space-x-4">
                       <div className={cn(
-                        "flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105",
-                        colorClass.replace("text-", "bg-").replace("/10", "/20")
+                        "flex h-12 w-12 items-center bg-green-100 justify-center rounded-full transition-transform hover:scale-105",
+                        
                       )}>
-                        <ActivityIcon className={cn("h-6 w-6", colorClass)} />
+                        <ActivityIcon className={cn("h-4 w-4 text-green-500", )} />
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
@@ -296,7 +306,7 @@ function DashboardOverview() {
                         </div>
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground">
-                            {activity.time || activity.date}
+                          {formatDate(activity.date)} 
                           </p>
                           <span className={cn(
                             "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",

@@ -16,7 +16,7 @@ export default function PaymentStatusPage() {
   useEffect(() => {
     if (!trans_id) {
       toast.error('No transaction ID found');
-      navigate('/dashboard');
+      navigate('/activation');
     }
   }, [trans_id, navigate]);
 
@@ -25,7 +25,7 @@ export default function PaymentStatusPage() {
     if (status === 'SUCCESSFUL') {
       toast.success('Payment successful!, Thank you!');
       // Small delay before redirect to show success state
-      const timeout = setTimeout(() => navigate('/dashboard'), 1500);
+      const timeout = setTimeout(() => navigate('/dashboard'), 3500);
       return () => clearTimeout(timeout);
     } else if (status === 'FAILED') {
       toast.error('Payment failed. Please try again.');
@@ -42,7 +42,7 @@ export default function PaymentStatusPage() {
   if (!trans_id) return null;
 
   return (
-    <div className="container max-w-lg mx-auto py-8">
+    <div className="container max-w-lg mx-auto py-8 bg-gradient-to-r from-yellow-500/10 to-purple-500/10 min-h-screen">
       <Card className="p-8 text-center space-y-6">
         <div className="space-y-2">
           {status === 'FAILED' ? (
@@ -84,11 +84,11 @@ export default function PaymentStatusPage() {
 
         <Button
           variant={status === 'FAILED' ? "default" : "outline"}
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/activate/payment')}
           className="w-full"
           disabled={isLoading}
         >
-          {status === 'FAILED' ? 'Try Again' : 'Return to Dashboard'}
+          {status === 'FAILED' ? 'Try Again' : 'Return to Payment Page'}
         </Button>
       </Card>
     </div>

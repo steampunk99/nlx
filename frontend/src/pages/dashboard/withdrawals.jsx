@@ -160,12 +160,13 @@ export default function WithdrawalsPage() {
             <Button 
               type="submit" 
               disabled={withdrawalMutation.isPending || availableBalance < 1000}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-yellow-500 to-purple-500 hover:bg-gradient-to-r hover:from-yellow-600 hover:to-purple-600"
             >
               {withdrawalMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Processing...
+              </span>
                 </>
               ) : (
                 'Request Withdrawal'

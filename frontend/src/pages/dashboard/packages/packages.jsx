@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
+import {Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from '@/components/ui/table'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
@@ -93,27 +94,9 @@ export default function PackagesPage() {
   }
 
   return (
-    <div className="space-y-8 p-8 min-h-screen bg-gradient-to-r from-yellow-500 to-purple-500/10">
-      {/* Header Section with Animated Background */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 p-8">
-      <BorderTrail
-        style={{
-          boxShadow:
-            '0px 0px 60px 30px rgb(255 255 255 / 50%), 0 0 100px 60px rgb(0 0 0 / 50%), 0 0 140px 90px rgb(0 0 0 / 50%)',
-        }}
-        size={100}
-      />
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
-        <div className="relative">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary animate-text-gradient bg-300% mb-4">
-            Subscription Packages
-          </h1>
-          <p className="text-xl text-muted-foreground/80 max-w-2xl">
-            Start your journey to financial freedom with today
-          </p>
-        </div>
-      </div>
+    <div className="space-y-8 p-8 min-h-screen bg-background">
 
+      
       {/* Active Subscription Section */}
       <Card className="mb-8">
         <CardHeader>
@@ -141,40 +124,32 @@ export default function PackagesPage() {
                   {userPackage.status}
                 </Badge>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <Label>Price</Label>
-                  <p className="text-sm font-medium">
-                    {formatCurrency(userPackage.package.price)}
-                  </p>
-                </div>
-                <div>
-                  <Label>Expires On</Label>
-                  <p className="text-sm font-medium">
-                    {userPackage.formattedExpiresAt}
-                  </p>
-                </div>
-                <div>
-                  <Label>Days Remaining</Label>
-                  <p className="text-sm font-medium">
-                    {userPackage.daysRemaining} days
-                  </p>
-                </div>
-                <div>
-                  <Label>Status</Label>
-                  <p className="text-sm font-medium">
-                    {userPackage.status}
-                  </p>
-                </div>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Expires On</TableHead>
+                    <TableHead>Days Remaining</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{formatCurrency(userPackage.package.price)}</TableCell>
+                    <TableCell>{userPackage.formattedExpiresAt}</TableCell>
+                    <TableCell>{userPackage.daysRemaining} days</TableCell>
+                    <TableCell>{userPackage.status}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
               {userPackage.status !== 'EXPIRED' && (
                 <div className="flex justify-end">
-                  <Button
+                  {/* <Button
                     variant="outline"
                     onClick={() => handleUpgrade(userPackage.package)}
                   >
                     Upgrade Package
-                  </Button>
+                  </Button> */}
                 </div>
               )}
             </div>
@@ -186,42 +161,27 @@ export default function PackagesPage() {
         </CardContent>
       </Card>
 
-      {/* Stats Section */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-green-500/20">
-              <TrendingUp className="w-6 h-6 text-green-500" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Potential ROI</p>
-              <p className="text-2xl font-bold text-green-500">Up to 300%</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-blue-500/20">
-              <Users className="w-6 h-6 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Active Investors</p>
-              <p className="text-2xl font-bold text-blue-500">1,000+</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-purple-500/20">
-              <Network className="w-6 h-6 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Network Growth</p>
-              <p className="text-2xl font-bold text-purple-500">Unlimited</p>
-            </div>
-          </div>
+      {/* Header Section with Animated Background */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 p-8">
+      <BorderTrail
+        style={{
+          boxShadow:
+            '0px 0px 60px 30px rgb(255 255 255 / 50%), 0 0 100px 60px rgb(0 0 0 / 50%), 0 0 140px 90px rgb(0 0 0 / 50%)',
+        }}
+        size={100}
+      />
+        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
+        <div className="relative">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary animate-text-gradient bg-300% mb-4">
+            Subscription Packages
+          </h1>
+          <p className="text-xl text-muted-foreground/80 max-w-2xl">
+            Start your journey to financial freedom with today
+          </p>
         </div>
       </div>
+
+    
 
       {/* Available Packages */}
       <motion.div 
@@ -352,7 +312,7 @@ export default function PackagesPage() {
                     onClick={() => handlePackagePurchase(pkg)}
                     disabled={isAlreadyPurchased}
                   >
-                    {isAlreadyPurchased ? "Already Subscribed" : "Buy Now"}
+                    {isAlreadyPurchased ? "Already Subscribed" : "Upgrade Now"}
                   </Button>
                 </CardContent>
               </Card>

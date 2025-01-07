@@ -93,7 +93,7 @@ export default function PackagesPage() {
   }
 
   return (
-    <div className="space-y-8 p-8 min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+    <div className="space-y-8 p-8 min-h-screen bg-gradient-to-r from-yellow-500 to-purple-500/10">
       {/* Header Section with Animated Background */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 p-8">
       <BorderTrail
@@ -254,7 +254,7 @@ export default function PackagesPage() {
               <Card className={cn(
                 "h-full transition-all duration-500 overflow-hidden",
                 isPremium 
-                  ? "bg-gradient-to-br from-purple-500/10 via-primary/5 to-purple-500/10 hover:shadow-[0_0_40px_8px_rgba(124,58,237,0.1)] border-purple-500/20" 
+                  ? "bg-gradient-to-r from-yellow-500/10 to-purple-500/10 hover:shadow-[0_0_40px_8px_rgba(124,58,237,0.1)] border-purple-500/20" 
                   : "hover:shadow-lg border-primary/20 bg-gradient-to-br from-primary/5 to-background",
                 isAlreadyPurchased && "opacity-50"
               )}>
@@ -345,7 +345,7 @@ export default function PackagesPage() {
                     className={cn(
                       "w-full h-12 transition-all font-medium text-white",
                       isPremium 
-                        ? "bg-gradient-to-r from-purple-500 via-primary to-purple-500 hover:opacity-90" 
+                        ? "bg-gradient-to-r from-yellow-500/10 to-purple-500/10 hover:opacity-90" 
                         : "bg-gradient-to-r from-primary to-primary/80 hover:opacity-90",
                       "shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                     )}

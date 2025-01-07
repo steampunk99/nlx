@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isActive, isAdmin } = require('../middleware/auth');
+const {auth, isActive, isAdmin } = require('../middleware/auth');
 const commissionController = require('../controllers/commission.controller');
 const { validateCommission } = require('../middleware/validate');
 
@@ -83,7 +83,7 @@ router.post('/calculate/matching', isActive, commissionController.calculateMatch
  *     security:
  *       - bearerAuth: []
  */
-router.get('/stats/:userId', isActive, commissionController.getUserCommissionStats);
+router.get('/stats/:userId', auth, commissionController.getUserCommissionStats);
 
 /**
  * @swagger
@@ -94,7 +94,7 @@ router.get('/stats/:userId', isActive, commissionController.getUserCommissionSta
  *     security:
  *       - bearerAuth: []
  */
-router.get('/stats', isActive, commissionController.getUserCommissionStats);
+router.get('/stats', auth, commissionController.getUserCommissionStats);
 
 /**
  * @swagger

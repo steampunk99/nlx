@@ -1,6 +1,6 @@
 import { useHealth } from '@/hooks/useHealth';
 import { cn } from '@/lib/utils';
-import { Activity, CheckCircle2, XCircle } from 'lucide-react';
+import { Activity, CheckCircle2, Dot, XCircle } from 'lucide-react';
 
 export function DashboardFooter() {
   const { data: health, isLoading, isError } = useHealth();
@@ -12,19 +12,19 @@ export function DashboardFooter() {
   };
 
   const getStatusIcon = () => {
-    if (isLoading) return <Activity className="h-4 w-4 animate-pulse" />;
-    if (isError) return <XCircle className="h-4 w-4" />;
+    if (isLoading) return <Dot className="h-8 w-8 animate-pulse" />;
+    if (isError) return <Dot className="h-8 w-8 text-red-500" />;
     return health?.status === 200 ? (
-      <CheckCircle2 className="h-4 w-4" />
+      <Dot className="h-8 w-8 text-green-500" />
     ) : (
-      <XCircle className="h-4 w-4" />
+      <Dot className="h-8 w-8 text-red-500" />
     );
   };
 
   const getStatusText = () => {
     if (isLoading) return 'Checking...';
     if (isError) return 'Error';
-    return health?.status === 200 ? 'OK' : 'Down';
+    return health?.status === 200 ? 'normal' : 'Down';
   };
 
   return (
@@ -35,7 +35,7 @@ export function DashboardFooter() {
             <span className={cn("flex items-center space-x-1", getStatusColor())}>
               {getStatusIcon()}
               <span className="text-sm font-medium">
-                API Status: {getStatusText()}
+                All Systems {getStatusText()}
               </span>
             </span>
           </div>

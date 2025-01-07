@@ -6,16 +6,57 @@ const { PrismaClient } = require('@prisma/client');
 const mobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 const { addDays } = require('../utils/date.utils');
 const logger = require('../services/logger.service');
+const nodeStatementService = require('../services/nodeStatement.service');
+const { generateTransactionId } = require('../utils/transaction.utils');
 
 const prisma = new PrismaClient();
 
 class PaymentController {
     async processPackagePayment(req, res) {
         try {
-            const { trans_id, amount, phone, packageId } = req.body;
+            const { amount, phone, packageId } = req.body;
             const userId = req.user.id;
+            const trans_id = generateTransactionId();
+            let mobileMoneyResponse;
 
-            // Create payment record only
+            // 1. First validate mobile money request before creating payment record
+            try {
+                // Pre-validate the mobile money request
+                mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
+                    amount,
+                    phone,
+                    trans_id,
+                });
+
+                if (!mobileMoneyResponse || mobileMoneyResponse.error) {
+                    logger.error('Mobile money request failed:', {
+                        error: mobileMoneyResponse?.error,
+                        trans_id
+                    });
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Mobile money request failed',
+                        error: mobileMoneyResponse?.error || 'Unknown error'
+                    });
+                }
+
+                logger.info('Mobile money request successful:', {
+                    trans_id,
+                    response: mobileMoneyResponse
+                });
+            } catch (error) {
+                logger.error('Mobile money request error:', {
+                    error: error.message,
+                    trans_id
+                });
+                return res.status(400).json({
+                    success: false,
+                    message: 'Mobile money request failed',
+                    error: error.message
+                });
+            }
+
+            // 2. Create payment record only if mobile money request was successful
             const { payment } = await prisma.$transaction(async (tx) => {
                 const node = await nodeService.findByUserId(userId, tx);
                 if (!node) {
@@ -38,8 +79,20 @@ class PaymentController {
                     nodeId: node.id,
                     status: 'PENDING',
                 }, tx);
+                console.log('Node Payment created:', {});
 
-                logger.info('Created payment record:', {
+                // Create pending statement
+                await nodeStatementService.create({
+                    nodeId: node.id,
+                    amount,
+                    type: 'DEBIT',
+                    status: 'PENDING',
+                    description: `Package purchase payment - ${pkg.name}`,
+                    referenceType: 'DEPOSIT',
+                    referenceId: payment.id
+                }, tx);
+
+                logger.info('Created payment record and statement:', {
                     payment_id: payment.id,
                     trans_id,
                     phone,
@@ -48,33 +101,16 @@ class PaymentController {
 
                 return { payment };
             });
-
-            // 2. Initiate Mobile Money Request
-            const mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
-                amount,
-                phone,
-                trans_id,
-            });
-
-            logger.info('Mobile money request initiated:', {
-                trans_id,
-                payment_id: payment.id,
-                response: mobileMoneyResponse
-            });
-
-            // Get initial status from Script Networks
-            const initialStatus = await mobileMoneyUtil.webhookResponse(trans_id);
-            
+          
             // Return early response with initial status
             res.status(201).json({
                 success: true,
-                data: {
                     trans_id,
                     status: "PENDING",
                     payment_id: payment.id,
                     mobileMoneyResponse
-                }
             });
+            const initialStatus = await nodePaymentService.findByTransactionId(trans_id);
 
             // Update payment status if not pending
             if (initialStatus) {
@@ -130,6 +166,18 @@ class PaymentController {
             }
         });
 
+        // Update statement to completed
+        await nodeStatementService.create({
+            nodeId: payment.nodeId,
+            amount: payment.amount,
+            type: 'DEBIT',
+            status: 'COMPLETED',
+            description: `Package purchase completed - ${payment.package.name}`,
+            referenceType: 'PAYMENT',
+            referenceId: payment.id,
+            completedAt: new Date()
+        }, tx);
+
         logger.info('Payment processed successfully:', {
             paymentId: payment.id,
             nodePackageId: nodePackage.id,
@@ -144,13 +192,13 @@ class PaymentController {
     async processUpgradePayment(req, res) {
         try {
             const { 
-                trans_id,
                 currentPackageId, 
                 newPackageId,
                 amount,
                 phone
             } = req.body;
             const userId = req.user.id;
+            const trans_id = generateTransactionId();
 
             // Validate package upgrade
             const node = await nodeService.findByUserId(userId);
@@ -179,6 +227,17 @@ class PaymentController {
                 nodeId: node.id,
                 status: 'PENDING',
                 transactionId: trans_id
+            });
+
+            // Create pending statement
+            await nodeStatementService.create({
+                nodeId: node.id,
+                amount,
+                type: 'DEBIT',
+                status: 'PENDING',
+                description: `Package upgrade payment - ${newPackage.name}`,
+                referenceType: 'PAYMENT',
+                referenceId: payment.id
             });
 
             // Initiate mobile money request

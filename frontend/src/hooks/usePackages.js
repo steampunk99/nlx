@@ -1,15 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getAuthTokens } from '../lib/auth'
-import { PaymentStatusModal, PAYMENT_STATES } from '@/components/payment/PaymentStatusModal'
 import toast from 'react-hot-toast'
 import { api } from '../lib/axios'
 
 export function usePackages(options = {}) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-
-  const { onPaymentStatusChange = () => {} } = options;
 
   // Enhanced authentication check with logging
   const isAuthenticated = () => {
@@ -110,168 +107,68 @@ export function usePackages(options = {}) {
     enabled: isAuthenticated()
   });
 
-  // Fetch upgrade options (with fallback)
- 
 
-  // Purchase package mutation
-  const purchasePackageMutation = useMutation({
-    mutationFn: async (paymentData) => {
-      const response = await api.post('/payments/package', paymentData);
-      return response.data;
-    },
-    onMutate: () => {
-      // Start with waiting state (for PIN entry)
-      onPaymentStatusChange(PAYMENT_STATES.WAITING);
-    },
-    onSuccess: (data) => {
-      if (data.success) {
-        // Move to processing state and navigate to status page
-        onPaymentStatusChange(PAYMENT_STATES.PROCESSING);
-        
-        // Log the response data for debugging
-        console.log('Payment Response:', data.data);
-        
-        // Navigate with available data
-        const params = new URLSearchParams({
-          trans_id: data.data.trans_id,
-          ...(data.data.package?.name && { package: data.data.package.name }),
-          ...(data.data.amount && { amount: data.data.amount })
-        });
-        
-        navigate(`/payment/status?${params.toString()}`);
-      }
-    },
-    onError: (error) => {
-      onPaymentStatusChange(PAYMENT_STATES.FAILED);
+ // Purchase package mutation
+ const purchasePackageMutation = useMutation({
+  mutationFn: async ({ phone, amount, packageId }) => {
+    console.log('Payload being sent:', { phone, amount, packageId });
+    if (!phone || !amount || !packageId) {
+      throw new Error('Missing required payment information');
+    }
+
+    try {
+     const payload = {
+        phone,
+        amount,
+        packageId
+      };
+
+      const response = await api.post('/payments/package', payload);
+      console.log('Raw API Response:', response);
+
+     
+
+      console.log('Payment data:', response);
+      return response;  // Return the nested data object
+    } catch (error) {
+      console.error('Full error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response);
       handleAuthError(error, 'Package Purchase');
+      throw error;
     }
-  });
-
-  // Package upgrade mutation
-  const upgradePackageMutation = useMutation({
-    mutationFn: async (paymentData) => {
-      if (!paymentData?.phone) {
-        throw new Error('Phone number is required');
-      }
-
-      const response = await api.post('/payments/upgrade', {
-        trans_id: paymentData.trans_id,
-        currentPackageId: paymentData.currentPackageId,
-        newPackageId: paymentData.newPackageId,
-        amount: paymentData.amount,
-        phone: paymentData.phone
-      });
-      
-      return response.data;
-    },
-    onSuccess: (data) => {
-      let pollCount = 0;
-      const maxPolls = 6;
-      
-      const pollInterval = setInterval(async () => {
-        try {
-          pollCount++;
-          if (pollCount >= maxPolls) {
-            clearInterval(pollInterval);
-            onPaymentStatusChange?.(PAYMENT_STATES.TIMEOUT);
-            return;
-          }
-
-          if (!data.data.status) {
-            throw new Error('No mobile money response');
-          }
-          const status = data.data.status;
-
-          if (status === 'SUCCESS') {
-            clearInterval(pollInterval);
-            onPaymentStatusChange?.(PAYMENT_STATES.SUCCESS);
-            queryClient.invalidateQueries({ queryKey: ['userPackage'] });
-            setTimeout(() => {
-              navigate('/dashboard/packages');
-            }, 5000);
-          }
-        } catch (error) {
-          console.error('Status check failed:', error);
-        }
-      }, 125000);
-    },
-    onError: (error) => {
-      console.error('Package upgrade error:', error);
-      handleAuthError(error, 'Package Upgrade');
-    }
-  });
+  },
+  onSuccess: (data) => {
+    // Invalidate relevant queries
+    queryClient.invalidateQueries(['userPackage']);
+    queryClient.invalidateQueries(['packages']);
+  },
+  onError: (error) => {
+    console.error('Package purchase error:', error);
+  }
+});
 
   return {
-    // Packages data
+    // Data
     availablePackages,
     userPackage,
-  
-
+    
     // Loading states
     packagesLoading: packagesLoading || !isAuthenticated(),
     isLoadingUserPackage: isLoadingUserPackage || !isAuthenticated(),
     
-
     // Errors
     packagesError,
-
-    // Mutations
-    purchasePackage: purchasePackageMutation.mutate,
-    upgradePackage: upgradePackageMutation.mutate,
-    purchasePackageMutation,
-    upgradePackageMutation,
-  }
-}
-
-// Specific hook for package purchase
-export function usePackagePurchase() {
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ packageId, paymentMethod, phone = '' }) => {
-      const { data } = await api.post('/packages/purchase', {
-        packageId,
-        paymentMethod,
-        phoneNumber
-      })
-      return data
-    },
-    onSuccess: (data) => {
-      toast.success(data.message || 'Package purchased successfully')
-      navigate('/dashboard')
-      queryClient.invalidateQueries(['userPackage'])
-      queryClient.invalidateQueries(['packages'])
-      
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to purchase package')
+    
+    // Return the full mutation object instead of just the mutate function
+    purchasePackageMutation: {
+      ...purchasePackageMutation,
+      mutateAsync: purchasePackageMutation.mutateAsync,
+      isLoading: purchasePackageMutation.isLoading,
+      isError: purchasePackageMutation.isError,
+      error: purchasePackageMutation.error,
+      reset: purchasePackageMutation.reset
     }
-  })
-}
+  };
 
-// Specific hook for package upgrade
-export function usePackageUpgrade() {
-
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ currentPackageId, newPackageId, paymentMethod, phoneNumber = '' }) => {
-      const { data } = await api.post('/packages/upgrade', {
-        currentPackageId,
-        newPackageId,
-        paymentMethod,
-        phoneNumber
-      })
-      return data
-    },
-    onSuccess: (data) => {
-      toast.success(data.message || 'Package upgraded successfully')
-      queryClient.invalidateQueries(['userPackage'])
-      queryClient.invalidateQueries(['packages'])
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to upgrade package')
-    }
-  })
 }

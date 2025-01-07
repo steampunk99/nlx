@@ -1,152 +1,146 @@
-// frontend/src/pages/auth/payments.jsx
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { usePackages } from '../../hooks/usePackages';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { usePackages } from '@/hooks/usePackages';
+import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
-import { Button } from '../../components/ui/button';
-import { Label } from '../../components/ui/label';
-import { Input } from '../../components/ui/input';
-import { useAuth } from '../../hooks/useAuth';
-import { PaymentMethodSelector } from '../../pages/dashboard/packages/payment-method-btn';
-import { PaymentSummary } from '../../pages/dashboard/packages/payment-summary';
-import { PaymentStatusModal, PAYMENT_STATES } from '@/components/payment/PaymentStatusModal';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Phone, Package, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '@/lib/axios';
 
-
-
-
-export default function PaymentPage() {
+function PaymentPage() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  
-  const [paymentMethod, setPaymentMethod] = useState('MTN_MOBILE');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-
-  const { purchasePackageMutation } = usePackages({ 
-    onPaymentStatusChange: handlePaymentStatusChange 
-  });
-
   const selectedPackage = location.state?.selectedPackage;
+  const navigate = useNavigate();
 
-  function handlePaymentStatusChange(status) {
-    setPaymentStatus(status);
-    if (status === PAYMENT_STATES.SUCCESSFUL) {
-      toast.success('Payment successful. You can now access the package.');
-      setIsSubmitting(false);
-      setShowStatusModal(true);
-    } else if (status === PAYMENT_STATES.FAILED) {
-      toast.error('Payment failed. Please try again.');
-      setIsSubmitting(false);
-    } else if (status === PAYMENT_STATES.TIMEOUT) {
-      toast.error('Payment timed out. Please try again.');
-      setIsSubmitting(false);
-    }
-  }
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handlePaymentMethodChange = (method) => {
-    setPaymentMethod(method);
-  };
-
-  const confirmPurchase = async () => {
-    if (!phoneNumber) {
-      toast.error('Please enter your mobile money number');
-      return;
-    }
-
-    const ugandaPhoneRegex = /^(0|\+?256)?(7[0-9]{8})$/;
-    if (!ugandaPhoneRegex.test(phoneNumber)) {
-      toast.error('Please enter a valid Ugandan mobile number');
-      return;
-    }
-
+  const handlePayment = async () => {
     try {
       setIsSubmitting(true);
-      setShowStatusModal(true);
-      
-      const trans_id = `TRA${Date.now()}${Math.floor(Math.random() * 1000)}`;
-      
-      const paymentData = {
-        trans_id,
-        packageId: selectedPackage.id,
-        amount: selectedPackage.price,
-        phone: phoneNumber
-      };
-      
-      await purchasePackageMutation.mutateAsync(paymentData);
-      
+      const response = await api.post('/payments/package', {
+        amount: selectedPackage?.price,
+        phone: phone,
+        packageId: selectedPackage.id
+      });
+
+      if (response.data?.success && response.data?.trans_id) {
+        toast.success('Payment initiated');
+        navigate(`/payment-status?trans_id=${response.data.trans_id}`);
+      } else {
+        toast.error('Failed to initiate payment');
+      }
     } catch (error) {
-      setPaymentStatus(PAYMENT_STATES.FAILED);
-      toast.error(error.message || 'Payment failed. Please try again.');
+      console.error('Payment error:', error);
+      toast.error(error.response?.data?.message || 'Payment failed');
+    } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCloseModal = () => {
-    if ([PAYMENT_STATES.FAILED, PAYMENT_STATES.SUCCESS, PAYMENT_STATES.TIMEOUT].includes(paymentStatus)) {
-      setShowStatusModal(false);
-      setPaymentStatus(null);
-    }
-  };
-
-  const handleTimeout = () => {
-    setPaymentStatus(PAYMENT_STATES.TIMEOUT);
-    toast('You can close this window. We\'ll notify you when the payment completes.');
   };
 
   if (!selectedPackage) {
-    return <div>No package selected. Please select a package first.</div>;
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-red-500">No Package Selected</CardTitle>
+            <CardDescription>Please select a package first to proceed with payment.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
-      <div className="max-w-lg mx-auto my-auto">
-        <h1 className="text-2xl font-semibold mb-4">Payment for {selectedPackage.name}</h1>
-        
-        <PaymentMethodSelector
-          selectedMethod={paymentMethod}
-          onMethodSelect={handlePaymentMethodChange}
-        />
+    <div className="flex items-center justify-center min-h-[80vh] p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Payment for {selectedPackage.name}
+          </CardTitle>
+          <CardDescription>
+            Complete your payment to activate your account
+          </CardDescription>
+        </CardHeader>
 
-        <div className="mt-4">
-          <div className="mb-2">
-            <Label>Mobile Money Number</Label>
-          </div>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            placeholder="Enter your mobile money number"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            aria-labelledby="phone-label"
-            className="mt-1"
-          />
-        </div>
+        <CardContent>
+          <form className="space-y-6">
+            {/* Package Summary */}
+            <div className="rounded-lg bg-muted p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-muted-foreground">Package</span>
+                <span className="font-medium">{selectedPackage.name}</span>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Amount</span>
+                <span className="font-medium text-primary">UGX {selectedPackage.price.toLocaleString()}</span>
+              </div>
+            </div>
 
-        <div className="mt-6">
-          <PaymentSummary selectedPackage={selectedPackage} />
-        </div>
+            {/* Phone Input */}
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Mobile Money Number
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter your mobile money number"
+                className="w-full"
+                required
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter your MTN or Airtel money number (e.g., 0775123456)
+              </p>
+            </div>
 
-        <div className="mt-6">
+            {/* Payment Method */}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-primary" />
+                <span className="font-medium">Payment Method</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Mobile Money (MTN/Airtel)
+              </p>
+            </div>
+          </form>
+        </CardContent>
+
+        <CardFooter className="flex flex-col gap-4">
           <Button 
+            type="button"
+            onClick={handlePayment}
             className="w-full"
-            onClick={confirmPurchase} 
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Processing...' : 'Confirm Payment'}
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Processing...
+              </span>
+            ) : (
+              `Pay UGX ${selectedPackage.price.toLocaleString()}`
+            )}
           </Button>
-        </div>
-
-        <PaymentStatusModal 
-          isOpen={showStatusModal}
-          status={paymentStatus}
-          onClose={handleCloseModal}
-          onTimeout={handleTimeout}
-        />
-      </div>
+          <p className="text-xs text-center text-muted-foreground">
+            By clicking Pay, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
+
+export default PaymentPage;

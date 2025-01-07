@@ -5,6 +5,7 @@ const nodePackageService = require('../services/nodePackage.service');
 const commissionService = require('../services/commission.service');
 const { calculateCommissions } = require('../utils/commission.utils');
 const paymentController = require('./payment.controller');
+const nodeStatementService = require('../services/nodeStatement.service');
 
 const prisma = new PrismaClient();
 
@@ -23,7 +24,7 @@ class MobileMoneyCallbackController {
     try {
       logger.info('Checking payment status:', { trans_id });
       
-      const payment = await nodePaymentService.findByReference(trans_id);
+      const payment = await nodePaymentService.findByTransactionId(trans_id);
       
       if (!payment) {
         logger.info('Payment not found yet:', { trans_id });
@@ -54,13 +55,11 @@ class MobileMoneyCallbackController {
 
       return res.status(200).json({
         success: true,
-        data: {
-          trans_id,
+        
+        trans_id,
           status: payment.status,
           payment_id: payment.id,
-          node_status: nodePackage?.node?.status,
-          package_status: nodePackage?.status
-        }
+        
       });
 
     } catch (error) {
@@ -76,19 +75,23 @@ class MobileMoneyCallbackController {
     }
   }
 
+
   async handleCallback(req, res) {
     const { status, type, trans_id } = req.body;
 
-    logger.info('📥 Webhook Request Received:', {
-      trans_id,
-      status,
-      type,
-      timestamp: new Date().toISOString()
-    });
+    // Basic validation
+    if (!trans_id || !status || !type) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
 
-    // If it's a PENDING status, just acknowledge without processing
+    // Log incoming webhook
+    logger.info('📥 Webhook:', { trans_id, status, type });
+
+    // Handle PENDING status early
     if (status === 'PENDING') {
-      logger.info('⏳ Ignoring PENDING status webhook:', { trans_id });
       return res.status(200).json({
         success: true,
         message: 'Pending status acknowledged'
@@ -96,89 +99,73 @@ class MobileMoneyCallbackController {
     }
 
     try {
-      // Process everything in a single transaction
-      const result = await prisma.$transaction(async (tx) => {
-        const payment = await nodePaymentService.findByReference(trans_id, tx);
-        if (!payment) {
-          logger.error('❌ Payment not found:', {
-            trans_id,
-            error: 'Transaction ID not found in database'
-          });
-          throw new Error(`Payment not found: ${trans_id}`);
-        }
-
-        // Check if payment is already in final state
-        if (payment.status === 'SUCCESSFUL' || payment.status === 'FAILED') {
-          logger.info('⚠️ Payment already processed:', {
-            trans_id,
-            currentStatus: payment.status
-          });
-          return { payment, alreadyProcessed: true };
-        }
-
-        logger.info('💳 Processing payment:', {
-          trans_id,
-          amount: payment.amount,
-          currentStatus: payment.status,
-          newStatus: status
-        });
-
-        if (status === 'SUCCESSFUL') {
-          logger.info('✅ Processing successful payment:', { trans_id });
-          
-          // Process successful payment (creates nodePackage and updates statuses)
-          const updatedPayment = await paymentController.processSuccessfulPayment(payment.id, tx);
-          
-          logger.info('💰 Payment processed successfully:', { 
-            trans_id,
-            payment_id: payment.id
-          });
-
-          return { payment: updatedPayment };
-        } else if (status === 'FAILED') {
-          logger.info('❌ Processing failed payment:', { trans_id });
-          
-          const updatedPayment = await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED', tx);
-          return { payment: updatedPayment };
-        }
-
-        throw new Error(`Invalid payment status: ${status}`);
-      });
-
-      // Send response based on processing result
-      if (result.alreadyProcessed) {
+      // Find our payment
+      const payment = await nodePaymentService.findByTransactionId(trans_id);
+      
+      // If not our transaction, acknowledge and return
+      if (!payment) {
         return res.status(200).json({
           success: true,
-          message: 'Payment already processed',
-          data: { 
-            trans_id,
-            status: result.payment.status
-          }
+          message: 'Acknowledged'
         });
       }
 
+      // Process our payment status
+      if (status === 'SUCCESSFUL') {
+        await prisma.$transaction(async (tx) => {
+          const updatedPayment = await paymentController.processSuccessfulPayment(payment.id);
+          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);
+          
+          logger.info('✅ Payment processed:', {
+            payment_id: payment.id,
+            trans_id,
+            package_id: nodePackage.id
+          });
+          
+          await calculateCommissions(payment.nodeId, payment.amount, tx);
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: 'Payment processed successfully'
+        });
+      } 
+      
+      if (status === 'FAILED') {
+        await nodePaymentService.updateStatus(payment.id, 'FAILED');
+        
+        logger.info('❌ Payment failed:', {
+          payment_id: payment.id,
+          trans_id
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: 'Payment marked as failed'
+        });
+      }
+
+      // Unknown status
+      logger.warn('⚠️ Unknown payment status:', { 
+        trans_id, 
+        status,
+        payment_id: payment.id 
+      });
+      
       return res.status(200).json({
         success: true,
-        message: 'Payment processed successfully',
-        data: {
-          trans_id,
-          status: result.payment.status,
-          payment_id: result.payment.id
-        }
+        message: 'Status acknowledged'
       });
 
     } catch (error) {
-      logger.error('💥 Callback processing error:', {
+      logger.error('💥 Error processing payment:', {
         trans_id,
-        error: error.message,
-        stack: error.stack
+        error: error.message
       });
 
-      return res.status(error.message.includes('Payment not found') ? 404 : 500).json({
-        success: false,
-        message: error.message.includes('Payment not found') ? 
-          error.message : 
-          'Error processing payment callback'
+      return res.status(200).json({
+        success: true,
+        message: 'Webhook received'
       });
     }
   }

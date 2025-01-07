@@ -289,10 +289,10 @@ class NodePaymentService {
         });
     }
 
-    async findByTransactionId(transId) {
+    async findByTransactionId(trans_id) {
         return prisma.nodePayment.findFirst({
             where: { 
-                transactionId: transId
+                transactionId: trans_id
             },
             include: {
                 node: {

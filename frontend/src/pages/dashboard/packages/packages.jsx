@@ -76,7 +76,7 @@ export default function PackagesPage() {
   });
 
   const handlePackagePurchase = (pkg) => {
-    navigate('/dashboard/payment', { state: { selectedPackage: pkg } });
+    navigate('/activate/payment', { state: { selectedPackage: pkg } });
   }
 
   const handleUpgrade = (pkg) => {

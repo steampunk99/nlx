@@ -8,8 +8,8 @@ import { AuthLayout } from '../layouts/AuthLayout'
 import UpgradePage from '@/pages/dashboard/packages/upgrade'
 import { usePackages } from '../hooks/usePackages'
 import { toast } from '../components/ui/use-toast'
-import PaymentStatusPage from '@/pages/auth/payment-status'
 import NotFoundPage from '../pages/NotFound'
+import PaymentStatusPage from '@/pages/auth/payment-status'
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -23,7 +23,6 @@ const CommissionsPage = lazy(() => import('../pages/dashboard/commissions'))
 const PackagesPage = lazy(() => import('../pages/dashboard/packages/packages'))
 const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))
 const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
-const PaymentPage = lazy(() => import('../pages/payments/payments'))
 const ActivationPage = lazy(() => import('../pages/auth/activation'))
 const ActivatePaymentPage = lazy(() => import('../pages/auth/payments'))
 
@@ -79,7 +78,7 @@ export function AppRouter() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/activation" element={<ActivationPage />} />
           <Route path="/activate/payment" element={<ActivatePaymentPage />} />
-          <Route path="/payment/status" element={<PaymentStatusPage />} />
+          <Route path="/payment-status" element={<PaymentStatusPage />} />
          
         </Route>
 
@@ -89,10 +88,12 @@ export function AppRouter() {
           <Route path="network" element={<NetworkPage />} />
           <Route path="commissions" element={<CommissionsPage />} />
           <Route path="packages" element={<PackagesPage />} />
-          <Route path="payment" element={<PaymentPage />} />
           <Route path="upgrade" element={<UpgradePage />} />
           <Route path="withdrawals" element={<WithdrawalsPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="activation" element={<ActivationPage />} />
+          <Route path="activate/payment" element={<ActivatePaymentPage />} />
+          
         </Route>
 
         {/* Admin Routes */}

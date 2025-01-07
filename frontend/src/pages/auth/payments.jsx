@@ -97,7 +97,7 @@ function PaymentPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your mobile money number"
-                className="w-full"
+                className="w-full focus:outline-none focus:ring-indigo-500 "
                 required
                 disabled={isSubmitting}
               />
@@ -121,7 +121,7 @@ function PaymentPage() {
           <Button 
             type="button"
             onClick={handlePayment}
-            className="w-full"
+            className="w-full bg-gradient-to-r from-green-500 to-purple-500 text-white hover:bg-gradient-to-r hover:from-yellow-600 hover:to-purple-600"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

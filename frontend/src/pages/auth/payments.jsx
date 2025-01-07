@@ -58,14 +58,14 @@ function PaymentPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] p-4">
+    <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-purple-500/10 justify-center min-h-[100vh] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
             Payment for {selectedPackage.name}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             Complete your payment to activate your account
           </CardDescription>
         </CardHeader>
@@ -101,13 +101,11 @@ function PaymentPage() {
                 required
                 disabled={isSubmitting}
               />
-              <p className="text-xs text-muted-foreground">
-                Enter your MTN or Airtel money number (e.g., 0775123456)
-              </p>
+             
             </div>
 
             {/* Payment Method */}
-            <div className="rounded-lg border p-4">
+            {/* <div className="rounded-lg border p-4">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-primary" />
                 <span className="font-medium">Payment Method</span>
@@ -115,7 +113,7 @@ function PaymentPage() {
               <p className="text-sm text-muted-foreground mt-1">
                 Mobile Money (MTN/Airtel)
               </p>
-            </div>
+            </div> */}
           </form>
         </CardContent>
 

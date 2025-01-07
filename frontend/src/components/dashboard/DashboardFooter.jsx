@@ -48,7 +48,7 @@ export function DashboardFooter() {
         <div className="flex items-center space-x-4">
           {health?.version && (
             <div className="text-sm text-muted-foreground">
-              v{health.version}
+              Earn Drip 2025
             </div>
           )}
           {health?.environment && (
@@ -57,7 +57,7 @@ export function DashboardFooter() {
                 "rounded-full px-2 py-1 text-xs font-medium",
                 health.environment === 'production' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
               )}>
-                {health.environment}
+               
               </span>
             </div>
           )}

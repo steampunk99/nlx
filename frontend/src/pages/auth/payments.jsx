@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Phone, Package, CreditCard } from 'lucide-react';
+import { Phone, Package, CreditCard, ArrowBigLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 
@@ -58,6 +58,9 @@ function PaymentPage() {
             <CardTitle className="text-red-500">No Package Selected</CardTitle>
             <CardDescription>Please select a package first to proceed with payment.</CardDescription>
           </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button size="sm" onClick={() => navigate(-1)}>Go Back <ArrowBigLeft className="w-4 h-4 ml-2" /></Button>
+          </CardFooter>
         </Card>
       </div>
     );

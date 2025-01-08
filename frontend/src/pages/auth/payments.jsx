@@ -31,10 +31,16 @@ function PaymentPage() {
       });
 
       if (response.data?.success && response.data?.trans_id) {
-        toast.success('Payment initiated');
-        navigate(`/payment-status?trans_id=${response.data.trans_id}`);
+        toast.success('Payment initiated successfully');
+        setTimeout(() => {
+          navigate(`/payment-status?trans_id=${response.data.trans_id}`);
+        }, 3000);
       } else {
-        toast.error('Failed to initiate payment');
+        toast.error('Failed to initiate payment, please try again');
+        console.error('Payment failed:', response.data);
+        setTimeout(() => {
+          navigate('/activation');
+        }, 3000);
       }
     } catch (error) {
       console.error('Payment error:', error);

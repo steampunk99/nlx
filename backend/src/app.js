@@ -60,7 +60,7 @@ const createRateLimiter = (windowMs, max) => rateLimit({
 // Health check endpoint (before other routes)
 app.get('/health', (req, res) => {
     res.json({ 
-        status: 'ok', 
+        status: 'normal', 
         uptime: process.uptime(),
         version: process.env.npm_package_version || 'v1',
         environment: process.env.NODE_ENV || 'development',

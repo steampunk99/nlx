@@ -94,7 +94,7 @@ export default function PackagesPage() {
   }
 
   return (
-    <div className="space-y-8 p-8 min-h-screen bg-background">
+    <div className="space-y-8 p-8 min-h-screen ">
 
       
       {/* Active Subscription Section */}
@@ -162,7 +162,7 @@ export default function PackagesPage() {
       </Card>
 
       {/* Header Section with Animated Background */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 p-8">
+      {/* <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 p-8">
       <BorderTrail
         style={{
           boxShadow:
@@ -179,12 +179,12 @@ export default function PackagesPage() {
             Start your journey to financial freedom with today
           </p>
         </div>
-      </div>
+      </div> */}
 
     
 
       {/* Available Packages */}
-      <motion.div 
+      {/* <motion.div 
         className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         variants={containerVariants}
         initial="hidden"
@@ -303,7 +303,7 @@ export default function PackagesPage() {
 
                   <Button 
                     className={cn(
-                      "w-full h-12 transition-all font-medium text-white",
+                      "w-full h-12 transition-all font-medium text-white bg-gradient-to-br from-yellow-500 to-purple-500 hover:shadow-[0_0_40px_8px_rgba(124,58,237,0.1)]",
                       isPremium 
                         ? "bg-gradient-to-r from-yellow-500/10 to-purple-500/10 hover:opacity-90" 
                         : "bg-gradient-to-r from-primary to-primary/80 hover:opacity-90",
@@ -319,7 +319,7 @@ export default function PackagesPage() {
             </motion.div>
           );
         })}
-      </motion.div>
+      </motion.div> */}
 
       <UpgradePackageModal 
         open={showUpgradeModal}

@@ -19,7 +19,54 @@ class PaymentController {
             const trans_id = generateTransactionId();
             let mobileMoneyResponse;
 
-            // 1. First validate mobile money request before creating payment record
+            
+            // 1. Create payment record only if mobile money request was successful
+            const { payment } = await prisma.$transaction(async (tx) => {
+                const node = await nodeService.findByUserId(userId, tx);
+                if (!node) {
+                    throw new Error('Node not found for user');
+                }
+
+                const pkg = await packageService.findById(packageId, tx);
+                if (!pkg) {
+                    throw new Error('Package not found');
+                }
+
+                // Create  nodepayment record
+                const payment = await nodePaymentService.createMobileMoneyPayment({
+                    transactionDetails: trans_id,
+                    amount,
+                    transactionId: trans_id,
+                    reference: trans_id,
+                    phone: phone,  
+                    packageId,
+                    nodeId: node.id,
+                    status: 'PENDING',
+                },tx);
+                console.log('Node Payment created:', {});
+
+                // Create pending statement
+                await nodeStatementService.create({
+                    nodeId: node.id,
+                    amount,
+                    type: 'DEBIT',
+                    status: 'PENDING',
+                    description: `Package purchase payment - ${pkg.name}`,
+                    referenceType: 'DEPOSIT',
+                    referenceId: payment.id
+                }, tx);
+
+                logger.info('Created payment record and statement:', {
+                    payment_id: payment.id,
+                    trans_id,
+                    phone,
+                    amount
+                });
+
+                return { payment };
+            });
+
+            // 2. First validate mobile money request before creating payment record
             try {
                 // Pre-validate the mobile money request
                 mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
@@ -56,51 +103,6 @@ class PaymentController {
                 });
             }
 
-            // 2. Create payment record only if mobile money request was successful
-            const { payment } = await prisma.$transaction(async (tx) => {
-                const node = await nodeService.findByUserId(userId, tx);
-                if (!node) {
-                    throw new Error('Node not found for user');
-                }
-
-                const pkg = await packageService.findById(packageId, tx);
-                if (!pkg) {
-                    throw new Error('Package not found');
-                }
-
-                // Create payment with correct phone parameter
-                const payment = await nodePaymentService.createMobileMoneyPayment({
-                    transactionDetails: trans_id,
-                    amount,
-                    transactionId: trans_id,
-                    reference: trans_id,
-                    phone: phone,  
-                    packageId,
-                    nodeId: node.id,
-                    status: 'PENDING',
-                }, tx);
-                console.log('Node Payment created:', {});
-
-                // Create pending statement
-                await nodeStatementService.create({
-                    nodeId: node.id,
-                    amount,
-                    type: 'DEBIT',
-                    status: 'PENDING',
-                    description: `Package purchase payment - ${pkg.name}`,
-                    referenceType: 'DEPOSIT',
-                    referenceId: payment.id
-                }, tx);
-
-                logger.info('Created payment record and statement:', {
-                    payment_id: payment.id,
-                    trans_id,
-                    phone,
-                    amount
-                });
-
-                return { payment };
-            });
           
             // Return early response with initial status
             res.status(201).json({

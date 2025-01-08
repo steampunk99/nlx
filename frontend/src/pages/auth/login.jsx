@@ -19,11 +19,13 @@ const LoginPage = () => {
     const formData = new FormData(e.target)
     
     try {
+
+      
       await login({
         email: formData.get('email'),
         password: formData.get('password')
       })
-      toast.success('Welcome back!')
+   
     
    
     } catch (err) {

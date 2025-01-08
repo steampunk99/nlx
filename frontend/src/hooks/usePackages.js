@@ -85,8 +85,9 @@ export function usePackages(options = {}) {
         if(!packageData){
           navigate('/activation')
         } else {
-          toast.success('You have an active package..redirecting')
-          setTimeout(() => navigate('/dashboard'), 3000)
+          // toast.success('You have an active package..redirecting')
+          // setTimeout(() => navigate('/dashboard'), 3000)
+          console.log('package response 2',packageData)
         }
         
         if (packageData) {

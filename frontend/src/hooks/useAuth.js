@@ -70,11 +70,10 @@ export function useAuth() {
       localStorage.setItem('refreshToken', refreshToken)
       // Then update user state
       setUser(user)
+     
       console.log('Login successful:', response.data)
      console.log('userPackage response..',userPackage.userPackage)
       return response.data
-     
-      
      } 
      catch (error) {
       const errorMessage = getErrorMessage(error)
@@ -90,17 +89,21 @@ export function useAuth() {
      
     },
     onSuccess: (data) => {
-      if(!userPackage.userPackage) {
-        try {
-          setTimeout(()=>navigate('/activation'),2000)
-        }
-        catch(error){
-          console.error(error)
-        }
-      } 
+      try {
+      if(userPackage.userPackage) {
+        toast.success('Welcome back')
+        setTimeout(()=>navigate('/dashboard'),3000)
+      }
       else {
-      setTimeout(() =>   navigate('/dashboard'),2000)
-      toast.success('Welcome back!')
+        toast.success('No active subscription found')
+        setTimeout(() =>navigate('/activation'),3000)
+      }
+      }
+      catch(error) {
+        console.error('Login error:', error)
+        clearAuthTokens()
+        setUser(null)
+        throw error
       }
       
     },

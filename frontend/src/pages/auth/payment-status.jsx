@@ -42,7 +42,8 @@ export default function PaymentStatusPage() {
   if (!trans_id) return null;
 
   return (
-    <div className="container max-w-lg mx-auto py-8 bg-gradient-to-r from-yellow-500/10 to-purple-500/10 min-h-screen">
+    <div className='min-h-screen w-full bg-gradient-to-r from-yellow-500/10 to-purple-500/10'>
+    <div className="container max-w-lg mx-auto my-auto  py-8 min-h-screen">
       <Card className="p-8 text-center space-y-6">
         <div className="space-y-2">
           {status === 'FAILED' ? (
@@ -91,6 +92,7 @@ export default function PaymentStatusPage() {
           {status === 'FAILED' ? 'Try Again' : 'Return to Payment Page'}
         </Button>
       </Card>
+    </div>
     </div>
   );
 }

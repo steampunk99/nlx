@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { Check, Star, TrendingUp, Users, Network } from 'lucide-react'
@@ -71,6 +71,18 @@ export default function ActivationPage() {
   } = usePackages()
 
 
+  useEffect(() => {
+    if (userPackage) {
+      toast.success(' Subscription detected, redirecting...')
+      setTimeout(() => {
+        navigate('/dashboard')
+      }, 2000);
+    }
+    else {
+      toast.error('Make a payment to activate your account')
+     
+    }
+  }, [userPackage])
 
   const handlePackagePurchase = (pkg) => {
     navigate('/activate/payment', { state: { selectedPackage: pkg } });

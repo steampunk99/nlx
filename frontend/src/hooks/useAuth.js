@@ -90,7 +90,7 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       try {
-      if(userPackage.userPackage) {
+      if(userPackage.userPackage.status === 'ACTIVE') {
         toast.success('Welcome back')
         setTimeout(()=>navigate('/dashboard'),3000)
       }

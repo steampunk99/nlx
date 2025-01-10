@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
 import { useCountry } from '@/hooks/useCountry';
@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Phone, Package, CreditCard, ArrowBigLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Phone, Package, CreditCard, ArrowBigLeft, Copy, Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {motion} from "framer-motion";
 import ReactCountryFlag from 'react-country-flag';
+import cn from '@/lib/utils';
 
 function PaymentPage() {
   const location = useLocation();
@@ -25,7 +25,15 @@ function PaymentPage() {
 
   const [phone, setPhone] = useState(user?.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false)
 
+//handle copy to clipboard
+const handleCopyToClipboard = () => {
+  navigator.clipboard.writeText(wallet);
+  setCopied(true);
+  toast.success('Wallet address copied!');
+  setTimeout(() => setCopied(false), 2000);
+}
 
   const handlePayment = async () => {
     try {
@@ -57,6 +65,30 @@ function PaymentPage() {
     }
   };
 
+  const handleUsdtSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      const response = await api.post('/payments/usdt-payment', {
+        amount: selectedPackage?.price,
+        packageId: selectedPackage.id
+      });
+
+      if (response.data?.success) {
+        toast.success('USDT payment submitted successfully');
+        setTimeout(() => {
+          navigate('/auth/activation');
+        }, 1500);
+      } else {
+        toast.error(response.data?.message || 'Failed to submit payment');
+      }
+    } catch (error) {
+      console.error('USDT payment error:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit payment');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!selectedPackage) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
@@ -72,6 +104,8 @@ function PaymentPage() {
       </div>
     );
   }
+
+  const wallet = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 
   return (
     <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-purple-500/10 justify-center min-h-[100vh] p-4">
@@ -125,6 +159,7 @@ function PaymentPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your mobile money number"
+                
                 className="w-full focus:outline-none focus:ring-indigo-500 "
                 required
                 disabled={isSubmitting}
@@ -207,13 +242,53 @@ function PaymentPage() {
               
               <div className="space-y-4 text-center">
                 <div>
-                  <h3 className="font-medium text-lg mb-2">USDT Payment (Coming Soon)</h3>
+                  <h3 className="font-medium text-lg mb-2">USDT Payment</h3>
                   <p className="text-sm text-muted-foreground">
-                    We're integrating USDT payments for a smoother experience. 
-                    Stay tuned for updates!
+                    Add the amount of <strong>  {formatAmount(selectedPackage.price)} </strong> to the address
                   </p>
+                  <div className="relative flex w-full max-w-xl mx-auto mt-2">
+                    <Input
+                      readOnly
+                      value={wallet}
+                      className="pr-24 font-mono text-sm bg-background border-r-0 rounded-r-none"
+                    />
+                    <Button
+                      size="default"
+                      variant="outline"
+                      onClick={handleCopyToClipboard}
+                      className={cn(
+                        "absolute right-0 px-3 h-10 rounded-l-none border-l-0",
+                        "bg-gradient-to-r from-green-500 to-purple-500 hover:from-green-600 hover:to-purple-600",
+                        "text-white transition-all duration-200",
+                        copied && "from-green-600 to-green-600"
+                      )}
+                    >
+                      {copied ? (
+                        <span className="flex items-center gap-1">
+                          Copied!
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Copy className="h-4 w-4" /> Copy
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                  <Button 
+                    className="mt-4 w-full bg-gradient-to-r from-purple-500 to-primary hover:from-purple-600 hover:to-primary/90"
+                    onClick={handleUsdtSubmit}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing...
+                      </span>
+                    ) : (
+                      "I'm Done"
+                    )}
+                  </Button>
                 </div>
-
               </div>
             </div>
           </div>

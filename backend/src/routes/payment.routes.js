@@ -43,6 +43,12 @@ router.post('/package', auth, [
     body('phone')
 ], paymentController.processPackagePayment);
 
+router.post("/usdt-payment", auth, [
+    body('amount'),
+    body('packageId')],
+    paymentController.processUsdtPayment
+)
+
 /**
  * @swagger
  * /payments/status/check:

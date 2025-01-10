@@ -12,6 +12,81 @@ const { generateTransactionId } = require('../utils/transaction.utils');
 const prisma = new PrismaClient();
 
 class PaymentController {
+    //process usdt payment
+
+    async processUsdtPayment(req, res) {
+        try {
+            const { amount, packageId } = req.body;
+            const userId = req.user.id;
+            const trans_id = generateTransactionId();
+            const { payment } = await prisma.$transaction(async (tx) => {
+                const node = await nodeService.findByUserId(userId, tx);
+                if (!node) {
+                    throw new Error('Node not found for user');
+                }
+
+                const pkg = await packageService.findById(packageId, tx);
+                if (!pkg) {
+                    throw new Error('Package not found');
+                }
+
+                // Create  nodepayment record
+                const payment = await nodePaymentService.createUsdtPayment({
+                    transactionDetails: trans_id,
+                    amount,
+                    transactionId: trans_id,
+                    reference: trans_id,
+                    packageId,
+                    nodeId: node.id,
+                    status: 'PENDING',
+                },tx);
+                console.log('Node Payment created:', {});
+
+                // Create pending statement
+                await nodeStatementService.create({
+                    nodeId: node.id,
+                    amount,
+                    type: 'DEBIT',
+                    status: 'PENDING',
+                    description: `Package purchase payment - ${pkg.name}`,
+                    referenceType: 'DEPOSIT',
+                    referenceId: payment.id
+                }, tx);
+
+                logger.info('Created payment record and statement:', {
+                    payment_id: payment.id,
+                    trans_id,
+                    amount
+                });
+
+                return { payment };
+            });
+
+            res.status(201).json({
+                success: true,
+                trans_id,
+                status: "PENDING",
+                payment_id: payment.id
+            });
+        } catch (error) {
+            logger.error('Payment processing error:', {
+                error: error.message,
+                stack: error.stack,
+                trans_id: req.body?.trans_id
+            });
+            
+            if (!res.headersSent) {
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to process payment',
+                    error: error.message
+                });
+            }
+        }
+    }
+
+
+
     async processPackagePayment(req, res) {
         try {
             const { amount, phone, packageId } = req.body;

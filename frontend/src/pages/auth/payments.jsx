@@ -34,7 +34,7 @@ function PaymentPage() {
         amount: selectedPackage?.price,
         phone: phone,
         packageId: selectedPackage.id,
-        currency: currency.code
+        currency: currency.symbol
       });
 
       if (response.data?.success && response.data?.trans_id) {

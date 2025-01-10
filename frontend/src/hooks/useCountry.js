@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCurrency } from 'country-currency-map';
+import useCountryStore from '../store/countryStore';
 
 // Define currency mappings for common countries
 const CURRENCY_MAPPINGS = {
@@ -52,40 +52,43 @@ const CURRENCY_MAPPINGS = {
 };
 
 export function useCountry() {
-  const [country, setCountry] = useState('UG');
-  const [currency, setCurrency] = useState({ code: 'UGX', symbol: 'USh' });
-  const [loading, setLoading] = useState(true);
+  const { country, currency, setCountryInfo } = useCountryStore();
+  const [loading, setLoading] = useState(false);
   const conversionRate = 3900; // USDT to UGX conversion rate
 
   useEffect(() => {
     const detectCountry = async () => {
+      // If we already have country info in store, don't fetch again
+      if (country !== 'UG' || currency.code !== 'UGX') {
+        return;
+      }
+
+      setLoading(true);
       try {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         console.log('IP API Response:', data);
         
         const countryCode = data.country || 'UG';
-        setCountry(countryCode);
-        
-        // Get currency information from our mappings first
         const currencyInfo = CURRENCY_MAPPINGS[countryCode] || CURRENCY_MAPPINGS['UG'];
         console.log('Currency Info for', countryCode, ':', currencyInfo);
         
-        setCurrency(currencyInfo);
+        setCountryInfo(countryCode, currencyInfo);
       } catch (error) {
         console.error('Error detecting country:', error);
         // Fallback to Uganda as default
-        setCountry('UG');
-        setCurrency(CURRENCY_MAPPINGS['UG']);
+        setCountryInfo('UG', CURRENCY_MAPPINGS['UG']);
       } finally {
         setLoading(false);
       }
     };
 
     detectCountry();
-  }, []);
+  }, [country, currency.code, setCountryInfo]);
 
   const formatAmount = (amount) => {
+    const value = Number(amount);
+  if (isNaN(value)) return "0";
     // If currency is UGX, show the original amount
     if (currency.code === 'UGX') {
       return new Intl.NumberFormat('en-US', {
@@ -106,7 +109,12 @@ export function useCountry() {
       'KES': 157,   // 1 USDT = 157 KES
       'TZS': 2490,  // 1 USDT = 2490 TZS
       'NGN': 907,   // 1 USDT = 907 NGN
-      'ZAR': 18.7   // 1 USDT = 18.7 ZAR
+      'ZAR': 18.7,  // 1 USDT = 18.7 ZAR
+      'XOF': 600,   // CFA Franc BCEAO
+      'XAF': 600,   // CFA Franc BEAC
+      'ZWD': 3620,  // Zimbabwe Dollar
+      'ETB': 56,    // Ethiopian Birr
+      'GHS': 12.3   // Ghana Cedi
     };
     
     const rate = rates[currency.code] || 1;

@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
 import { cn } from '@/lib/utils'
 import { UpgradePackageModal } from '@/pages/dashboard/packages/upgrade-package-modal'
+import { useCountry } from '@/hooks/useCountry'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -48,19 +49,13 @@ const cardVariants = {
   }
 }
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-UG', {
-    style: 'currency',
-    currency: 'UGX',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
-}
+
 
 export default function PackagesPage() {
   const navigate = useNavigate()
   const [selectedPackage, setSelectedPackage] = useState(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const { country, currency, formatAmount } = useCountry()
 
   const {
     availablePackages, 
@@ -135,7 +130,7 @@ export default function PackagesPage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>{formatCurrency(userPackage.package.price)}</TableCell>
+                    <TableCell>{currency.symbol} {formatAmount(userPackage.package.price)}</TableCell>
                     <TableCell>{userPackage.formattedExpiresAt}</TableCell>
                     <TableCell>{userPackage.daysRemaining} days</TableCell>
                     <TableCell>{userPackage.status}</TableCell>

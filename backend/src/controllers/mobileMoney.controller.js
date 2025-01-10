@@ -114,15 +114,22 @@ class MobileMoneyCallbackController {
       if (status === 'SUCCESSFUL') {
         await prisma.$transaction(async (tx) => {
           const updatedPayment = await paymentController.processSuccessfulPayment(payment.id);
-          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);
-          
+          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);          
           logger.info('✅ Payment processed:', {
             payment_id: payment.id,
             trans_id,
             package_id: nodePackage.id
           });
           
-          await calculateCommissions(payment.nodeId, payment.amount, tx);
+             // Calculate and create commissions
+             const commissions = await calculateCommissions(payment.nodeId, payment.amount, tx);
+             await Promise.all(commissions.map(commission =>
+               commissionService.create({
+                 ...commission,
+                 packageId: payment.packageId,
+                 status: 'PROCESSED'
+               }, tx)
+             ));
         });
 
         return res.status(200).json({
@@ -133,6 +140,14 @@ class MobileMoneyCallbackController {
       
       if (status === 'FAILED') {
         await nodePaymentService.updateStatus(payment.id, 'FAILED');
+        await nodeStatementService.create({
+          nodeId: payment.nodeId,
+          amount: payment.amount,
+          type: 'DEBIT',
+          status: 'FAILED',
+          paymentId: payment.id,
+          reference: trans_id
+        });
         
         logger.info('❌ Payment failed:', {
           payment_id: payment.id,

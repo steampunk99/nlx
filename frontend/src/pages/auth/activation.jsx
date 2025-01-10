@@ -13,7 +13,9 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
 import { cn } from '../../lib/utils'
-
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import { useCountry } from '../../hooks/useCountry'
+import ReactCountryFlag from 'react-country-flag'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -47,18 +49,13 @@ const cardVariants = {
   }
 }
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-UG', {
-    style: 'currency',
-    currency: 'UGX',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
-}
+
+
 
 export default function ActivationPage() {
   const navigate = useNavigate()
   const [selectedPackage, setSelectedPackage] = useState(null)
+  const { country, currency, formatAmount } = useCountry()
   
 
   const {
@@ -87,6 +84,7 @@ export default function ActivationPage() {
   const handlePackagePurchase = (pkg) => {
     navigate('/activate/payment', { state: { selectedPackage: pkg } });
   }
+
 
 
 
@@ -175,7 +173,12 @@ export default function ActivationPage() {
                         ? "bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-primary to-purple-500" 
                         : "bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70"
                     )}>
-                      {formatCurrency(pkg.price)}
+                      <div className="flex items-center gap-2">
+                        <ReactCountryFlag countryCode={country} svg />
+                        <span>
+                          {currency.symbol} {formatAmount(pkg.price)}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">One-time investment</p>
                   </div>

@@ -14,7 +14,7 @@ import api from '@/lib/axios';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {motion} from "framer-motion";
 import ReactCountryFlag from 'react-country-flag';
-import cn from '@/lib/utils';
+import {cn} from '@/lib/utils';
 
 function PaymentPage() {
   const location = useLocation();

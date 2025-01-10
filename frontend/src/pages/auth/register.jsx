@@ -5,6 +5,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { ChevronRight, Loader2, Building2, User2, Check, X, LockKeyhole } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { trackReferralClick } from '../../services/tracking.service'
+import 'react-phone-number-input/style.css'
+import PhoneInput from 'react-phone-number-input'
 
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
@@ -14,11 +16,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Checkbox } from "../../components/ui/checkbox"
 import { toast } from '../../components/ui/use-toast'
 
-// List of countries
+// List of countries with codes
 const countries = [
-  "Uganda", "Kenya", "Tanzania", "Rwanda", "Burundi", "South Sudan", 
-  "Nigeria", "Ghana", "South Africa", "Ethiopia", "Other"
-]
+  { code: 'UG', name: 'Uganda' },
+  { code: 'KE', name: 'Kenya' },
+  { code: 'TZ', name: 'Tanzania' },
+  { code: 'ZM', name: 'Zambia' },
+  { code: 'RW', name: 'Rwanda' },
+  { code: 'BI', name: 'Burundi' },
+  { code: 'SS', name: 'South Sudan' },
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'GH', name: 'Ghana' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'ET', name: 'Ethiopia' }
+].sort((a, b) => a.name.localeCompare(b.name))
 
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -37,6 +48,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    country: '',
     phone: '',
     position: 1,
     acceptTerms: false,
@@ -92,6 +104,8 @@ export default function RegisterPage() {
     if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match'
     }
+    if (!formData.country) errors.country = 'Country is required'
+    if (!formData.phone) errors.phone = 'Phone number is required'
     if (!formData.acceptTerms) {
       errors.acceptTerms = 'You must accept the terms and conditions'
     }
@@ -252,18 +266,44 @@ export default function RegisterPage() {
                 )}
               </div>
 
+              {/* Country Selection */}
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-gray-300">Phone Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
+                <Label htmlFor="country">Country</Label>
+                <Select 
+                  name="country"
+                  value={formData.country}
+                  onValueChange={(value) => handleChange({ target: { name: 'country', value } })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formErrors.country && (
+                  <p className="text-sm text-red-500">{formErrors.country}</p>
+                )}
+              </div>
+
+              {/* Phone Number with country detection */}
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <PhoneInput
+                  international
+                  defaultCountry={formData.country || 'UG'}
                   value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+256 700 000000"
-                  required
-                  className="bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500"
+                  onChange={(value) => handleChange({ target: { name: 'phone', value } })}
+                  className="flex h-12 w-full rounded-md border border-input bg-gray-900/50 px-3 py-2 
+                  text-sm "
                 />
+                {formErrors.phone && (
+                  <p className="text-sm text-red-500">{formErrors.phone}</p>
+                )}
               </div>
 
               <div className="space-y-2">

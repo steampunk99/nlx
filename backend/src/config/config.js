@@ -21,6 +21,12 @@ const config = {
             database: process.env.TEST_DB_NAME || 'Earn Drip_test'
         }
     },
+    
+    // price Configuration
+    price: {
+        currency: process.env.PRICE_CURRENCY || 'USD',
+        conversionRate: process.env.PRICE_CONVERSION_RATE || 1
+    },
 
     // JWT Configuration
     jwt: {

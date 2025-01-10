@@ -15,8 +15,6 @@ export function useAuth() {
   const queryClient = useQueryClient()
   const userPackage = usePackages()
 
-   
-
   const getErrorMessage = (error) => {
     // Network or server errors
     if (!error.response) {

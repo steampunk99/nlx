@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { getAuthTokens } from '../lib/auth'
 import toast from 'react-hot-toast'
 import { api } from '../lib/axios'
+import { useCountry } from './useCountry'
 
 export function usePackages(options = {}) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { currency } = useCountry()
 
   // Enhanced authentication check with logging
   const isAuthenticated = () => {
@@ -50,7 +52,7 @@ export function usePackages(options = {}) {
     isLoading: packagesLoading, 
     error: packagesError 
   } = useQuery({
-    queryKey: ['packages'],
+    queryKey: ['packages', currency.code],
     queryFn: async () => {
       if (!isAuthenticated()) {
         navigate('/login')
@@ -59,7 +61,11 @@ export function usePackages(options = {}) {
       
       try {
         const { data } = await api.get('/packages')
-        return data.data || []
+        return data.data.map(pkg => ({
+          ...pkg,
+          originalPrice: pkg.price, // Keep original UGX price
+          price: pkg.price // Price will be converted by formatAmount in the UI
+        })) || []
       } catch (error) {
         handleAuthError(error, 'Packages Fetch')
         return []

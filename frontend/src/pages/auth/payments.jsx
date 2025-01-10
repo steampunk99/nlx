@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePackages } from '@/hooks/usePackages';
 import { useAuth } from '@/hooks/useAuth';
+import { useCountry } from '@/hooks/useCountry';
 import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +12,20 @@ import { Separator } from "@/components/ui/separator";
 import { Phone, Package, CreditCard, ArrowBigLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {motion} from "framer-motion";
+import ReactCountryFlag from 'react-country-flag';
 
 function PaymentPage() {
   const location = useLocation();
   const { user } = useAuth();
   const selectedPackage = location.state?.selectedPackage;
   const navigate = useNavigate();
+  const { country, currency, formatAmount } = useCountry();
 
   const [phone, setPhone] = useState(user?.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const handlePayment = async () => {
     try {
@@ -27,7 +33,8 @@ function PaymentPage() {
       const response = await api.post('/payments/package', {
         amount: selectedPackage?.price,
         phone: phone,
-        packageId: selectedPackage.id
+        packageId: selectedPackage.id,
+        currency: currency.code
       });
 
       if (response.data?.success && response.data?.trans_id) {
@@ -68,6 +75,12 @@ function PaymentPage() {
 
   return (
     <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-purple-500/10 justify-center min-h-[100vh] p-4">
+         <Tabs defaultValue="mobile-money" className="w-[400px]">
+         <TabsList>
+    <TabsTrigger value="mobile-money">Mobile Money</TabsTrigger>
+    <TabsTrigger value="usdt">USDT</TabsTrigger>
+  </TabsList>
+  <TabsContent value="mobile-money">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -79,6 +92,7 @@ function PaymentPage() {
           </CardDescription>
         </CardHeader>
 
+     
         <CardContent>
           <form className="space-y-6">
             {/* Package Summary */}
@@ -90,7 +104,12 @@ function PaymentPage() {
               <Separator className="my-2" />
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Amount</span>
-                <span className="font-medium text-primary">UGX {selectedPackage.price.toLocaleString()}</span>
+                <div className="flex items-center gap-2">
+                  <ReactCountryFlag countryCode={country} svg />
+                  <span className="font-medium text-primary">
+                    {formatAmount(selectedPackage.price)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -114,7 +133,7 @@ function PaymentPage() {
             </div>
 
             {/* Payment Method */}
-            {/* <div className="rounded-lg border p-4">
+            <div className="rounded-lg border p-4">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-primary" />
                 <span className="font-medium">Payment Method</span>
@@ -122,7 +141,7 @@ function PaymentPage() {
               <p className="text-sm text-muted-foreground mt-1">
                 Mobile Money (MTN/Airtel)
               </p>
-            </div> */}
+            </div>
           </form>
         </CardContent>
 
@@ -138,7 +157,7 @@ function PaymentPage() {
                 <span className="animate-spin">⏳</span> Processing...
               </span>
             ) : (
-              `Pay UGX ${selectedPackage.price.toLocaleString()}`
+              `Pay ${formatAmount(selectedPackage.price)}`
             )}
           </Button>
           <p className="text-xs text-center text-muted-foreground">
@@ -146,6 +165,63 @@ function PaymentPage() {
           </p>
         </CardFooter>
       </Card>
+    </TabsContent>
+    <TabsContent value="usdt">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Payment for {selectedPackage.name}
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Complete your payment to activate your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Package Summary */}
+            <div className="rounded-lg bg-muted p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-muted-foreground">Package</span>
+                <span className="font-medium">{selectedPackage.name}</span>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Amount</span>
+                <div className="flex items-center gap-2">
+                  <ReactCountryFlag countryCode={country} svg />
+                  <span className="font-medium text-primary">
+                    {formatAmount(selectedPackage.price)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* USDT Payment Info */}
+            <div className="bg-gradient-to-br from-purple-500/5 to-primary/5 rounded-lg p-6 space-y-4">
+              <div className="flex justify-center">
+                <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-16 h-16 text-primary animate-pulse" />
+                </div>
+              </div>
+              
+              <div className="space-y-4 text-center">
+                <div>
+                  <h3 className="font-medium text-lg mb-2">USDT Payment (Coming Soon)</h3>
+                  <p className="text-sm text-muted-foreground">
+                    We're integrating USDT payments for a smoother experience. 
+                    Stay tuned for updates!
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </CardContent>
+
+      </Card>
+    </TabsContent>
+      </Tabs>
     </div>
   );
 }

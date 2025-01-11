@@ -184,7 +184,7 @@ class PaymentController {
         }
     }
 
-    // Check payment status
+    // Check payment status usdt
     async checkPaymentStatus(req, res) {
         const { trans_id } = req.query;
         try {
@@ -394,8 +394,8 @@ class PaymentController {
             status: payment.status
         });
 
-        //calculate package revenue and commission
-        await systemRevenueService.calculatePackageRevenue(payment, payment.package, tx);
+  
+        await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
 
         return payment;
     }

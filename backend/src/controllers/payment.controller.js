@@ -1,13 +1,15 @@
-const nodePaymentService = require('../services/nodePayment.service');
+const { PrismaClient } = require('@prisma/client');
 const nodePackageService = require('../services/nodePackage.service');
 const nodeService = require('../services/node.service');
 const packageService = require('../services/package.service');
-const { PrismaClient } = require('@prisma/client');
+const nodePaymentService = require('../services/nodePayment.service');
 const mobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 const { addDays } = require('../utils/date.utils');
 const logger = require('../services/logger.service');
 const nodeStatementService = require('../services/nodeStatement.service');
 const { generateTransactionId } = require('../utils/transaction.utils');
+const systemRevenueService = require('../services/systemRevenue.service');
+const commissionUtil = require('../utils/commission.utils');
 
 const prisma = new PrismaClient();
 
@@ -31,16 +33,17 @@ class PaymentController {
                 }
 
                 // Create  nodepayment record
-                const payment = await nodePaymentService.createUsdtPayment({
+                const payment = await nodePaymentService.create({
                     transactionDetails: trans_id,
                     amount,
                     transactionId: trans_id,
                     reference: trans_id,
+                    type: 'USDT Package Payment',
                     packageId,
                     nodeId: node.id,
                     status: 'PENDING',
                 },tx);
-                console.log('Node Payment created:', {});
+                console.log('Node Payment created:', payment);
 
                 // Create pending statement
                 await nodeStatementService.create({
@@ -85,8 +88,137 @@ class PaymentController {
         }
     }
 
+    // Process successful payment (called by callback - USDT)
+    async processUsdtCallback(req, res) {
+        const { trans_id, status } = req.body;
+        try {
+            // Find payment by transaction ID
+            const payment = await prisma.nodePayment.findFirst({
+                where: { transactionId: trans_id },
+                include: {
+                    package: true,
+                    node: true
+                }
+            });
 
+            if (!payment) {
+                logger.error('Payment not found:', { trans_id });
+                return res.status(404).json({
+                    success: false,
+                    message: 'Payment not found'
+                });
+            }
 
+            // Process in transaction
+            const result = await prisma.$transaction(async (tx) => {
+                // Update payment status
+                const updatedPayment = await nodePaymentService.updateMobileMoneyPaymentStatus(
+                    payment.id,
+                    status,
+                    tx
+                );
+
+                if (status === 'SUCCESSFUL') {
+                    // Create and activate node package
+                    const nodePackage = await nodePackageService.create({
+                        nodeId: payment.nodeId,
+                        packageId: payment.packageId,
+                        status: 'ACTIVE',
+                        expiresAt: addDays(new Date(), 30),
+                        activatedAt: new Date(),
+                    }, tx);
+
+                    // Update node status
+                    await tx.node.update({
+                        where: { id: payment.nodeId },
+                        data: { 
+                            status: 'ACTIVE',
+                            updatedAt: new Date()
+                        }
+                    });
+
+                    // Create completed statement
+                    await nodeStatementService.create({
+                        nodeId: payment.nodeId,
+                        amount: payment.amount,
+                        type: 'DEBIT',
+                        status: 'COMPLETED',
+                        description: `Package purchase completed - ${payment.package.name}`,
+                        referenceType: 'PAYMENT',
+                        referenceId: payment.id,
+                        completedAt: new Date()
+                    }, tx);
+
+                    // Calculate revenue and commissions
+                    await systemRevenueService.calculatePackageRevenue(updatedPayment, payment.package, tx);
+                    await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
+
+                    logger.info('USDT payment processed successfully:', {
+                        payment_id: payment.id,
+                        trans_id,
+                        status
+                    });
+                }
+
+                return updatedPayment;
+            });
+
+            res.status(200).json({
+                success: true,
+                message: 'Payment status updated successfully',
+                data: result
+            });
+
+        } catch (error) {
+            logger.error('Error processing USDT callback:', {
+                error: error.message,
+                stack: error.stack,
+                trans_id
+            });
+
+            res.status(500).json({
+                success: false,
+                message: 'Failed to process payment callback',
+                error: error.message
+            });
+        }
+    }
+
+    // Check payment status
+    async checkPaymentStatus(req, res) {
+        const { trans_id } = req.query;
+        try {
+            const payment = await prisma.nodePayment.findFirst({
+                where: { transactionId: trans_id }
+            });
+
+            if (!payment) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Payment not found'
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                status: payment.status
+            });
+
+        } catch (error) {
+            logger.error('Error checking payment status:', {
+                error: error.message,
+                trans_id
+            });
+
+            res.status(500).json({
+                success: false,
+                message: 'Failed to check payment status',
+                error: error.message
+            });
+        }
+    }
+
+    // Process package payment
     async processPackagePayment(req, res) {
         try {
             const { amount, phone, packageId } = req.body;
@@ -94,7 +226,7 @@ class PaymentController {
             const trans_id = generateTransactionId();
             let mobileMoneyResponse;
 
-            
+
             // 1. Create payment record only if mobile money request was successful
             const { payment } = await prisma.$transaction(async (tx) => {
                 const node = await nodeService.findByUserId(userId, tx);
@@ -113,7 +245,8 @@ class PaymentController {
                     amount,
                     transactionId: trans_id,
                     reference: trans_id,
-                    phone: phone,  
+                    phone: phone,
+                    type: 'MOBILE_MONEY',  
                     packageId,
                     nodeId: node.id,
                     status: 'PENDING',
@@ -198,8 +331,8 @@ class PaymentController {
                     } else if (initialStatus.status === 'SUCCESSFUL') {
                         await this.processSuccessfulPayment(payment.id, tx);
                         logger.info('Initial payment status successful:', { trans_id, payment_id: payment.id });
-                    }
-                });
+                }
+            });
             }
 
         } catch (error) {
@@ -208,15 +341,15 @@ class PaymentController {
                 stack: error.stack,
                 trans_id: req.body?.trans_id
             });
-            
+
             if (!res.headersSent) {
-                res.status(500).json({
-                    success: false,
+            res.status(500).json({
+                success: false,
                     message: 'Failed to process payment',
-                    error: error.message
-                });
-            }
+                error: error.message
+            });
         }
+    }
     }
 
     // Shared method for processing successful payments
@@ -261,6 +394,9 @@ class PaymentController {
             status: payment.status
         });
 
+        //calculate package revenue and commission
+        await systemRevenueService.calculatePackageRevenue(payment, payment.package, tx);
+
         return payment;
     }
 
@@ -279,9 +415,9 @@ class PaymentController {
 
             // Validate package upgrade
             const node = await nodeService.findByUserId(userId);
-            if (!node) {
-                throw new Error('Node not found for user');
-            }
+                if (!node) {
+                    throw new Error('Node not found for user');
+                }
 
             const currentPackage = await packageService.findById(currentPackageId);
             const newPackage = await packageService.findById(newPackageId);
@@ -292,34 +428,34 @@ class PaymentController {
 
             if (newPackage.price <= currentPackage.price) {
                 throw new Error('New package must be higher value than current package');
-            }
+                }
 
-            // Create payment record
+                // Create payment record
             const payment = await nodePaymentService.createMobileMoneyPayment({
                 transactionDetails: trans_id,
-                amount,
+                    amount,
                 reference: trans_id,
-                phone,
+                        phone,
                 packageId: newPackageId,
                 nodeId: node.id,
                 status: 'PENDING',
                 transactionId: trans_id
             });
 
-            // Create pending statement
-            await nodeStatementService.create({
-                nodeId: node.id,
-                amount,
-                type: 'DEBIT',
-                status: 'PENDING',
+                // Create pending statement
+                await nodeStatementService.create({
+                    nodeId: node.id,
+                    amount,
+                    type: 'DEBIT',
+                    status: 'PENDING',
                 description: `Package upgrade payment - ${newPackage.name}`,
                 referenceType: 'PAYMENT',
-                referenceId: payment.id
+                    referenceId: payment.id
             });
 
-            // Initiate mobile money request
+                // Initiate mobile money request
             const mobileMoneyResponse = await mobileMoneyUtil.requestToPay({
-                amount,
+                    amount,
                 phone,
                 trans_id,
                 paymentId: payment.id

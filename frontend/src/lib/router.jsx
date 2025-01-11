@@ -45,6 +45,7 @@ const AdminCommissionsPage = lazy(() => import('../pages/admin/finance/commissio
 const SupportTicketsPage = lazy(() => import('../pages/admin/support/tickets'))
 const FAQPage = lazy(() => import('../pages/admin/support/faq'))
 // const KnowledgeBasePage = lazy(() => import('../pages/admin/support/kb'))
+const USDTPaymentStatusPage = lazy(() => import('../pages/auth/usdt-payment-status'))
 
 // Support Pages
 // const SupportDashboardPage = lazy(() => import('../pages/support/index'))
@@ -79,7 +80,7 @@ export function AppRouter() {
           <Route path="/activation" element={<ActivationPage />} />
           <Route path="/activate/payment" element={<ActivatePaymentPage />} />
           <Route path="/payment-status" element={<PaymentStatusPage />} />
-         
+          <Route path="/usdt-payment-status" element={<USDTPaymentStatusPage />} />
         </Route>
 
         {/* Dashboard Routes */}

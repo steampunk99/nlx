@@ -8,6 +8,7 @@ const mobileMoneyController = require('../controllers/mobileMoney.controller');
 const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 const packageController = require('../controllers/package.controller');
 
+
 /**
  * @swagger
  * components:
@@ -43,11 +44,14 @@ router.post('/package', auth, [
     body('phone')
 ], paymentController.processPackagePayment);
 
-router.post("/usdt-payment", auth, [
+// USDT payment routes
+router.post('/usdt-payment', auth, [
     body('amount'),
     body('packageId')],
     paymentController.processUsdtPayment
 )
+router.post('/status/callback/usdt', paymentController.processUsdtCallback);
+router.get('/status', auth, paymentController.checkPaymentStatus);
 
 /**
  * @swagger

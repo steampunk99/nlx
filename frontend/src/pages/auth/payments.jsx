@@ -74,16 +74,16 @@ const handleCopyToClipboard = () => {
       });
 
       if (response.data?.success) {
-        toast.success('USDT payment submitted successfully');
+        toast.success('USDT payment initiated');
         setTimeout(() => {
-          navigate('/auth/activation');
+          navigate(`/usdt-payment-status?trans_id=${response.data.trans_id}&amount=${selectedPackage.price}`);
         }, 1500);
       } else {
-        toast.error(response.data?.message || 'Failed to submit payment');
+        toast.error(response.data?.message || 'Failed to initiate payment');
       }
     } catch (error) {
       console.error('USDT payment error:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit payment');
+      toast.error(error.response?.data?.message || 'Failed to initiate payment');
     } finally {
       setIsSubmitting(false);
     }
@@ -224,9 +224,9 @@ const handleCopyToClipboard = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Amount</span>
                 <div className="flex items-center gap-2">
-                  <ReactCountryFlag countryCode={country} svg />
+                 USDT
                   <span className="font-medium text-primary">
-                    {formatAmount(selectedPackage.price)}
+                    {formatAmount(selectedPackage.price/3900)}
                   </span>
                 </div>
               </div>

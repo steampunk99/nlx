@@ -11,18 +11,13 @@ const prisma = new PrismaClient();
  */
 
 
-async function calculateCommissions(nodeId, amount, tx = prisma) {
+async function calculateCommissions(nodeId, amount, packageId, tx = prisma) {
     try {
         // Get node details first without transaction
         const node = await prisma.node.findUnique({
             where: { id: nodeId },
             include: {
-                user: true,
-                package: {
-                    include: {
-                        package: true
-                    }
-                }
+                user: true
             }
         });
 
@@ -32,7 +27,8 @@ async function calculateCommissions(nodeId, amount, tx = prisma) {
 
         logger.info('Starting commission calculation', {
             username: node.user.username,
-            // packageName: node.package.package.name
+            amount,
+            packageId
         });
 
         // Get sponsor chain without transaction
@@ -49,40 +45,89 @@ async function calculateCommissions(nodeId, amount, tx = prisma) {
         };
 
         let totalCommissionsDistributed = 0;
-        const commissions = [];
 
-        // Prepare commission data without creating records
-        for (let i = 0; i < sponsorChain.length; i++) {
-            const level = i + 1;
-            const sponsor = sponsorChain[i];
-            
-            if (!commissionRates[level]) continue;
+        // Distribute commissions to sponsors if they exist
+        if (sponsorChain.length > 0) {
+            for (let i = 0; i < sponsorChain.length; i++) {
+                const level = i + 1;
+                const sponsor = sponsorChain[i];
+                
+                if (!commissionRates[level]) continue;
 
-            const commissionRate = commissionRates[level];
-            const commissionAmount = Number(((amount * commissionRate) / 100).toFixed(2));
+                // Calculate commission amount
+                const commissionRate = commissionRates[level];
+                const commissionAmount = Number(((amount * commissionRate) / 100).toFixed(2));
 
-            if (commissionAmount <= 0) continue;
-            if (totalCommissionsDistributed + commissionAmount > amount) break;
+                if (commissionAmount <= 0) continue;
 
-            commissions.push({
-                sponsorId: sponsor.id,
-                amount: commissionAmount,
-                level,
-                type: level === 1 ? "DIRECT" : "LEVEL",
-                description: `Level ${level} commission from ${node.user.username}'s package purchase`
-            });
+                // Check if total commissions exceed package price
+                if (totalCommissionsDistributed + commissionAmount > amount) break;
 
-            totalCommissionsDistributed += commissionAmount;
+                try {
+                    // Create both commission and node statement in parallel
+                    const [commissionStatement, nodeStatement] = await Promise.all([
+                        tx.commission.create({
+                            data: {
+                                userId: sponsor.user.id,
+                                amount: commissionAmount,
+                                type: 'LEVEL',
+                                description: `Level ${level} commission from ${node.user.username}'s package purchase`,
+                                status: 'PROCESSED',
+                                sourceUserId: node.user.id,
+                                packageId: packageId
+                            }
+                        }),
+                        tx.nodeStatement.create({
+                            data: {
+                                nodeId: sponsor.id,
+                                amount: commissionAmount,
+                                type: 'COMMISSION',
+                                description: `Level ${level} commission from ${node.user.username}'s package purchase`,
+                                status: 'PROCESSED',
+                                referenceType: 'COMMISSION',
+                                referenceId: packageId,
+                            }
+                        })
+                    ]);
+
+                    // Update sponsor's balance
+                    await tx.node.update({
+                        where: { id: sponsor.id },
+                        data: {
+                            availableBalance: {
+                                increment: commissionAmount
+                            }
+                        }
+                    });
+
+                    totalCommissionsDistributed += commissionAmount;
+
+                    logger.info(`Commission and NodeStatement created`, {
+                        level,
+                        sponsorId: sponsor.id,
+                        sponsorUsername: sponsor.user.username,
+                        commissionAmount,
+                        nodeStatementId: nodeStatement.id,
+                        commissionStatementId: commissionStatement.id
+                    });
+
+                } catch (error) {
+                    logger.error(`Failed to create commission statement for sponsor`, {
+                        error: error.message,
+                        sponsorId: sponsor.id,
+                        level
+                    });
+                    throw error;
+                }
+            }
         }
 
-        // Return commission data for creation in the transaction
-        return commissions;
-
+        return totalCommissionsDistributed;
     } catch (error) {
-        logger.error('Commission calculation error', {
+        logger.error('Error calculating commissions', {
+            error: error.message,
             nodeId,
-            amount,
-            error: error.message
+            amount
         });
         throw error;
     }

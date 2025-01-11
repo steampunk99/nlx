@@ -3,7 +3,10 @@ import { cn } from '../lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar'
 import { Icon } from '@iconify/react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Settings } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '../components/ui/button';
+import toast from 'react-hot-toast';
 
 import {
   Sheet,
@@ -26,11 +29,35 @@ import {
 export function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [openGroups, setOpenGroups] = useState({})
   const [selectedGroup, setSelectedGroup] = useState(null)
+
+  useEffect(() => {
+    // Check if user is not logged in
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Check if user is not an admin
+    if (user.role !== 'ADMIN') {
+      // Redirect non-admin users
+      if (user.node?.package) {
+        navigate('/dashboard');
+      } else {
+        navigate('/activation');
+      }
+      return;
+    }
+  }, [user, navigate]);
+
+  if (!user || user.role !== 'ADMIN') {
+    return null; // Or a loading spinner
+  }
 
   // Use location.pathname directly instead of state
   const activePath = location.pathname
@@ -272,10 +299,16 @@ export function AdminLayout() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const handleLogout = () => {
-    // TODO: Implement logout logic
-    navigate('/login')
-  }
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      navigate('/login');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -316,6 +349,18 @@ export function AdminLayout() {
           ))}
         </nav>
 
+        {/* Logout Button */}
+        <div className="mt-auto p-4 border-t">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-100/50"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            {!isCollapsed && <span>Logout</span>}
+          </Button>
+        </div>
+
         {/* Collapse Toggle Button */}
         {!isMobile && (
           <button
@@ -345,6 +390,16 @@ export function AdminLayout() {
                 <NavItem key={item.to || item.label} item={item} />
               ))}
             </nav>
+            <div className="mt-auto p-4 border-t">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-100/50"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                <span>Logout</span>
+              </Button>
+            </div>
           </SheetContent>
         </Sheet>
       )}

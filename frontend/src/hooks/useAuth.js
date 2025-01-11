@@ -88,23 +88,37 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       try {
-      if(userPackage.userPackage) {
-        toast.success('Welcome back')
-        setTimeout(()=>navigate('/dashboard'),3000)
+        const { user } = data.data;
+        
+        // Handle ADMIN role
+        if (user.role === 'ADMIN') {
+          toast.success('Welcome back, Admin');
+          setTimeout(() => navigate('/admin'), 2000);
+          return;
+        }
+
+        // Handle USER role
+        if (user.role === 'USER') {
+          if (userPackage.userPackage) {
+            toast.success('Welcome back');
+            setTimeout(() => navigate('/dashboard'), 2000);
+          } else {
+            toast.warning('No active subscription found');
+            setTimeout(() => navigate('/activation'), 2000);
+          }
+          return;
+        }
+
+        // Handle unknown role
+        toast.error('Invalid user role');
+        clearAuthTokens();
+        setUser(null);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        toast.error('Error during login');
+        clearAuthTokens();
+        setUser(null);
       }
-      else {
-        toast.success('No active subscription found')
-        setTimeout(() =>navigate('/activation'),3000)
-        console.log('credentials',data.credentials)
-      }
-      }
-      catch(error) {
-        console.error('Login error:', error)
-        clearAuthTokens()
-        setUser(null)
-        throw error
-      }
-      
     },
     onError: (error) => {
       const errorMessage = getErrorMessage(error)

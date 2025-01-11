@@ -1,13 +1,30 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger.service');
 
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST || 'mail.earndrip.com', // SmarterASP.NET mail server
+      port: parseInt(process.env.SMTP_PORT) || 587, // Use port 587 for TLS
+      secure: false, // Use STARTTLS
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        pass: process.env.SMTP_PASS
       },
+      tls: {
+        rejectUnauthorized: false, // Only use in development
+        ciphers: 'SSLv3' // Add legacy cipher support
+      },
+      debug: true // Enable debug logs
+    });
+
+    // Verify connection configuration
+    this.transporter.verify((error, success) => {
+      if (error) {
+        logger.error('SMTP connection error:', error);
+      } else {
+        logger.info('SMTP server is ready to send emails');
+      }
     });
   }
 
@@ -15,9 +32,12 @@ class EmailService {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: {
+        name: 'Earn Drip',
+        address: process.env.SMTP_USER || 'noreply@earndrip.com'
+      },
       to: email,
-      subject: 'Reset Your Password - EARN DRIP✨',
+      subject: 'Reset Your Password - EARN DRIP',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333; text-align: center;">Password Reset Request</h1>
@@ -29,7 +49,7 @@ class EmailService {
           <p>If you didn't request this, please ignore this email.</p>
           <hr style="margin: 30px 0; border: 1px solid #eee;">
           <p style="color: #666; font-size: 12px; text-align: center;">
-            This is an automated message, please do not reply to this email.
+            This is an automated message from Earn Drip. Please do not reply to this email.
           </p>
         </div>
       `,
@@ -37,9 +57,10 @@ class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
+      logger.info(`Password reset email sent to ${email}`);
       return true;
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+      logger.error('Error sending password reset email:', error);
       return false;
     }
   }
@@ -48,24 +69,24 @@ class EmailService {
     const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: {
+        name: 'Earn Drip',
+        address: process.env.SMTP_USER || 'noreply@earndrip.com'
+      },
       to: email,
-      subject: 'Verify Your Email - EARN DRIP✨',
+      subject: 'Verify Your Email - EARN DRIP',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333; text-align: center;">Email Verification</h1>
-          <p>Thank you for registering! Please click the button below to verify your email:</p>
+          <p>Thank you for registering! Please click the button below to verify your email address:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verifyLink}" style="background-color: #4CAF50; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px;">Verify Email</a>
           </div>
-          or   <p style="color: #666; font-size: 12px; text-align: center;">
-            If the button doesn't work, copy and paste this link into your browser:<br>
-            <span style="word-break: break-all;">${verifyLink}</span>
-          </p>
           <p>This link will expire in 24 hours.</p>
+          <p>If you didn't create an account, please ignore this email.</p>
           <hr style="margin: 30px 0; border: 1px solid #eee;">
           <p style="color: #666; font-size: 12px; text-align: center;">
-            This is an automated message, please do not reply to this email.
+            This is an automated message from Earn Drip. Please do not reply to this email.
           </p>
         </div>
       `,
@@ -73,10 +94,41 @@ class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
+      logger.info(`Verification email sent to ${email}`);
       return true;
     } catch (error) {
-      console.error('Error sending verification email:', error);
+      logger.error('Error sending verification email:', error);
       return false;
+    }
+  }
+
+  async sendTestEmail(email) {
+    const mailOptions = {
+      from: {
+        name: 'Earn Drip',
+        address: process.env.SMTP_USER
+      },
+      to: email,
+      subject: 'Test Email - EARN DRIP',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #333; text-align: center;">Test Email</h1>
+          <p>This is a test email to verify SMTP configuration.</p>
+          <hr style="margin: 30px 0; border: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px; text-align: center;">
+            This is an automated test message from Earn Drip.
+          </p>
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`Test email sent to ${email}`);
+      return true;
+    } catch (error) {
+      logger.error('Error sending test email:', error);
+      throw error;
     }
   }
 }

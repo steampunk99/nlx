@@ -67,6 +67,7 @@ export function useCountry() {
       try {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
+        
         console.log('IP API Response:', data);
         
         const countryCode = data.country || 'UG';

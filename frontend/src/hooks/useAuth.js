@@ -95,6 +95,7 @@ export function useAuth() {
       else {
         toast.success('No active subscription found')
         setTimeout(() =>navigate('/activation'),3000)
+        console.log('credentials',data.credentials)
       }
       }
       catch(error) {

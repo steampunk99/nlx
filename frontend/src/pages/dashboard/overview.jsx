@@ -32,6 +32,8 @@ function DashboardOverview() {
     { date: 'Jun', amount: 1400 },
   ]
 
+
+
   if (isLoadingStats || isLoadingActivities) {
     return (
       <div className="space-y-6 p-6">
@@ -52,17 +54,6 @@ function DashboardOverview() {
 
   const stats = [
     {
-      title: "Direct Referrals",
-      value: dashboardStats?.networkSize || "0",
-      description: "Active members in your network",
-      icon: Users,
-      color: "text-blue-500",
-      bgColor: "bg-transparent",
-      secondaryValue: dashboardStats?.networkSize || "0",
-      secondaryLabel: "New this month"
-    },
-  
-    {
       title: "Available Balance",
       value: `${currency.symbol} ${formatAmount(earnings?.availableBalance || 0)}`,
       description: "Your available balance",
@@ -72,6 +63,27 @@ function DashboardOverview() {
       secondaryValue: `${currency.symbol} ${formatAmount(earnings?.availableBalance || 0)}`,
       secondaryLabel: "This month"
     },
+    {
+      title: "Total Withdrawn",
+      value: `${currency.symbol} ${formatAmount(earnings?.totalWithdrawn || 0)}`,
+      description: "Your available balance",
+      icon: DollarSign,
+      color: "text-green-500",
+      bgColor: "bg-transparent",
+      secondaryValue: `${currency.symbol} ${formatAmount(earnings?.totalWithdrawn || 0)}`,
+      secondaryLabel: "This month"
+    },
+    {
+      title: "Direct Referrals",
+      value: dashboardStats?.networkSize || "0",
+      description: "Active members in your network",
+      icon: Users,
+      color: "text-blue-500",
+      bgColor: "bg-transparent",
+      secondaryValue: dashboardStats?.networkSize || "0",
+      secondaryLabel: "New this month"
+    },
+   
     {
       title: "Active Packages",
       value: userPackage ? "1" : "0",

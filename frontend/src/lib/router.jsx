@@ -10,6 +10,7 @@ import { usePackages } from '../hooks/usePackages'
 import { toast } from '../components/ui/use-toast'
 import NotFoundPage from '../pages/NotFound'
 import PaymentStatusPage from '@/pages/auth/payment-status'
+import AdminSettingsPage from '@/pages/admin/settings'
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -25,6 +26,7 @@ const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))
 const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
 const ActivationPage = lazy(() => import('../pages/auth/activation'))
 const ActivatePaymentPage = lazy(() => import('../pages/auth/payments'))
+
 
 
 // Legal Pages
@@ -46,6 +48,8 @@ const SupportTicketsPage = lazy(() => import('../pages/admin/support/tickets'))
 const FAQPage = lazy(() => import('../pages/admin/support/faq'))
 // const KnowledgeBasePage = lazy(() => import('../pages/admin/support/kb'))
 const USDTPaymentStatusPage = lazy(() => import('../pages/auth/usdt-payment-status'))
+const ManualPayment = lazy(() => import('../pages/auth/manualPayment'))
+const ManualPaymentStatusPage = lazy(() => import('../pages/auth/manual-payment-status'))
 
 // Support Pages
 // const SupportDashboardPage = lazy(() => import('../pages/support/index'))
@@ -69,6 +73,7 @@ export function AppRouter() {
           <Route index element={<HomePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          
         </Route>
 
         {/* Auth Routes */}
@@ -81,6 +86,8 @@ export function AppRouter() {
           <Route path="/activate/payment" element={<ActivatePaymentPage />} />
           <Route path="/payment-status" element={<PaymentStatusPage />} />
           <Route path="/usdt-payment-status" element={<USDTPaymentStatusPage />} />
+          <Route path="/manual-payment" element={<ManualPayment />} />
+          <Route path="/manual-payment-status" element={<ManualPaymentStatusPage />} />
         </Route>
 
         {/* Dashboard Routes */}
@@ -94,7 +101,7 @@ export function AppRouter() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="activation" element={<ActivationPage />} />
           <Route path="activate/payment" element={<ActivatePaymentPage />} />
-          
+        
         </Route>
 
         {/* Admin Routes */}
@@ -111,6 +118,7 @@ export function AppRouter() {
           <Route path="finance/commissions" element={<AdminCommissionsPage />} />
           <Route path="support/tickets" element={<SupportTicketsPage />} />
           <Route path="support/faq" element={<FAQPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
           {/* <Route path="support/kb" element={<KnowledgeBasePage />} /> */}
         </Route>
 

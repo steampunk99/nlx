@@ -56,6 +56,9 @@ export default function ActivationPage() {
   const navigate = useNavigate()
   const [selectedPackage, setSelectedPackage] = useState(null)
   const { country, currency, formatAmount } = useCountry()
+  const {user} = useAuth()
+
+  console.log("User in activation page", user)
   
 
   const {
@@ -82,7 +85,16 @@ export default function ActivationPage() {
   }, [userPackage])
 
   const handlePackagePurchase = (pkg) => {
-    navigate('/activate/payment', { state: { selectedPackage: pkg } });
+    if (user.country === 'UG') {
+      setTimeout(() => {
+        navigate('/activate/payment', { state: { selectedPackage: pkg } });
+      }, 1000);
+    }
+    else {
+      setTimeout(() => {
+        navigate('/manual-payment', { state: { selectedPackage: pkg } });
+      }, 1000);
+    }
   }
 
 

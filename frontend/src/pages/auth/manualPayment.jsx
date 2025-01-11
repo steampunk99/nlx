@@ -9,14 +9,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Phone, Package, CreditCard, ArrowBigLeft, Copy, Loader2 } from 'lucide-react';
+import { Phone, Package, CreditCard, ArrowBigLeft, ClipboardCopy, ClipboardPaste, Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {motion} from "framer-motion";
 import ReactCountryFlag from 'react-country-flag';
 import {cn} from '@/lib/utils';
 
-function PaymentPage() {
+const mobileMoneyAccounts = {
+  mtn: {
+    number: "+256775123456",
+    name: "John Doe"
+  },
+  airtel: {
+    number: "+256705123456",
+    name: "Jane Smith"
+  }
+};
+
+function ManualPayment() {
   const location = useLocation();
   const { user } = useAuth();
   const selectedPackage = location.state?.selectedPackage;
@@ -26,6 +37,8 @@ function PaymentPage() {
   const [phone, setPhone] = useState(user?.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false)
+  const [transactionId, setTransactionId] = useState("");
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
 
 //handle copy to clipboard
 const handleCopyToClipboard = () => {
@@ -34,6 +47,21 @@ const handleCopyToClipboard = () => {
   toast.success('Wallet address copied!');
   setTimeout(() => setCopied(false), 2000);
 }
+
+const handleCopy = (text) => {
+  navigator.clipboard.writeText(text);
+  toast.success("Copied to clipboard!");
+};
+
+const handlePaste = async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    setTransactionId(text);
+    toast.success("Transaction ID pasted!");
+  } catch (error) {
+    toast.error("Failed to paste from clipboard");
+  }
+};
 
   const handlePayment = async () => {
     try {
@@ -48,7 +76,7 @@ const handleCopyToClipboard = () => {
       if (response.data?.success && response.data?.trans_id) {
         toast.success('Payment initiated successfully');
         setTimeout(() => {
-          navigate(`/payment-status?trans_id=${response.data.trans_id}`);
+          navigate(`/payment-status?transactionId=${response.data.trans_id}`);
         }, 3000);
       } else {
         toast.error('Failed to initiate payment, please try again');
@@ -65,6 +93,36 @@ const handleCopyToClipboard = () => {
     }
   };
 
+  const handleSubmitManual = async () => {
+    if (!transactionId.trim()) {
+      toast.error("Please enter the transaction ID");
+      return;
+    }
+
+    try {
+      setIsSubmittingManual(true);
+      const response = await api.post("/payments/manual-payment", {
+        amount: selectedPackage.price,
+        packageId: selectedPackage.id,
+        transactionId: transactionId.trim()
+      });
+
+      if (response.data?.success) {
+        toast.success("Payment submitted successfully");
+        setTimeout(() => {
+          navigate(`/manual-payment-status?transactionId=${response.data.transactionId}`);
+        }, 1500);
+      } else {
+        toast.error(response.data?.message || "Failed to submit payment");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error(error.response?.data?.message || "Failed to submit payment");
+    } finally {
+      setIsSubmittingManual(false);
+    }
+  };
+
   const handleUsdtSubmit = async () => {
     try {
       setIsSubmitting(true);
@@ -76,7 +134,7 @@ const handleCopyToClipboard = () => {
       if (response.data?.success) {
         toast.success('USDT payment initiated');
         setTimeout(() => {
-          navigate(`/usdt-payment-status?trans_id=${response.data.trans_id}&amount=${selectedPackage.price}`);
+          navigate(`/usdt-payment-status?transactionId=${response.data.trans_id}&amount=${selectedPackage.price}`);
         }, 1500);
       } else {
         toast.error(response.data?.message || 'Failed to initiate payment');
@@ -111,94 +169,87 @@ const handleCopyToClipboard = () => {
     <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-purple-500/10 justify-center min-h-[100vh] p-4">
          <Tabs defaultValue="mobile-money" className="w-[400px]">
          <TabsList>
-    <TabsTrigger value="mobile-money">Mobile Money</TabsTrigger>
+    <TabsTrigger value="mobile-money">MobileMoney</TabsTrigger>
     <TabsTrigger value="usdt">USDT</TabsTrigger>
   </TabsList>
   <TabsContent value="mobile-money">
-      <Card className="w-full max-w-md">
+  <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Payment for {selectedPackage.name}
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Complete your payment to activate your account
+          <CardTitle>Package Payment</CardTitle>
+          <CardDescription>
+            Send {formatAmount(selectedPackage?.price)} to any of the numbers below
           </CardDescription>
         </CardHeader>
+        <CardContent className="space-y-4">
+              {/* Payment Options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* MTN Account */}
+                <div className="flex items-center p-3 border rounded-lg bg-yellow-500 text-white">
+                  <div className="flex items-center flex-1 gap-3">
+                  
+                    <div>
+                      <p className="text-sm font-medium">{mobileMoneyAccounts.mtn.name}</p>
+                      <p className="text-sm text-primary font-mono font-bold">{mobileMoneyAccounts.mtn.number}</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => handleCopy(mobileMoneyAccounts.mtn.number)}>
+                    <ClipboardCopy className="h-4 w-4" />
+                  </Button>
+                </div>
 
-     
-        <CardContent>
-          <form className="space-y-6">
-            {/* Package Summary */}
-            <div className="rounded-lg bg-muted p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">Package</span>
-                <span className="font-medium">{selectedPackage.name}</span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Amount</span>
-                <div className="flex items-center gap-2">
-                  <ReactCountryFlag countryCode={country} svg />
-                  <span className="font-medium text-primary">
-                    {formatAmount(selectedPackage.price)}
-                  </span>
+                {/* Airtel Account */}
+                <div className="flex items-center p-3 border rounded-lg bg-red-800 text-white">
+                  <div className="flex items-center flex-1 gap-3">
+                  
+                    <div>
+                      <p className="text-sm font-medium">{mobileMoneyAccounts.airtel.name}</p>
+                      <p className="text-sm text-primary font-mono font-bold">{mobileMoneyAccounts.airtel.number}</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => handleCopy(mobileMoneyAccounts.airtel.number)}>
+                    <ClipboardCopy className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            </div>
 
-            {/* Phone Input */}
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Mobile Money Number
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Enter your mobile money number"
-                
-                className="w-full focus:outline-none focus:ring-indigo-500 "
-                required
-                disabled={isSubmitting}
-              />
-             
-            </div>
-
-            {/* Payment Method */}
-            <div className="rounded-lg border p-4">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-primary" />
-                <span className="font-medium">Payment Method</span>
+              {/* Instructions */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Instructions:</h3>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Choose either MTN or Airtel Money number above</li>
+                  <li>Send exactly {currency.symbol} {formatAmount(selectedPackage?.price)} to the selected number</li>
+                  <li>Copy the transaction ID from your mobile money message</li>
+                  <li>Paste the transaction ID below and submit</li>
+                </ol>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Mobile Money (MTN/Airtel)
-              </p>
-            </div>
-          </form>
-        </CardContent>
 
-        <CardFooter className="flex flex-col gap-4">
-          <Button 
-            type="button"
-            onClick={handlePayment}
-            className="w-full bg-gradient-to-r from-green-500 to-purple-500 text-white hover:bg-gradient-to-r hover:from-yellow-600 hover:to-purple-600"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-spin">⏳</span> Processing...
-              </span>
-            ) : (
-              `Pay ${formatAmount(selectedPackage.price)}`
-            )}
-          </Button>
-          <p className="text-xs text-center text-muted-foreground">
-            By clicking Pay, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </CardFooter>
+              {/* Transaction ID Input */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="Enter Transaction ID"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    onClick={handlePaste}
+                  >
+                    <ClipboardPaste className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button
+                  className="w-full bg-gradient-to-r from-yellow-500 to-purple-500 text-white"
+                  onClick={handleSubmitManual}
+                  disabled={isSubmittingManual || !transactionId.trim()}
+                >   
+                  {isSubmittingManual ? "Submitting..." : "Submit Payment"}
+                </Button>
+              </div>
+            </CardContent>
       </Card>
     </TabsContent>
     <TabsContent value="usdt">
@@ -239,7 +290,7 @@ const handleCopyToClipboard = () => {
                   <CreditCard className="w-16 h-16 text-primary animate-pulse" />
                 </div>
               </div>
-              
+　　 　　　　　
               <div className="space-y-4 text-center">
                 <div>
                   <h3 className="font-medium text-lg mb-2">USDT Payment</h3>
@@ -269,7 +320,7 @@ const handleCopyToClipboard = () => {
                         </span>
                       ) : (
                         <span className="flex items-center gap-1">
-                          <Copy className="h-4 w-4" /> Copy
+                          <ClipboardCopy className="h-4 w-4" /> Copy
                         </span>
                       )}
                     </Button>
@@ -296,9 +347,10 @@ const handleCopyToClipboard = () => {
 
       </Card>
     </TabsContent>
+    
       </Tabs>
     </div>
   );
 }
 
-export default PaymentPage;
+export default ManualPayment;

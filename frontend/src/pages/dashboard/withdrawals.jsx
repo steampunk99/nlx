@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import { useCommissions } from "../../hooks/useCommissions"
+import { useCountry } from "@/hooks/useCountry"
 
 export default function WithdrawalsPage() {
   const { user } = useAuth()
@@ -16,6 +17,7 @@ export default function WithdrawalsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const queryClient = useQueryClient()
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
+  const {currency, formatAmount} = useCountry()
 
   //format currency to UGX
   const formatCurrency = (amount) => {
@@ -97,7 +99,7 @@ export default function WithdrawalsPage() {
             <CardDescription>Amount available for withdrawal</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(availableBalance)}</p>
+            <p className="text-2xl font-bold">{currency.symbol} {formatAmount(availableBalance)}</p>
           </CardContent>
         </Card>
         
@@ -108,7 +110,7 @@ export default function WithdrawalsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {formatCurrency(totalWithdrawn)}
+              {currency.symbol} {formatAmount(totalWithdrawn)}
             </p>
           </CardContent>
         </Card>
@@ -124,13 +126,13 @@ export default function WithdrawalsPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label>Amount (UGX)</label>
+              <label>Amount {currency.symbol}</label>
               <Input
                 type="number"
                 {...register('amount', {
                   required: 'Amount is required',
-                  min: { value: 1000, message: 'Minimum withdrawal is UGX 1,000' },
-                  max: { value: availableBalance, message: 'Amount exceeds available balance' }
+                  min: { value: 1000, message: `Minimum withdrawal is ${currency.symbol} 1,000` },
+                  max: { value: availableBalance, message: `Amount exceeds available balance` }
                 })}
                 placeholder="Enter amount"
               />

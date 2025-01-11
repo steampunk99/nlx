@@ -9,25 +9,9 @@ import { motion } from "framer-motion"
 import { ResponsiveContainer,LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { cn } from "../../lib/utils"
 import { usePackages } from "../../hooks/usePackages"
+import { useCountry } from "@/hooks/useCountry"
 
-// Format currency in UGX
-const formatCurrency = (amount) => {
-  if (!amount) return "UGX 0";
-  
-  if (typeof amount === 'string' && amount.startsWith('$')) {
-    amount = parseFloat(amount.replace('$', '').replace(/ ,/g, ''))
-  }
-  
-  const value = Number(amount);
-  if (isNaN(value)) return "UGX 0";
-    // Format with thousands separator
-    const formatted = value.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    });
-    
-    return `UGX ${formatted}`;
-};
+
   
 function DashboardOverview() {
   const navigate = useNavigate()
@@ -35,6 +19,7 @@ function DashboardOverview() {
   const { data: dashboardStats, isLoading: isLoadingStats } = useDashboardStats()
   const { data: recentActivities, isLoading: isLoadingActivities } = useRecentActivities()
   const { data: earnings, isLoading: isLoadingEarnings } = useEarnings()
+  const { country, currency, formatAmount } = useCountry()
   
   const { userPackage} = usePackages()
   // Sample earnings data - will replace with actual API data when available
@@ -46,6 +31,8 @@ function DashboardOverview() {
     { date: 'May', amount: 1200 },
     { date: 'Jun', amount: 1400 },
   ]
+
+
 
   if (isLoadingStats || isLoadingActivities) {
     return (
@@ -67,6 +54,26 @@ function DashboardOverview() {
 
   const stats = [
     {
+      title: "Available Balance",
+      value: `${currency.symbol} ${formatAmount(earnings?.availableBalance || 0)}`,
+      description: "Your available balance",
+      icon: DollarSign,
+      color: "text-green-500",
+      bgColor: "bg-transparent",
+      secondaryValue: `${currency.symbol} ${formatAmount(earnings?.availableBalance || 0)}`,
+      secondaryLabel: "This month"
+    },
+    {
+      title: "Total Withdrawn",
+      value: `${currency.symbol} ${formatAmount(earnings?.totalWithdrawn || 0)}`,
+      description: "Your available balance",
+      icon: DollarSign,
+      color: "text-green-500",
+      bgColor: "bg-transparent",
+      secondaryValue: `${currency.symbol} ${formatAmount(earnings?.totalWithdrawn || 0)}`,
+      secondaryLabel: "This month"
+    },
+    {
       title: "Direct Referrals",
       value: dashboardStats?.networkSize || "0",
       description: "Active members in your network",
@@ -76,17 +83,7 @@ function DashboardOverview() {
       secondaryValue: dashboardStats?.networkSize || "0",
       secondaryLabel: "New this month"
     },
-  
-    {
-      title: "Available Balance",
-      value: formatCurrency(earnings?.availableBalance || 0),
-      description: "Your available balance",
-      icon: DollarSign,
-      color: "text-green-500",
-      bgColor: "bg-transparent",
-      secondaryValue: formatCurrency(earnings?.availableBalance || 0),
-      secondaryLabel: "This month"
-    },
+   
     {
       title: "Active Packages",
       value: userPackage ? "1" : "0",
@@ -94,7 +91,7 @@ function DashboardOverview() {
       icon: Package,
       color: "text-yellow-500",
       bgColor: "bg-transparent",
-      secondaryValue: formatCurrency(userPackage?.package?.price || 0),
+      secondaryValue: `${currency.symbol} ${formatAmount(userPackage?.package?.price || 0)}`,
       secondaryLabel: "Total value"
     }
   ]
@@ -301,7 +298,7 @@ function DashboardOverview() {
                             "font-medium",
                             activity.type === 'earning' && "text-green-600 dark:text-green-400"
                           )}>
-                           {formatCurrency(activity.value || activity.amount)}
+                           {formatAmount(activity.value || activity.amount)}
                           </p>
                         </div>
                         <div className="flex items-center justify-between">

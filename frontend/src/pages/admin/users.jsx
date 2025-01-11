@@ -13,6 +13,7 @@ import {
 } from '../../components/ui/alert-dialog'
 import { UserDetailsDialog } from '../../components/admin/UserDetailsDialog'
 import { Search, Filter, Eye, Trash2, RefreshCcw } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function UsersPage() {
 
@@ -25,7 +26,7 @@ export default function UsersPage() {
   const [status, setStatus] = useState('')
   const [deleteUserId, setDeleteUserId] = useState(null)
   const [selectedUserId, setSelectedUserId] = useState(null)
-  const { toast } = useToast()
+
 
   const { useUsers, useUpdateUserStatus, useDeleteUser } = useAdmin()
   const { data, isLoading, refetch } = useUsers()

@@ -8,6 +8,7 @@ const mobileMoneyController = require('../controllers/mobileMoney.controller');
 const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
 const packageController = require('../controllers/package.controller');
 
+
 /**
  * @swagger
  * components:
@@ -42,6 +43,23 @@ router.post('/package', auth, [
     body('amount'),
     body('phone')
 ], paymentController.processPackagePayment);
+
+// USDT payment routes
+router.post('/usdt-payment', auth, [
+    body('amount'),
+    body('packageId')],
+    paymentController.processUsdtPayment
+)
+router.post('/status/callback/usdt', paymentController.processUsdtCallback);
+router.get('/status', auth, paymentController.checkPaymentStatus);
+
+
+// MANUAL PAYMENT
+router.post('/manual-payment', auth, [
+    body('amount').isNumeric().withMessage('Amount is required and must be a number'),
+    body('packageId').notEmpty().withMessage('Package ID is required'),
+    body('transactionId').notEmpty().withMessage('Transaction ID is required')
+], validate, paymentController.processManualPayment);
 
 /**
  * @swagger

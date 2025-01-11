@@ -169,4 +169,8 @@ router.post('/withdrawals/:id/process', [
     validate
 ], adminController.processWithdrawal);
 
+// Admin Settings Routes
+router.get('/config', isAdmin, adminController.getAdminConfig);
+router.put('/config', isAdmin, adminController.updateAdminConfig);
+
 module.exports = router;

@@ -1,8 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const withdrawalService = require('../services/nodeWithdrawal.service');
+const withdrawalService = require('../services/withdrawal.service');
+const systemRevenueService = require('../services/systemRevenue.service');
 const notificationService = require('../services/notification.service');
 const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
+const logger = require('../services/logger.service');
 const { catchAsync } = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -14,7 +16,11 @@ class WithdrawalController {
         const { amount, phone } = req.body;
         const userId = req.user.id;
 
-        console.log(`Received withdrawal request: Amount: ${amount}, Phone: ${phone}, User ID: ${userId}`);
+        logger.info('Received withdrawal request:', {
+            amount,
+            phone,
+            user_id: userId
+        });
 
         // Check for existing pending withdrawals
         const pendingWithdrawals = await prisma.withdrawal.findMany({
@@ -27,7 +33,7 @@ class WithdrawalController {
         });
 
         if (pendingWithdrawals.length > 0) {
-            console.warn(`User ${userId} has pending withdrawals:`, pendingWithdrawals);
+            logger.warn(`User ${userId} has pending withdrawals:`, pendingWithdrawals);
             throw new AppError('You have pending withdrawals. Please wait for them to complete.', 400);
         }
 
@@ -41,21 +47,24 @@ class WithdrawalController {
             });
 
             if (!user?.node) {
-                console.error(`User or node not found for User ID: ${userId}`);
+                logger.error(`User or node not found for User ID: ${userId}`);
                 throw new AppError('User or node not found', 404);
             }
 
-            console.log(`Processing withdrawal for user:`, user);
+            logger.info(`Processing withdrawal for user:`, user);
 
             // Check available balance
             if (user.node.availableBalance < amount) {
-                console.error(`Insufficient balance for User ID: ${userId}. Available: ${user.node.availableBalance}, Requested: ${amount}`);
+                logger.error(`Insufficient balance for User ID: ${userId}. Available: ${user.node.availableBalance}, Requested: ${amount}`);
                 throw new AppError('Insufficient balance', 400);
             }
 
+            // Calculate withdrawal fee
+            const fee = await systemRevenueService.calculateWithdrawalFee(amount);
+
             // Generate transaction ID
             const trans_id = `WTH${Date.now()}${Math.random().toString(36).substr(2, 4)}`;
-            console.log(`Generated Transaction ID: ${trans_id}`);
+            logger.info(`Generated Transaction ID: ${trans_id}`);
 
             // Create withdrawal records with initial PENDING status
             const [withdrawal, nodeWithdrawal] = await Promise.all([
@@ -72,7 +81,8 @@ class WithdrawalController {
                             trans_id,
                             amount,
                             user: user.id,
-                            attempts: 0
+                            attempts: 0,
+                            fee
                         }
                     },
                     include: {
@@ -95,7 +105,7 @@ class WithdrawalController {
                 })
             ]);
 
-            console.log(`Withdrawal records created: User Withdrawal ID: ${withdrawal.id}, Node Withdrawal ID: ${nodeWithdrawal.id}`);
+            logger.info(`Withdrawal records created: User Withdrawal ID: ${withdrawal.id}, Node Withdrawal ID: ${nodeWithdrawal.id}`);
 
             // Create node statement
             await tx.nodeStatement.create({
@@ -109,6 +119,13 @@ class WithdrawalController {
                     referenceId: withdrawal.id
                 }
             });
+
+            // Record system revenue from fee
+            await systemRevenueService.recordRevenue({
+                amount: fee,
+                type: 'WITHDRAWAL_FEE',
+                referenceId: withdrawal.id
+            }, tx);
 
             // Update to PROCESSING before mobile money request
             await Promise.all([
@@ -138,7 +155,7 @@ class WithdrawalController {
                     reason: 'Commission withdrawal'
                 });
 
-                console.log(`Script Networks Response:`, scriptNetworksResponse);
+                logger.info(`Script Networks Response:`, scriptNetworksResponse);
 
                 // Update records based on Script Networks response
                 if (scriptNetworksResponse.success) {
@@ -361,7 +378,8 @@ class WithdrawalController {
                     ...w,
                     phone: w.details?.phone,
                     failureReason: w.details?.failureReason,
-                    attempts: w.details?.attempts
+                    attempts: w.details?.attempts,
+                    fee: w.details?.fee
                 })),
                 stats: stats.reduce((acc, stat) => ({
                     ...acc,
@@ -390,7 +408,13 @@ class WithdrawalController {
             const { id } = req.params;
             const userId = req.user.id;
 
-            const withdrawal = await withdrawalService.findById(id);
+            const withdrawal = await prisma.withdrawal.findUnique({
+                where: { id },
+                include: {
+                    user: true
+                }
+            });
+
             if (!withdrawal || withdrawal.userId !== userId) {
                 return res.status(404).json({
                     success: false,
@@ -405,9 +429,12 @@ class WithdrawalController {
                 });
             }
 
-            const cancelledWithdrawal = await withdrawalService.update(id, {
-                status: 'CANCELLED',
-                remarks: 'Cancelled by user'
+            const cancelledWithdrawal = await prisma.withdrawal.update({
+                where: { id },
+                data: {
+                    status: 'CANCELLED',
+                    remarks: 'Cancelled by user'
+                }
             });
 
             await notificationService.createWithdrawalNotification(
@@ -422,7 +449,11 @@ class WithdrawalController {
                 message: 'Withdrawal cancelled successfully'
             });
         } catch (error) {
-            console.error('Cancel withdrawal error:', error);
+            logger.error('Cancel withdrawal error:', {
+                error: error.message,
+                user_id: req.user?.id
+            });
+
             res.status(500).json({
                 success: false,
                 message: 'Internal server error'
@@ -448,7 +479,13 @@ class WithdrawalController {
                 });
             }
 
-            const withdrawal = await withdrawalService.findById(id);
+            const withdrawal = await prisma.withdrawal.findUnique({
+                where: { id },
+                include: {
+                    user: true
+                }
+            });
+
             if (!withdrawal) {
                 return res.status(404).json({
                     success: false,
@@ -456,12 +493,15 @@ class WithdrawalController {
                 });
             }
 
-            const updatedWithdrawal = await withdrawalService.update(id, {
-                status,
-                remarks,
-                processedAt: status === 'COMPLETED' ? new Date() : null,
-                processedBy: req.user.id,
-                transactionHash: transaction_hash
+            const updatedWithdrawal = await prisma.withdrawal.update({
+                where: { id },
+                data: {
+                    status,
+                    remarks,
+                    processedAt: status === 'COMPLETED' ? new Date() : null,
+                    processedBy: req.user.id,
+                    transactionHash: transaction_hash
+                }
             });
 
             await notificationService.createWithdrawalNotification(
@@ -477,7 +517,11 @@ class WithdrawalController {
                 data: updatedWithdrawal
             });
         } catch (error) {
-            console.error('Process withdrawal error:', error);
+            logger.error('Process withdrawal error:', {
+                error: error.message,
+                user_id: req.user?.id
+            });
+
             res.status(500).json({
                 success: false,
                 message: 'Internal server error'
@@ -502,30 +546,79 @@ class WithdrawalController {
 
             const { status, withdrawal_method, start_date, end_date, min_amount, max_amount, page = 1, limit = 10 } = req.query;
 
-            const withdrawals = await withdrawalService.findAll({
-                status,
-                withdrawal_method,
-                startDate: start_date ? new Date(start_date) : null,
-                endDate: end_date ? new Date(end_date) : null,
-                minAmount: min_amount,
-                maxAmount: max_amount,
-                page,
-                limit
+            const withdrawals = await prisma.withdrawal.findMany({
+                where: {
+                    ...(status && { status }),
+                    ...(withdrawal_method && { method: withdrawal_method }),
+                    ...(start_date && end_date && {
+                        createdAt: {
+                            gte: new Date(start_date),
+                            lte: new Date(end_date)
+                        }
+                    }),
+                    ...(min_amount && max_amount && {
+                        amount: {
+                            gte: min_amount,
+                            lte: max_amount
+                        }
+                    })
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+                include: {
+                    user: {
+                        select: {
+                            username: true,
+                            email: true
+                        }
+                    }
+                }
+            });
+
+            const total = await prisma.withdrawal.count({
+                where: {
+                    ...(status && { status }),
+                    ...(withdrawal_method && { method: withdrawal_method }),
+                    ...(start_date && end_date && {
+                        createdAt: {
+                            gte: new Date(start_date),
+                            lte: new Date(endDate)
+                        }
+                    }),
+                    ...(min_amount && max_amount && {
+                        amount: {
+                            gte: min_amount,
+                            lte: max_amount
+                        }
+                    })
+                }
             });
 
             res.json({
                 success: true,
                 data: {
-                    withdrawals: withdrawals.rows,
+                    withdrawals: withdrawals.map(w => ({
+                        ...w,
+                        phone: w.details?.phone,
+                        failureReason: w.details?.failureReason,
+                        attempts: w.details?.attempts,
+                        fee: w.details?.fee
+                    })),
                     pagination: {
-                        total: withdrawals.count,
-                        page: parseInt(page),
-                        pages: Math.ceil(withdrawals.count / limit)
+                        total,
+                        pages: Math.ceil(total / limit),
+                        currentPage: parseInt(page),
+                        limit: parseInt(limit)
                     }
                 }
             });
         } catch (error) {
-            console.error('Get all withdrawals error:', error);
+            logger.error('Get all withdrawals error:', {
+                error: error.message,
+                user_id: req.user?.id
+            });
+
             res.status(500).json({
                 success: false,
                 message: 'Internal server error'

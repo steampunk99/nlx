@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/axios'
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 // Query key factory for better organization and type safety
 const queryKeys = {
@@ -10,7 +12,8 @@ const queryKeys = {
   },
   stats: ['admin', 'stats'],
   network: ['admin', 'network'],
-  withdrawals: ['admin', 'withdrawals']
+  withdrawals: ['admin', 'withdrawals'],
+  adminConfig: ['adminConfig']
 }
 
 export function useAdmin() {
@@ -119,6 +122,35 @@ export function useAdmin() {
     })
   }
 
+  // Admin config queries
+  const useAdminConfig = () => {
+    return useQuery({
+      queryKey: queryKeys.adminConfig,
+      queryFn: async () => {
+        const response = await api.get('/admin/config');
+        return response.data.data;
+      }
+    });
+  };
+
+  const useUpdateAdminConfig = () => {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+      mutationFn: async (data) => {
+        const response = await api.put('/admin/config', data);
+        return response.data;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(queryKeys.adminConfig);
+        toast.success('Settings updated successfully');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to update settings');
+      }
+    });
+  };
+
   return {
     useUsers,
     useUserDetails,
@@ -126,6 +158,8 @@ export function useAdmin() {
     useDeleteUser,
     useSystemStats,
     useNetworkStats,
-    useNetworkTree
+    useNetworkTree,
+    useAdminConfig,
+    useUpdateAdminConfig
   }
 }

@@ -343,6 +343,7 @@ class AuthController {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
+            country: user.country,
             role: user.role,
             node: user.node
           },

@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 model User {
   id                Int            @id @default(autoincrement())
   username          String         @unique
@@ -292,6 +294,40 @@ model SystemRevenue {
 
   @@index([packageId], map: "system_revenue_package_id_fkey")
   @@map("system_revenue")
+}
+
+// Admin Configuration Model
+model AdminConfig {
+  id                    Int      @id @default(autoincrement())
+  // Site Information
+  siteName              String   @default("Earn Drip")
+  siteLogoUrl          String?
+  siteBaseUrl          String   @default("https://earndrip.com")
+
+  // Payment Collection Numbers
+  mtnCollectionNumber   String?
+  airtelCollectionNumber String?
+
+  // Support Information
+  supportPhone         String?
+  supportEmail         String?
+  supportLocation      String?
+
+  // Currency Rates
+  depositDollarRate    Float    @default(3900.0)  // UGX to USD rate for deposits
+  withdrawalDollarRate Float    @default(3900.0)  // UGX to USD rate for withdrawals
+  withdrawalCharge     Float    @default(2.0)     // Withdrawal charge in percentage
+
+  // USDT Wallet
+  usdtWalletAddress    String?
+
+  // Timestamps
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Ensure only one config exists
+  @@unique([id])
+  @@map("admin_config")
 }
 
 enum Role {

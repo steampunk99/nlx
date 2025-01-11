@@ -4,7 +4,8 @@ const packageService = require('../services/package.service');
 const nodePackageService = require('../services/nodePackage.service');
 const nodeWithdrawalService = require('../services/nodeWithdrawal.service');
 const { validatePackage } = require('../middleware/validate');
-const prisma = require('../config/prisma');
+const { prisma } = require('../config/prisma');
+const logger = require('../services/logger.service');
 
 class AdminController {
   /**
@@ -402,6 +403,87 @@ class AdminController {
         success: false,
         message: 'Internal server error'
       });
+    }
+  }
+
+  /**
+   * Get admin config
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async getAdminConfig(req, res) {
+    try {
+      const config = await prisma.adminConfig.findFirst();
+      res.json({ success: true, data: config });
+    } catch (error) {
+      logger.error('Error fetching admin config:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch admin configuration' });
+    }
+  }
+
+  /**
+   * Update admin config
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async updateAdminConfig(req, res) {
+    try {
+      const {
+        siteName,
+        siteLogoUrl,
+        siteBaseUrl,
+        mtnCollectionNumber,
+        airtelCollectionNumber,
+        supportPhone,
+        supportEmail,
+        supportLocation,
+        depositDollarRate,
+        withdrawalDollarRate,
+        withdrawalCharge,
+        usdtWalletAddress
+      } = req.body;
+
+      // Get existing config or create new one
+      const existingConfig = await prisma.adminConfig.findFirst();
+
+      const config = await prisma.adminConfig.upsert({
+        where: {
+          id: existingConfig?.id || -1
+        },
+        update: {
+          siteName: siteName || undefined,
+          siteLogoUrl: siteLogoUrl || undefined,
+          siteBaseUrl: siteBaseUrl || undefined,
+          mtnCollectionNumber: mtnCollectionNumber || undefined,
+          airtelCollectionNumber: airtelCollectionNumber || undefined,
+          supportPhone: supportPhone || undefined,
+          supportEmail: supportEmail || undefined,
+          supportLocation: supportLocation || undefined,
+          depositDollarRate: depositDollarRate ? parseFloat(depositDollarRate) : undefined,
+          withdrawalDollarRate: withdrawalDollarRate ? parseFloat(withdrawalDollarRate) : undefined,
+          withdrawalCharge: withdrawalCharge ? parseFloat(withdrawalCharge) : undefined,
+          usdtWalletAddress: usdtWalletAddress || undefined
+        },
+        create: {
+          siteName: siteName || "Zillionaires",
+          siteLogoUrl,
+          siteBaseUrl: siteBaseUrl || "https://zillionaires.com",
+          mtnCollectionNumber,
+          airtelCollectionNumber,
+          supportPhone,
+          supportEmail,
+          supportLocation,
+          depositDollarRate: depositDollarRate ? parseFloat(depositDollarRate) : 3900.0,
+          withdrawalDollarRate: withdrawalDollarRate ? parseFloat(withdrawalDollarRate) : 3900.0,
+          withdrawalCharge: withdrawalCharge ? parseFloat(withdrawalCharge) : 0.0,
+          usdtWalletAddress
+        }
+      });
+
+      res.json({ success: true, data: config });
+    } catch (error) {
+      logger.error('Error updating admin config:', error);
+      res.status(500).json({ success: false, message: 'Failed to update admin configuration' });
     }
   }
 }

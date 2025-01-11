@@ -14,6 +14,87 @@ const commissionUtil = require('../utils/commission.utils');
 const prisma = new PrismaClient();
 
 class PaymentController {
+
+    //process manual payment
+    async processManualPayment(req, res) {
+        try {
+            const { transactionId, amount, packageId } = req.body;
+            const userId = req.user.id;
+            
+            const { payment } = await prisma.$transaction(async (tx) => {
+                const node = await nodeService.findByUserId(userId, tx);
+                if (!node) {
+                    throw new Error('Node not found for user');
+                }
+
+                // Verify package exists
+                const pkg = await packageService.findById(packageId, tx);
+                if (!pkg) {
+                    throw new Error('Package not found');
+                }
+
+                // Check for duplicate transaction ID
+                const existingPayment = await nodePaymentService.findByTransactionId(transactionId, tx);
+                if (existingPayment) {
+                    throw new Error('Transaction ID already exists');
+                }
+
+                const payment = await nodePaymentService.create({
+                    transactionDetails: transactionId,
+                    amount,
+                    transactionId: transactionId,
+                    reference: transactionId,
+                    type: 'MANUAL',
+                    packageId,
+                    nodeId: node.id,
+                    paymentMethod: 'Mobile Money',
+                    status: 'PENDING',
+                },tx);
+                console.log('Node Payment created:', payment);
+
+                // Create pending statement
+                await nodeStatementService.create({
+                    nodeId: node.id,
+                    amount,
+                    type: 'DEBIT',
+                    status: 'PENDING',
+                    description: `Package purchase - ${pkg.name} (Manual Mobile Money)`,
+                    referenceType: 'DEPOSIT',
+                    referenceId: payment.id
+                }, tx);
+
+                logger.info('Created manual payment record and statement:', {
+                    payment_id: payment.id,
+                    transactionId,
+                    amount,
+                    packageId
+                });
+
+                return { payment };
+            });
+
+            res.status(201).json({
+                success: true,
+                transactionId,
+                status: "PENDING",
+                payment_id: payment.id
+            });
+        } catch (error) {
+            logger.error('Manual payment processing error:', {
+                error: error.message,
+                stack: error.stack,
+                transactionId: req.body?.transactionId
+            });
+            
+            if (!res.headersSent) {
+                res.status(500).json({
+                    success: false,
+                    message: error.message || 'Failed to process payment'
+                });
+            }
+        }
+    }
+
     //process usdt payment
 
     async processUsdtPayment(req, res) {
@@ -27,9 +108,16 @@ class PaymentController {
                     throw new Error('Node not found for user');
                 }
 
+                // Verify package exists
                 const pkg = await packageService.findById(packageId, tx);
                 if (!pkg) {
                     throw new Error('Package not found');
+                }
+
+                // Check for duplicate transaction ID
+                const existingPayment = await nodePaymentService.findByTransactionId(trans_id, tx);
+                if (existingPayment) {
+                    throw new Error('Transaction ID already exists');
                 }
 
                 // Create  nodepayment record
@@ -41,6 +129,7 @@ class PaymentController {
                     type: 'USDT Package Payment',
                     packageId,
                     nodeId: node.id,
+                    paymentMethod: 'USDT',
                     status: 'PENDING',
                 },tx);
                 console.log('Node Payment created:', payment);
@@ -51,7 +140,7 @@ class PaymentController {
                     amount,
                     type: 'DEBIT',
                     status: 'PENDING',
-                    description: `Package purchase payment - ${pkg.name}`,
+                    description: `Package purchase payment - ${pkg.name} (USDT)`,
                     referenceType: 'DEPOSIT',
                     referenceId: payment.id
                 }, tx);
@@ -81,8 +170,7 @@ class PaymentController {
             if (!res.headersSent) {
                 res.status(500).json({
                     success: false,
-                    message: 'Failed to process payment',
-                    error: error.message
+                    message: error.message || 'Failed to process payment'
                 });
             }
         }
@@ -186,10 +274,14 @@ class PaymentController {
 
     // Check payment status usdt
     async checkPaymentStatus(req, res) {
-        const { trans_id } = req.query;
         try {
+            const { transactionId } = req.query;
+            
             const payment = await prisma.nodePayment.findFirst({
-                where: { transactionId: trans_id }
+                where: { transactionId },
+                include: {
+                    package: true
+                }
             });
 
             if (!payment) {
@@ -199,21 +291,26 @@ class PaymentController {
                 });
             }
 
-            res.status(200).json({
+            // Map internal status to frontend status
+            let status = payment.status;
+            if (status === 'SUCCESSFUL') {
+                status = 'COMPLETED';
+            }
+
+            res.json({
                 success: true,
-                status: payment.status
+                status,
+                transactionId: payment.transactionId,
+                amount: payment.amount,
+                packageName: payment.package.name,
+                paymentMethod: payment.paymentMethod,
+                createdAt: payment.createdAt
             });
-
         } catch (error) {
-            logger.error('Error checking payment status:', {
-                error: error.message,
-                trans_id
-            });
-
+            logger.error('Error checking payment status:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to check payment status',
-                error: error.message
+                message: 'Failed to check payment status'
             });
         }
     }
@@ -234,9 +331,16 @@ class PaymentController {
                     throw new Error('Node not found for user');
                 }
 
+                // Verify package exists
                 const pkg = await packageService.findById(packageId, tx);
                 if (!pkg) {
                     throw new Error('Package not found');
+                }
+
+                // Check for duplicate transaction ID
+                const existingPayment = await nodePaymentService.findByTransactionId(trans_id, tx);
+                if (existingPayment) {
+                    throw new Error('Transaction ID already exists');
                 }
 
                 // Create  nodepayment record
@@ -259,7 +363,7 @@ class PaymentController {
                     amount,
                     type: 'DEBIT',
                     status: 'PENDING',
-                    description: `Package purchase payment - ${pkg.name}`,
+                    description: `Package purchase payment - ${pkg.name} (Mobile Money)`,
                     referenceType: 'DEPOSIT',
                     referenceId: payment.id
                 }, tx);
@@ -345,7 +449,7 @@ class PaymentController {
             if (!res.headersSent) {
             res.status(500).json({
                 success: false,
-                    message: 'Failed to process payment',
+                    message: error.message || 'Failed to process payment',
                 error: error.message
             });
         }
@@ -419,6 +523,7 @@ class PaymentController {
                     throw new Error('Node not found for user');
                 }
 
+            // Verify package exists
             const currentPackage = await packageService.findById(currentPackageId);
             const newPackage = await packageService.findById(newPackageId);
 

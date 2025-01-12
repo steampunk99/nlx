@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/axios'
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useCallback } from 'react';
 
 // Query key factory for better organization and type safety
 const queryKeys = {
@@ -13,7 +14,8 @@ const queryKeys = {
   stats: ['admin', 'stats'],
   network: ['admin', 'network'],
   withdrawals: ['admin', 'withdrawals'],
-  adminConfig: ['adminConfig']
+  adminConfig: ['adminConfig'],
+  transactions: ['admin', 'transactions']
 }
 
 export function useAdmin() {
@@ -151,6 +153,74 @@ export function useAdmin() {
     });
   };
 
+  // Transaction Management
+  const useTransactions = ({
+    page = 1,
+    limit = 10,
+    status,
+    search,
+    type,
+    startDate,
+    endDate
+  } = {}) => {
+    return useQuery({
+      queryKey: [...queryKeys.transactions, page, limit, status, search, type, startDate, endDate],
+      queryFn: async () => {
+        const params = new URLSearchParams({
+          page,
+          limit,
+          ...(status && { status }),
+          ...(search && { search }),
+          ...(type && { type }),
+          ...(startDate && { startDate }),
+          ...(endDate && { endDate })
+        });
+        const response = await api.get(`/admin/transactions?${params}`);
+        return response.data.data;
+      }
+    });
+  };
+
+  const useUpdateTransactionStatus = () => {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+      mutationFn: async ({ transId, status, type }) => {
+        const response = await api.post('/payments/status/callback/usdt', {
+          trans_id: transId,
+          status,
+          type
+        });
+        return response.data;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(queryKeys.transactions);
+        toast.success('Transaction status updated successfully');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || 'Failed to update transaction status');
+      }
+    });
+  };
+
+  const { mutate: updateTransactionStatus } = useUpdateTransactionStatus();
+
+  const approveTransaction = useCallback((transId) => {
+    updateTransactionStatus({
+      transId,
+      status: 'SUCCESSFUL',
+      type: 'DEPOSIT'
+    });
+  }, [updateTransactionStatus]);
+
+  const declineTransaction = useCallback((transId) => {
+    updateTransactionStatus({
+      transId,
+      status: 'FAILED',
+      type: 'DEPOSIT'
+    });
+  }, [updateTransactionStatus]);
+
   return {
     useUsers,
     useUserDetails,
@@ -160,6 +230,9 @@ export function useAdmin() {
     useNetworkStats,
     useNetworkTree,
     useAdminConfig,
-    useUpdateAdminConfig
+    useUpdateAdminConfig,
+    useTransactions,
+    approveTransaction,
+    declineTransaction
   }
 }

@@ -67,6 +67,16 @@ router.get('/users/:id', [
     param('id').isString(),
     validate
 ], adminController.getUserDetails);
+/**
+ * @swagger
+ * /admin/transactions:
+ *   get:
+ *     summary: Get all transactions with pagination and filters
+ *     tags: [Admin]
+ */
+router.get('/transactions', [
+    isAdmin,
+], adminController.getTransactions);
 
 /**
  * @swagger

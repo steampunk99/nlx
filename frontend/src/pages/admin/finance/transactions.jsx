@@ -1,11 +1,15 @@
-import { Button } from "../../../components/ui/button"
+import { useState, useEffect } from 'react';
+import { useAdmin } from '@/hooks/useAdmin';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../../components/ui/card"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -13,198 +17,362 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../components/ui/table"
+} from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select"
-import { Icon } from '@iconify/react'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, CheckCircle, XCircle, Search, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-const transactions = [
-  {
-    id: "TRX001",
-    user: "John Doe",
-    type: "deposit",
-    amount: "$2,500",
-    method: "Bank Transfer",
-    status: "completed",
-    date: "2024-01-20"
-  },
-  {
-    id: "TRX002",
-    user: "Jane Smith",
-    type: "withdrawal",
-    amount: "$1,800",
-    method: "Crypto",
-    status: "pending",
-    date: "2024-01-19"
-  },
-  {
-    id: "TRX003",
-    user: "Mike Johnson",
-    type: "investment",
-    amount: "$5,000",
-    method: "Credit Card",
-    status: "completed",
-    date: "2024-01-18"
-  },
-  {
-    id: "TRX004",
-    user: "Sarah Wilson",
-    type: "commission",
-    amount: "$350",
-    method: "System",
-    status: "completed",
-    date: "2024-01-17"
-  }
-]
+const ITEMS_PER_PAGE = 10;
+const DEBOUNCE_DELAY = 500;
 
-const statusColors = {
-  pending: "bg-yellow-50 text-yellow-700",
-  completed: "bg-green-50 text-green-700",
-  failed: "bg-red-50 text-red-700"
-}
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
-const typeColors = {
-  deposit: "bg-green-50 text-green-700",
-  withdrawal: "bg-yellow-50 text-yellow-700",
-  investment: "bg-blue-50 text-blue-700",
-  commission: "bg-purple-50 text-purple-700"
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
 }
 
 export default function TransactionsPage() {
+  const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const [status, setStatus] = useState('All');
+  const [selectedTx, setSelectedTx] = useState(null);
+  const [action, setAction] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const debouncedSearch = useDebounce(searchInput, DEBOUNCE_DELAY);
+
+  const { data, isLoading, isFetching } = useAdmin().useTransactions({
+    page,
+    limit: ITEMS_PER_PAGE,
+    status: status === 'All' ? undefined : status,
+    search: debouncedSearch || undefined
+  });
+
+  // Reset page when search or status changes
+  useEffect(() => {
+    if (debouncedSearch !== searchInput) {
+      setPage(1);
+    }
+  }, [debouncedSearch, status]);
+
+  // Track search loading state
+  useEffect(() => {
+    if (searchInput !== debouncedSearch) {
+      setIsSearching(true);
+    } else {
+      setIsSearching(false);
+    }
+  }, [searchInput, debouncedSearch]);
+
+  const { approveTransaction, declineTransaction } = useAdmin();
+
+  if (!data && isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  const transactions = data?.transactions || [];
+  const pagination = data?.pagination || {};
+  const pendingCount = data?.pendingCount || 0;
+
+  const handleAction = () => {
+    if (action === 'approve') {
+      approveTransaction(selectedTx.transactionId);
+    } else {
+      declineTransaction(selectedTx.transactionId);
+    }
+    setSelectedTx(null);
+    setAction(null);
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      PENDING: 'bg-blue-50 text-blue-700 border-blue-100',
+      SUCCESSFUL: 'bg-green-50 text-green-700 border-green-100',
+      FAILED: 'bg-red-50 text-red-700 border-red-100'
+    };
+    return (
+      <span className={cn(
+        "px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center",
+        variants[status]
+      )}>
+        {status === 'PENDING' && <span className="w-1 h-1 bg-blue-500 rounded-full mr-1.5" />}
+        {status === 'SUCCESSFUL' && <span className="w-1 h-1 bg-green-500 rounded-full mr-1.5" />}
+        {status === 'FAILED' && <span className="w-1 h-1 bg-red-500 rounded-full mr-1.5" />}
+        {status}
+      </span>
+    );
+  };
+
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-          <p className="text-sm text-gray-500">View and manage all financial transactions</p>
-        </div>
-        <div className="flex gap-3">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="deposit">Deposits</SelectItem>
-              <SelectItem value="withdrawal">Withdrawals</SelectItem>
-              <SelectItem value="investment">Investments</SelectItem>
-              <SelectItem value="commission">Commissions</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button className="gap-2">
-            <Icon icon="ph:export-bold" className="h-4 w-4" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+    <div className="container mx-auto py-8 space-y-8">
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Volume</CardTitle>
-            <Icon icon="ph:currency-circle-dollar-bold" className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$9,650</div>
-            <p className="text-xs text-gray-500">+12.3% from last month</p>
+            <div className="text-2xl font-bold">{pagination.total || 0}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-blue-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deposits</CardTitle>
-            <Icon icon="ph:arrow-up-bold" className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium text-blue-700">Pending Approvals</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2,500</div>
-            <p className="text-xs text-gray-500">1 transaction(s)</p>
+            <div className="text-2xl font-bold text-blue-700">
+              {pendingCount}
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Investments</CardTitle>
-            <Icon icon="ph:trend-up-bold" className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$5,000</div>
-            <p className="text-xs text-gray-500">1 transaction(s)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Commissions</CardTitle>
-            <Icon icon="ph:percent-bold" className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$350</div>
-            <p className="text-xs text-gray-500">1 transaction(s)</p>
+            <div className="text-2xl font-bold">
+              {formatCurrency(transactions.reduce((acc, tx) => acc + Number(tx.amount), 0))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>
-            View all financial transactions across the platform
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className={cn(
+            "absolute left-2 top-2.5 h-4 w-4",
+            isSearching ? "animate-pulse text-primary" : "text-muted-foreground"
+          )} />
+          <Input
+            placeholder="Search by ID, email, or name..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className={cn(
+              "pl-8 bg-white",
+              isSearching && "pr-8"
+            )}
+          />
+          {isSearching && (
+            <div className="absolute right-2 top-2.5">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            </div>
+          )}
+        </div>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-[180px] bg-white">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Status</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="SUCCESSFUL">Successful</SelectItem>
+            <SelectItem value="FAILED">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Transactions Table */}
+      <div className="rounded-md border bg-white relative min-h-[400px]">
+        {isFetching && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+        {transactions.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">
+            {searchInput ? (
+              <>
+                No transactions found matching "<span className="font-medium">{searchInput}</span>"
+                {status !== 'All' && " with selected status"}
+              </>
+            ) : status !== 'All' ? (
+              <>No {status.toLowerCase()} transactions found</>
+            ) : (
+              "No transactions found"
+            )}
+          </div>
+        ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="bg-gray-50">
+                <TableHead className="font-semibold">Transaction ID</TableHead>
+                <TableHead className="font-semibold">User</TableHead>
+                <TableHead className="font-semibold">Amount</TableHead>
+                <TableHead className="font-semibold">Type</TableHead>
+                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="font-semibold">Created At</TableHead>
+                <TableHead className="font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">{transaction.id}</TableCell>
-                  <TableCell>{transaction.user}</TableCell>
+              {transactions.map((tx) => (
+                <TableRow 
+                  key={tx.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <TableCell className="font-mono">{tx.transactionId}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      typeColors[transaction.type]
-                    }`}>
-                      {transaction.type}
+                    {tx.node.user.firstName} {tx.node.user.lastName}
+                    <br />
+                    <span className="text-sm text-muted-foreground">
+                      {tx.node.user.email}
                     </span>
                   </TableCell>
-                  <TableCell>{transaction.amount}</TableCell>
-                  <TableCell>{transaction.method}</TableCell>
-                  <TableCell>{transaction.date}</TableCell>
+                  <TableCell>{formatCurrency(tx.amount)}</TableCell>
+                  <TableCell>{tx.type}</TableCell>
+                  <TableCell>{getStatusBadge(tx.status)}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      statusColors[transaction.status]
-                    }`}>
-                      {transaction.status}
-                    </span>
+                    {format(new Date(tx.createdAt), 'MMM d, yyyy HH:mm')}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Icon icon="ph:eye-bold" className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Icon icon="ph:receipt-bold" className="h-4 w-4 text-gray-500" />
-                      </Button>
-                    </div>
+                    {tx.status === 'PENDING' && (
+                      <div className="flex space-x-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700"
+                          onClick={() => {
+                            setSelectedTx(tx);
+                            setAction('approve');
+                          }}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700"
+                          onClick={() => {
+                            setSelectedTx(tx);
+                            setAction('decline');
+                          }}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination>
+            <PaginationContent className="bg-white shadow-sm rounded-lg border">
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="hover:bg-gray-50"
+                />
+              </PaginationItem>
+              {[...Array(pagination.totalPages)].map((_, i) => (
+                <PaginationItem key={i + 1}>
+                  <PaginationLink
+                    onClick={() => setPage(i + 1)}
+                    isActive={page === i + 1}
+                    className={cn(
+                      "hover:bg-gray-50",
+                      page === i + 1 && "bg-primary/10 hover:bg-primary/20"
+                    )}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                  disabled={page === pagination.totalPages}
+                  className="hover:bg-gray-50"
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={!!selectedTx} onOpenChange={() => setSelectedTx(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Action</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to {action} this transaction?
+              <div className="mt-4 space-y-2">
+                <p><strong>Transaction ID:</strong> {selectedTx?.transactionId}</p>
+                <p><strong>Amount:</strong> {selectedTx && formatCurrency(selectedTx.amount)}</p>
+                <p><strong>User:</strong> {selectedTx?.node.user.email}</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedTx(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant={action === 'approve' ? 'default' : 'destructive'}
+              onClick={handleAction}
+              className={cn(
+                action === 'approve' && "bg-green-600 hover:bg-green-700",
+              )}
+            >
+              {action === 'approve' ? 'Approve' : 'Decline'} Transaction
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
+  );
 }

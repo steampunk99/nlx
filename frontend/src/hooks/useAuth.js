@@ -103,7 +103,7 @@ export function useAuth() {
             toast.success('Welcome back');
             setTimeout(() => navigate('/dashboard'), 2000);
           } else {
-            toast.warning('No active subscription found');
+            toast.error('No active subscription found');
             setTimeout(() => navigate('/activation'), 2000);
           }
           return;

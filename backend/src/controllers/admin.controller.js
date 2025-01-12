@@ -3,6 +3,7 @@ const nodeService = require('../services/node.service');
 const packageService = require('../services/package.service');
 const nodePackageService = require('../services/nodePackage.service');
 const nodeWithdrawalService = require('../services/nodeWithdrawal.service');
+const nodePaymentService = require('../services/nodePayment.service');
 const { validatePackage } = require('../middleware/validate');
 const { prisma } = require('../config/prisma');
 const logger = require('../services/logger.service');
@@ -56,6 +57,97 @@ class AdminController {
       res.status(500).json({
         success: false,
         message: 'Error retrieving users'
+      });
+    }
+  }
+
+  // Get all transactions - ADMIN
+  async getTransactions(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const status = req.query.status;
+      const search = req.query.search;
+      const type = req.query.type;
+      const startDate = req.query.startDate;
+      const endDate = req.query.endDate;
+
+      const where = {};
+
+      // Add filters
+      if (status) {
+        where.status = status;
+      }
+      if (type) {
+        where.type = type;
+      }
+      if (startDate && endDate) {
+        where.createdAt = {
+          gte: new Date(startDate),
+          lte: new Date(endDate)
+        };
+      }
+      if (search) {
+        where.OR = [
+          { transactionId: { contains: search } },
+          { 
+            node: {
+              user: {
+                OR: [
+                  { email: { contains: search } },
+                  { firstName: { contains: search } },
+                  { lastName: { contains: search } }
+                ]
+              }
+            }
+          }
+        ];
+      }
+
+      // Get total count with the same where clause
+      const total = await prisma.nodePayment.count({ where });
+
+      // Get pending count (always get this regardless of filters)
+      const pendingCount = await prisma.nodePayment.count({
+        where: { status: 'PENDING' }
+      });
+
+      // Get paginated transactions
+      const transactions = await prisma.nodePayment.findMany({
+        where,
+        include: {
+          node: {
+            include: {
+              user: true
+            }
+          },
+          package: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip: (page - 1) * limit,
+        take: limit
+      });
+
+      res.json({
+        success: true,
+        data: {
+          transactions,
+          pendingCount,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Get transactions error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving transactions'
       });
     }
   }
@@ -487,5 +579,6 @@ class AdminController {
     }
   }
 }
+
 
 module.exports = new AdminController();

@@ -146,7 +146,7 @@ export function AdminLayout() {
         },
         { 
           label: 'Transactions', 
-          to: '/admin/transactions',
+          to: '/admin/finance/transactions',
           icon: 'ph:arrows-left-right-bold'
         }
       ]

@@ -15,17 +15,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {motion} from "framer-motion";
 import ReactCountryFlag from 'react-country-flag';
 import {cn} from '@/lib/utils';
-
-const mobileMoneyAccounts = {
-  mtn: {
-    number: "+256775123456",
-    name: "John Doe"
-  },
-  airtel: {
-    number: "+256705123456",
-    name: "Jane Smith"
-  }
-};
+import useSiteConfigStore from '@/store/siteConfigStore';
 
 function ManualPayment() {
   const location = useLocation();
@@ -33,12 +23,24 @@ function ManualPayment() {
   const selectedPackage = location.state?.selectedPackage;
   const navigate = useNavigate();
   const { country, currency, formatAmount } = useCountry();
+  const { config } = useSiteConfigStore();
 
   const [phone, setPhone] = useState(user?.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false)
   const [transactionId, setTransactionId] = useState("");
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+
+  const mobileMoneyAccounts = {
+    mtn: {
+      number: config.mtnCollectionNumber,
+      name: "Earn Drip"
+    },
+    airtel: {
+      number: config.airtelCollectionNumber,
+      name: "Earn Drip"
+    }
+  };
 
 //handle copy to clipboard
 const handleCopyToClipboard = () => {
@@ -163,7 +165,7 @@ const handlePaste = async () => {
     );
   }
 
-  const wallet = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+  const wallet = config.usdtWalletAddress;
 
   return (
     <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-purple-500/10 justify-center min-h-[100vh] p-4">

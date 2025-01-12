@@ -4,18 +4,14 @@ const logger = require('./logger.service');
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'mail.earndrip.com', // SmarterASP.NET mail server
-      port: parseInt(process.env.SMTP_PORT) || 587, // Use port 587 for TLS
-      secure: false, // Use STARTTLS
+      host: process.env.SMTP_HOST || 'mail.smarterasp.net', // SmarterASP.NET mail server
+      port: parseInt(process.env.SMTP_PORT) || 25, // Use port 587 for TLS
+      secure: false, // Use TLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      tls: {
-        rejectUnauthorized: false, // Only use in development
-        ciphers: 'SSLv3' // Add legacy cipher support
-      },
-      debug: true // Enable debug logs
+      
     });
 
     // Verify connection configuration

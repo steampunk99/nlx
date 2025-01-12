@@ -5,11 +5,12 @@ import { Button } from "../ui/button"
 import { HoverLink } from "../ui/hover-link"
 import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { cn } from "../../lib/utils"
-import logo from '@/assets/logo.png'
+// import defaultLogo from '@/assets/logo.png'
 import { useAuth } from '../../hooks/useAuth';
 import { usePackages } from '../../hooks/usePackages';
 import { Avatar } from '../ui/avatar';
 import toast from "react-hot-toast"
+import { useSiteConfig } from '../../hooks/useSiteConfig'
 
 const navigation = [
   { 
@@ -27,7 +28,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState(null)
   const { user, logout } = useAuth();
-
+  const { siteName, siteLogoUrl } = useSiteConfig();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -43,7 +44,7 @@ export function Header() {
   }, [])
 
   return (
-    <div className="fixed inset-x-0 top-0 z-50 px-4 py-4">
+    <div className="fixed inset-x-0 top-0 z-50 h-16">
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -75,7 +76,11 @@ export function Header() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-2"
             >
-           
+              {/* <img 
+                src={siteLogoUrl || defaultLogo} 
+                alt={siteName}
+                className="h-8 w-auto" 
+              /> */}
             </motion.div>
             <Link
               to="/"
@@ -86,7 +91,7 @@ export function Header() {
                 "font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent transition-all duration-300",
                 isScrolled ? "text-lg" : "text-xl"
               )}>
-                Earn Drip
+                {siteName}
               </h1>
             </Link>
           </motion.div>

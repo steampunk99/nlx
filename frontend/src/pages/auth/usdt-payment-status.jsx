@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 
-const USDT_WALLET = "TRXwallet123456789"; // Replace with actual wallet address
 const POLL_INTERVAL = 15000; // Poll every 15 seconds
 
 export default function UsdtPaymentStatusPage() {
@@ -16,7 +16,10 @@ export default function UsdtPaymentStatusPage() {
   const navigate = useNavigate();
   const trans_id = searchParams.get('trans_id');
   const amount1 = searchParams.get('amount');
-  const amount = parseFloat(amount1)/3900;
+
+  const { usdtWalletAddress } = useSiteConfig();
+  const USDT_WALLET = usdtWalletAddress;
+  const amount = parseFloat(amount1) / 3900;
 
   const [status, setStatus] = useState('PENDING');
   const [isLoading, setIsLoading] = useState(true);

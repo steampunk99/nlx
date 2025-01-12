@@ -3,6 +3,7 @@ const router = express.Router();
 const { validateRegistration, validateLogin } = require('../middleware/validate');
 const { isActive, auth } = require('../middleware/auth');
 const authController = require('../controllers/auth.controller');
+const adminController = require('../controllers/admin.controller')
 
 /**
  * @swagger
@@ -85,6 +86,8 @@ const authController = require('../controllers/auth.controller');
  *                 enum: [1, 2]
  */
 router.post('/register', validateRegistration, authController.register);
+
+router.get('/config',adminController.getAdminConfig);
 
 /**
  * @swagger

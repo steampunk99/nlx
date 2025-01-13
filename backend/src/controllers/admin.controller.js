@@ -590,9 +590,10 @@ class AdminController {
         lastName, 
         phone,
         role = 'USER',
-        status = 'ACTIVE', 
+        status = 'ACTIVE',
         country = 'UG',
-        createNode = true 
+        createNode = true,
+        referralCode = ''
       } = req.body;
 
       // Start a transaction
@@ -604,6 +605,25 @@ class AdminController {
 
         if (existingUser) {
           throw new Error('An account with this email already exists');
+        }
+
+        // Check referral code if provided
+        let sponsorNode = null;
+        if (referralCode) {
+          const referralLink = await tx.referralLink.findUnique({
+            where: { code: referralCode },
+            include: {
+              user: {
+                include: { node: true }
+              }
+            }
+          });
+
+          if (!referralLink) {
+            throw new Error('Invalid referral code');
+          }
+
+          sponsorNode = referralLink.user.node;
         }
 
         // Generate unique username
@@ -639,11 +659,11 @@ class AdminController {
         // Create node if requested and user is not an admin
         let node = null;
         if (createNode && role === 'USER') {
-          // Get the last node to determine placement
-          const lastNode = await tx.node.findFirst({
+          // Get the last node to determine placement if no sponsor
+          const lastNode = !sponsorNode ? await tx.node.findFirst({
             orderBy: { id: 'desc' },
             where: { status: 'ACTIVE' }
-          });
+          }) : null;
 
           node = await tx.node.create({
             data: {
@@ -651,8 +671,8 @@ class AdminController {
               status: 'ACTIVE',
               position: 'ONE',
               level: 1,
-              placementId: lastNode?.id || null,
-              sponsorId: lastNode?.id || null
+              placementId: sponsorNode?.id || lastNode?.id || null,
+              sponsorId: sponsorNode?.id || lastNode?.id || null
             }
           });
         }
@@ -675,7 +695,10 @@ class AdminController {
 
     } catch (error) {
       console.error('Error creating user:', error);
-      return res.status(error.message === 'An account with this email already exists' ? 409 : 500).json({
+      return res.status(
+        error.message === 'An account with this email already exists' ? 409 :
+        error.message === 'Invalid referral code' ? 400 : 500
+      ).json({
         success: false,
         message: error.message || 'Internal server error'
       });

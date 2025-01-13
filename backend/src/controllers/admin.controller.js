@@ -63,7 +63,11 @@ class AdminController {
     }
   }
 
-  // Get all transactions - ADMIN
+  /**
+   * Get all transactions - ADMIN
+   * @param {Request} req 
+   * @param {Response} res
+   */
   async getTransactions(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -73,9 +77,7 @@ class AdminController {
       const type = req.query.type;
       const startDate = req.query.startDate;
       const endDate = req.query.endDate;
-
       const where = {};
-
       // Add filters
       if (status) {
         where.status = status;
@@ -105,15 +107,12 @@ class AdminController {
           }
         ];
       }
-
       // Get total count with the same where clause
       const total = await prisma.nodePayment.count({ where });
-
       // Get pending count (always get this regardless of filters)
       const pendingCount = await prisma.nodePayment.count({
         where: { status: 'PENDING' }
       });
-
       // Get paginated transactions
       const transactions = await prisma.nodePayment.findMany({
         where,
@@ -131,7 +130,6 @@ class AdminController {
         skip: (page - 1) * limit,
         take: limit
       });
-
       res.json({
         success: true,
         data: {
@@ -264,26 +262,48 @@ class AdminController {
    */
   async getSystemStats(req, res) {
     try {
-      
       const [
-        totalUsers,
+        users,
         activeUsers,
-        totalNodes,
+        nodes,
         activeNodes,
-        totalPackages,
+        packages,
         activePackages,
         pendingWithdrawals,
         nodePayments,
         commissions,
         withdrawals
       ] = await Promise.all([
-        userService.count(),
-        userService.count({ status: 'ACTIVE' }),
-        nodeService.count(),
-        nodeService.count({ status: 'ACTIVE' }),
-        packageService.count(),
-        packageService.count({ status: 'ACTIVE' }),
-        nodeWithdrawalService.count({ status: 'PENDING' }),
+        // Total users
+        prisma.user.count(),
+        // Active users
+        prisma.user.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Total nodes
+        prisma.node.count(),
+        // Active nodes
+        prisma.node.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Total packages
+        prisma.package.count(),
+        // Active packages
+        prisma.package.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Pending withdrawals count
+        prisma.nodeWithdrawal.count({
+          where: {
+            status: 'PENDING'
+          }
+        }),
         // All node payments (packages, upgrades, etc)
         prisma.nodePayment.aggregate({
           _sum: {
@@ -296,50 +316,52 @@ class AdminController {
             amount: true
           }
         }),
-        // All withdrawals
+        // All successful withdrawals
         prisma.nodeWithdrawal.aggregate({
           _sum: {
             amount: true
+          },
+          where: {
+            status: 'SUCCESSFUL'
           }
         })
       ]);
 
-      // Calculate total system revenue
+      // Calculate total revenue and net revenue
       const totalRevenue = Number(nodePayments._sum.amount || 0);
       const totalCommissions = Number(commissions._sum.amount || 0);
       const totalWithdrawals = Number(withdrawals._sum.amount || 0);
       const systemRevenue = totalRevenue - totalCommissions - totalWithdrawals;
 
-      res.json({
+      return res.json({
         success: true,
         data: {
           users: {
-            total: totalUsers,
+            total: users,
             active: activeUsers
           },
           nodes: {
-            total: totalNodes,
+            total: nodes,
             active: activeNodes
           },
           packages: {
-            total: totalPackages,
+            total: packages,
             active: activePackages
           },
           pendingWithdrawals,
-          systemRevenue,
           revenue: {
             total: totalRevenue,
             commissions: totalCommissions,
-            withdrawals: totalWithdrawals
+            withdrawals: totalWithdrawals,
+            systemRevenue
           }
         }
       });
-
     } catch (error) {
       console.error('Get system stats error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error retrieving system statistics'
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
       });
     }
   }
@@ -1045,6 +1067,61 @@ class AdminController {
         success: false,
         message: 'Failed to fetch package statistics',
         error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get network statistics
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async getNetworkStats(req, res) {
+    try {
+      const [
+        nodes,
+        activeNodes,
+        levelDistribution
+      ] = await Promise.all([
+        // Total nodes
+        prisma.node.count(),
+        // Active nodes
+        prisma.node.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Level distribution
+        prisma.node.groupBy({
+          by: ['level'],
+          _count: true,
+          orderBy: {
+            level: 'asc'
+          }
+        })
+      ]);
+
+      // Format level distribution
+      const distribution = levelDistribution.reduce((acc, curr) => {
+        acc[curr.level] = curr._count;
+        return acc;
+      }, {});
+
+      return res.json({
+        success: true,
+        data: {
+          nodes: {
+            total: nodes,
+            active: activeNodes
+          },
+          levelDistribution: distribution
+        }
+      });
+    } catch (error) {
+      console.error('Get network stats error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
       });
     }
   }

@@ -46,14 +46,8 @@ const withdrawalController = require('../controllers/withdrawal.controller');
  *     tags: [Admin]
  */
 router.get('/users', [
-    auth,isAdmin,
-    query('page').optional().isInt({ min: 1 }),
-    query('limit').optional().isInt({ min: 1, max: 100 }),
-    query('status').optional().isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
-    query('search').optional().isString(),
-    query('sortBy').optional().isString(),
-    query('sortOrder').optional().isIn(['asc', 'desc']),
-    validate
+    auth,
+   
 ], adminController.getUsers);
 
 /**
@@ -65,15 +59,7 @@ router.get('/users', [
  */
 router.post('/users', [
     auth,
-    isAdmin,
-    body('email').isEmail().withMessage('Invalid email'),
-    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-    body('firstName').notEmpty().withMessage('First name is required'),
-    body('lastName').notEmpty().withMessage('Last name is required'),
-    body('phone').notEmpty().withMessage('Phone is required'),
-    body('role').isIn(['USER', 'ADMIN']).withMessage('Invalid role'),
-    body('status').isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']).withMessage('Invalid status'),
-    validate
+   
 ], adminController.createUser);
 
 /**
@@ -84,9 +70,7 @@ router.post('/users', [
  *     tags: [Admin]
  */
 router.get('/users/:id', [
-    isAdmin,
-    param('id').isString(),
-    validate
+  
 ], adminController.getUserDetails);
 /**
  * @swagger
@@ -107,7 +91,7 @@ router.get('/transactions', [
  *     tags: [Admin]
  */
 router.put('/users/:id/status', [
-    isAdmin,
+    auth,
     param('id').isString(),
     body('status').isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
     validate
@@ -133,7 +117,7 @@ router.delete('/users/:id', [
  *     summary: Get system statistics
  *     tags: [Admin]
  */
-router.get('/stats', isAdmin, adminController.getSystemStats);
+router.get('/stats', adminController.getSystemStats);
 
 /**
  * @swagger
@@ -189,7 +173,7 @@ router.get('/stats', isAdmin, adminController.getSystemStats);
 router.post('/packages', 
   [
     auth,
-    isAdmin,
+    
     validate([
       body('name').trim().isString().notEmpty(),
       body('description').optional().trim().isString(),
@@ -259,7 +243,7 @@ router.post('/packages',
 router.put('/packages/:id',
   [
     auth,
-    isAdmin,
+    
     validate([
       param('id').isInt({ min: 1 }),
       body('name').optional().trim().isString(),
@@ -331,7 +315,7 @@ router.put('/packages/:id',
 router.get('/packages',
   [
     auth,
-    isAdmin,
+    
     validate([
       query('status').optional().isIn(['ACTIVE', 'INACTIVE']),
       query('level').optional().isInt({ min: 1 }),
@@ -357,7 +341,7 @@ router.get('/packages',
 router.get('/packages/stats',
   [
     auth,
-    isAdmin
+    
   ],
   adminController.getPackagesStats
 );
@@ -390,6 +374,15 @@ router.get('/packages/:id/stats',
 
 /**
  * @swagger
+ * /admin/transactions:
+ *   get:
+ *     description: Get all transactions
+ *     tags: [Admin]
+ */
+router.get('/transactions', adminController.getTransactions);
+
+/**
+ * @swagger
  * /admin/withdrawals:
  *   get:
  *     summary: Get all withdrawals with filters and pagination
@@ -397,7 +390,7 @@ router.get('/packages/:id/stats',
  */
 router.get('/withdrawals', [
     auth,
-    isAdmin,
+    
     validate([
       query('status').optional().isIn(['PENDING', 'PROCESSING', 'SUCCESSFUL', 'FAILED', 'REJECTED']),
       query('startDate').optional().isISO8601(),
@@ -416,7 +409,7 @@ router.get('/withdrawals', [
  */
 router.post('/withdrawals/:id/process', [
     auth,
-    isAdmin,
+    
     validate([
       param('id').isInt().toInt(),
       body('status').isIn(['SUCCESSFUL', 'FAILED', 'REJECTED']).withMessage('Invalid status'),
@@ -424,8 +417,17 @@ router.post('/withdrawals/:id/process', [
     ])
 ], withdrawalController.processWithdrawal);
 
+/**
+ * @swagger
+ * /admin/network/stats:
+ *   get:
+ *     description: Get network statistics
+ *     tags: [Admin]
+ */
+router.get('/network/stats', adminController.getNetworkStats);
+
 // Admin Settings Routes
 router.get('/config', adminController.getAdminConfig);
-router.put('/config', isAdmin, adminController.updateAdminConfig);
+router.put('/config', adminController.updateAdminConfig);
 
 module.exports = router;

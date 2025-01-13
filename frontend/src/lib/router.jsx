@@ -11,6 +11,7 @@ import { toast } from '../components/ui/use-toast'
 import NotFoundPage from '../pages/NotFound'
 import PaymentStatusPage from '@/pages/auth/payment-status'
 import AdminSettingsPage from '@/pages/admin/settings'
+import AdminWithdrawalsPage from '../pages/admin/finance/withdrawals'
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -37,7 +38,6 @@ const PrivacyPage = lazy(() => import('../pages/legal/privacy'))
 const AdminDashboardPage = lazy(() => import('../pages/admin/index'))
 const UsersPage = lazy(() => import('../pages/admin/users'))
 const AdminPackagesPage = lazy(() => import('../pages/admin/packages'))
-const AdminWithdrawalsPage = lazy(() => import('../pages/admin/withdrawals'))
 const UserRolesPage = lazy(() => import('../pages/admin/users/roles'))
 const UserPermissionsPage = lazy(() => import('../pages/admin/users/permissions'))
 const PackageCategoriesPage = lazy(() => import('../pages/admin/packages/categories'))
@@ -116,6 +116,7 @@ export function AppRouter() {
           <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="finance/transactions" element={<TransactionsPage />} />
           <Route path="finance/commissions" element={<AdminCommissionsPage />} />
+          <Route path="finance/withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="support/tickets" element={<SupportTicketsPage />} />
           <Route path="support/faq" element={<FAQPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />

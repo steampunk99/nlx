@@ -37,7 +37,7 @@ const PrivacyPage = lazy(() => import('../pages/legal/privacy'))
 // Admin Pages
 const AdminDashboardPage = lazy(() => import('../pages/admin/index'))
 const UsersPage = lazy(() => import('../pages/admin/users/users'))
-const AdminPackagesPage = lazy(() => import('../pages/admin/packages'))
+const AdminPackagesPage = lazy(() => import('../pages/admin/packages/index'))
 const UserRolesPage = lazy(() => import('../pages/admin/users/roles'))
 const UserPermissionsPage = lazy(() => import('../pages/admin/users/permissions'))
 const PackageCategoriesPage = lazy(() => import('../pages/admin/packages/categories'))

@@ -60,9 +60,7 @@ class NotificationService {
         return tx.notification.create({
             data,
             include: {
-                user: true,
-                relatedUser: true,
-                referenceData: true
+                user: true
             }
         });
     }
@@ -72,12 +70,10 @@ class NotificationService {
             where: { id },
             data: {
                 isRead: true,
-                readAt: new Date()
+                updatedAt: new Date()
             },
             include: {
-                user: true,
-                relatedUser: true,
-                referenceData: true
+                user: true
             }
         });
     }
@@ -136,29 +132,21 @@ class NotificationService {
     }
 
     // Financial Notifications
-    async createWithdrawalNotification(userId, withdrawalId, status, amount, tx = prisma) {
+    async createWithdrawalNotification(userId, withdrawalId, status, amount, remarks = '', tx = prisma) {
         const title = `Withdrawal ${status.toLowerCase()}`;
-        let message = `Your withdrawal request of $${amount} has been ${status.toLowerCase()}.`;
-        let priority = 'NORMAL';
+        let message = `Your withdrawal request of UGX ${amount.toLocaleString()} has been ${status.toLowerCase()}.`;
 
-        if (status === 'COMPLETED') {
+        if (status === 'SUCCESSFUL') {
             message += ' The funds have been transferred to your account.';
         } else if (status === 'REJECTED') {
-            message += ' Please contact support for more information.';
-            priority = 'HIGH';
+            message += remarks ? ` Reason: ${remarks}` : ' Please contact support for more information.';
         }
         
         return this.create({
             userId,
             title,
             message,
-            type: 'WITHDRAWAL',
-            priority,
-            metadata: { 
-                withdrawalId,
-                amount,
-                status
-            }
+            type: 'WITHDRAWAL'
         }, tx);
     }
 

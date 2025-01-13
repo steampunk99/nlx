@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { isAdmin,auth } = require('../middleware/auth');
+const { isAdmin, auth } = require('../middleware/auth');
 const { query, body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const adminController = require('../controllers/admin.controller');
+const withdrawalController = require('../controllers/withdrawal.controller');
 
 /**
  * @swagger
@@ -166,18 +167,38 @@ router.delete('/packages/:id', [
 
 /**
  * @swagger
+ * /admin/withdrawals:
+ *   get:
+ *     summary: Get all withdrawals with filters and pagination
+ *     tags: [Admin]
+ */
+router.get('/withdrawals', [
+    auth,
+    isAdmin,
+    query('status').optional().isIn(['PENDING', 'PROCESSING', 'SUCCESSFUL', 'FAILED', 'REJECTED']),
+    query('startDate').optional().isISO8601(),
+    query('endDate').optional().isISO8601(),
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 100 }),
+    query('search').optional().isString(),
+    validate
+], withdrawalController.getAllWithdrawals);
+
+/**
+ * @swagger
  * /admin/withdrawals/{id}/process:
  *   post:
- *     summary: Process withdrawal request
+ *     summary: Process a withdrawal request
  *     tags: [Admin]
  */
 router.post('/withdrawals/:id/process', [
+    auth,
     isAdmin,
-    param('id').isString(),
-    body('status').isIn(['approved', 'rejected']),
-    body('reason').optional().isString(),
+    param('id').isInt().toInt(),
+    body('status').isIn(['SUCCESSFUL', 'FAILED', 'REJECTED']).withMessage('Invalid status'),
+    body('remarks').optional().isString(),
     validate
-], adminController.processWithdrawal);
+], withdrawalController.processWithdrawal);
 
 // Admin Settings Routes
 router.get('/config', adminController.getAdminConfig);

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { isActive, isAdmin,auth } = require('../middleware/auth');
-const { body, param, query } = require('express-validator');
+const { auth } = require('../middleware/auth');
+const { body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const withdrawalController = require('../controllers/withdrawal.controller');
 
@@ -44,10 +44,8 @@ const withdrawalController = require('../controllers/withdrawal.controller');
  */
 router.post('/', [
     auth,
-    body('amount').isFloat({ min: 1000 }).withMessage('Minimum withdrawal amount is 1000'),
-    body('phone')
-        .matches(/^07\d{8}$/)
-        .withMessage('Please provide a valid Ugandan phone number (e.g., 0701234567)'),
+    body('amount').isNumeric().withMessage('Amount must be a number'),
+    body('phone').notEmpty().withMessage('Phone number is required'),
     validate
 ], withdrawalController.requestWithdrawal);
 
@@ -60,9 +58,6 @@ router.post('/', [
  */
 router.get('/', [
     auth,
-    query('status').optional().isIn(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']),
-    
-    validate
 ], withdrawalController.getWithdrawalHistory);
 
 /**
@@ -73,45 +68,9 @@ router.get('/', [
  *     tags: [Withdrawals]
  */
 router.post('/:id/cancel', [
-    isActive,
+    auth,
     param('id').isString(),
     validate
 ], withdrawalController.cancelWithdrawal);
-
-/**
- * @swagger
- * /withdrawals/{id}/process:
- *   post:
- *     summary: Process withdrawal request (Admin only)
- *     tags: [Withdrawals]
- */
-router.post('/:id/process', [
-    isAdmin,
-    param('id').isString(),
-    body('status').isIn(['COMPLETED', 'FAILED']),
-    body('remarks').optional().isString(),
-    body('transaction_hash').optional().isString(),
-    validate
-], withdrawalController.processWithdrawal);
-
-/**
- * @swagger
- * /withdrawals/all:
- *   get:
- *     summary: Get all withdrawals (Admin only)
- *     tags: [Withdrawals]
- */
-router.get('/all', [
-    isAdmin,
-    query('status').optional().isIn(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']),
-    query('withdrawal_method').optional().isIn(['MPESA', 'BANK', 'CRYPTO']),
-    query('start_date').optional().isISO8601(),
-    query('end_date').optional().isISO8601(),
-    query('min_amount').optional().isFloat({ min: 0 }),
-    query('max_amount').optional().isFloat({ min: 0 }),
-    query('page').optional().isInt({ min: 1 }),
-    query('limit').optional().isInt({ min: 1, max: 100 }),
-    validate
-], withdrawalController.getAllWithdrawals);
 
 module.exports = router;

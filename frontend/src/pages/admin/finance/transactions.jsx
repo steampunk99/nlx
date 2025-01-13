@@ -152,7 +152,7 @@ export default function TransactionsPage() {
     <div className="container mx-auto py-8 space-y-8">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-white">
+        <Card className="bg-green-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export default function TransactionsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white">
+        <Card className="bg-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
           </CardHeader>

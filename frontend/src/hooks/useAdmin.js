@@ -106,6 +106,7 @@ export function useAdmin() {
       queryKey: queryKeys.stats,
       queryFn: async () => {
         const { data } = await api.get('/admin/stats')
+        console.log('System stats response:', data.data)
         return data.data
       },
       onError: (error) => handleError(error, 'Failed to fetch system statistics')

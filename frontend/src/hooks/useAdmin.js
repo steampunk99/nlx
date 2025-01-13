@@ -87,6 +87,19 @@ export function useAdmin() {
     })
   }
 
+  const useCreateUser = () => {
+    const queryClient = useQueryClient()
+    return useMutation({
+      mutationFn: async (userData) => {
+        const response = await api.post('/admin/users', userData)
+        return response.data
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['users'] })
+      }
+    })
+  }
+
   // Statistics Management
   const useSystemStats = () => {
     return useQuery({
@@ -226,6 +239,7 @@ export function useAdmin() {
     useUserDetails,
     useUpdateUserStatus,
     useDeleteUser,
+    useCreateUser,
     useSystemStats,
     useNetworkStats,
     useNetworkTree,

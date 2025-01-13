@@ -58,6 +58,26 @@ router.get('/users', [
 
 /**
  * @swagger
+ * /admin/users:
+ *   post:
+ *     summary: Create new admin user
+ *     tags: [Admin]
+ */
+router.post('/users', [
+    auth,
+    isAdmin,
+    body('email').isEmail().withMessage('Invalid email'),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('firstName').notEmpty().withMessage('First name is required'),
+    body('lastName').notEmpty().withMessage('Last name is required'),
+    body('phone').notEmpty().withMessage('Phone is required'),
+    body('role').isIn(['USER', 'ADMIN']).withMessage('Invalid role'),
+    body('status').isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']).withMessage('Invalid status'),
+    validate
+], adminController.createUser);
+
+/**
+ * @swagger
  * /admin/users/{id}:
  *   get:
  *     summary: Get user details by ID

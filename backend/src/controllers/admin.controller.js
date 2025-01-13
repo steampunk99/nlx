@@ -7,6 +7,8 @@ const nodePaymentService = require('../services/nodePayment.service');
 const { validatePackage } = require('../middleware/validate');
 const { prisma } = require('../config/prisma');
 const logger = require('../services/logger.service');
+const bcrypt = require('bcryptjs');
+const { generateUsername } = require('../utils/userUtils');
 
 class AdminController {
   /**
@@ -578,7 +580,107 @@ class AdminController {
       res.status(500).json({ success: false, message: 'Failed to update admin configuration' });
     }
   }
-}
 
+  async createUser(req, res) {
+    try {
+      const { 
+        email, 
+        password, 
+        firstName, 
+        lastName, 
+        phone,
+        role = 'USER',
+        status = 'ACTIVE', 
+        country = 'UG',
+        createNode = true 
+      } = req.body;
+
+      // Start a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        // Check if email exists
+        const existingUser = await tx.user.findUnique({
+          where: { email }
+        });
+
+        if (existingUser) {
+          throw new Error('An account with this email already exists');
+        }
+
+        // Generate unique username
+        const baseUsername = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
+        let username = baseUsername;
+        let counter = 1;
+
+        while (await tx.user.findUnique({ where: { username } })) {
+          username = `${baseUsername}${counter}`;
+          counter++;
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create user
+        const user = await tx.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            username,
+            firstName,
+            lastName,
+            phone,
+            role,
+            status,
+            country,
+            isVerified: true 
+          }
+        });
+
+        // Create node if requested and user is not an admin
+        let node = null;
+        if (createNode && role === 'USER') {
+          // Get the last node to determine placement
+          const lastNode = await tx.node.findFirst({
+            orderBy: { id: 'desc' },
+            where: { status: 'ACTIVE' }
+          });
+
+          node = await tx.node.create({
+            data: {
+              userId: user.id,
+              status: 'ACTIVE',
+              position: 'ONE',
+              level: 1,
+              placementId: lastNode?.id || null,
+              sponsorId: lastNode?.id || null
+            }
+          });
+        }
+
+        return { user, node };
+      });
+
+      // Remove password from response
+      const { user, node } = result;
+      const { password: _, ...userWithoutPassword } = user;
+
+      return res.status(201).json({
+        success: true,
+        message: 'User created successfully',
+        data: {
+          user: userWithoutPassword,
+          node
+        }
+      });
+
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return res.status(error.message === 'An account with this email already exists' ? 409 : 500).json({
+        success: false,
+        message: error.message || 'Internal server error'
+      });
+    }
+  }
+}
 
 module.exports = new AdminController();

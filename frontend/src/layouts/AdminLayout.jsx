@@ -136,12 +136,12 @@ export function AdminLayout() {
       children: [
         { 
           label: 'Withdrawals', 
-          to: '/admin/withdrawals',
+          to: '/admin/finance/withdrawals',
           icon: 'ph:money-bold'
         },
         { 
           label: 'Commissions', 
-          to: '/admin/commissions',
+          to: '/admin/finance/commissions',
           icon: 'ph:percent-bold'
         },
         { 

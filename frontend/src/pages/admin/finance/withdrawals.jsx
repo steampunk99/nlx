@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select"
-import { Icon } from '../../../components/iconify'
+import { Icon } from '@iconify/react';
 
 const withdrawals = [
   {

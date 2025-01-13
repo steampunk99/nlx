@@ -48,8 +48,21 @@ const auth = async (req, res, next) => {
         const userId = parseInt(decoded.userId, 10);
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: {
-                node: true
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                status: true,
+                node: {
+                    select: {
+                        id: true,
+                        status: true,
+                        availableBalance: true
+                    }
+                }
             }
         });
         console.log(' User found:', user ? ' Yes' : ' No');
@@ -97,12 +110,21 @@ const auth = async (req, res, next) => {
  */
 const isAdmin = async (req, res, next) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+        }
+
         if (req.user.role !== 'ADMIN') {
+            console.log(' User is not admin',req.user.role);
             return res.status(403).json({
                 success: false,
                 message: 'Access denied. Admin privileges required.'
             });
         }
+
         next();
     } catch (error) {
         console.error('Admin check error:', error);

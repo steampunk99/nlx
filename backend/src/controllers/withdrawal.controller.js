@@ -371,6 +371,29 @@ class WithdrawalController {
             }
         });
 
+        // Initialize default stats for all statuses
+        const defaultStats = {
+            pending: { count: 0, amount: "0" },
+            processing: { count: 0, amount: "0" },
+            successful: { count: 0, amount: "0" },
+            failed: { count: 0, amount: "0" },
+            rejected: { count: 0, amount: "0" }
+        };
+
+        // Convert stats to proper format with defaults
+        const formattedStats = stats.reduce((acc, stat) => {
+            const status = stat.status.toLowerCase();
+            // Convert Decimal to string to preserve precision
+            const amount = stat._sum.amount?.toString() || "0";
+            return {
+                ...acc,
+                [status]: {
+                    count: stat._count,
+                    amount
+                }
+            };
+        }, defaultStats);
+
         res.json({
             success: true,
             data: {
@@ -381,13 +404,7 @@ class WithdrawalController {
                     attempts: w.details?.attempts,
                     fee: w.details?.fee
                 })),
-                stats: stats.reduce((acc, stat) => ({
-                    ...acc,
-                    [stat.status.toLowerCase()]: {
-                        count: stat._count,
-                        amount: stat._sum.amount
-                    }
-                }), {}),
+                stats: formattedStats,
                 pagination: {
                     total,
                     pages: Math.ceil(total / limit),
@@ -466,165 +483,224 @@ class WithdrawalController {
      * @param {Request} req 
      * @param {Response} res 
      */
-    async processWithdrawal(req, res) {
-        try {
-            const { id } = req.params;
-            const { status, remarks, transaction_hash } = req.body;
+    processWithdrawal = catchAsync(async (req, res) => {
+        const { id } = req.params;
+        const { status, remarks } = req.body;
 
-            // Only admin can update withdrawal status
-            if (!req.user.isAdmin) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Not authorized'
-                });
+        // Get withdrawal with user
+        const withdrawal = await prisma.withdrawal.findUnique({
+            where: { id: parseInt(id) },
+            include: {
+                user: true
             }
+        });
 
-            const withdrawal = await prisma.withdrawal.findUnique({
-                where: { id },
-                include: {
-                    user: true
-                }
-            });
+        if (!withdrawal) {
+            throw new AppError('Withdrawal not found', 404);
+        }
 
-            if (!withdrawal) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Withdrawal not found or already processed'
-                });
-            }
+        if (!['SUCCESSFUL', 'FAILED', 'REJECTED'].includes(status)) {
+            throw new AppError('Invalid status', 400);
+        }
 
-            const updatedWithdrawal = await prisma.withdrawal.update({
-                where: { id },
+        if (withdrawal.status !== 'PENDING') {
+            throw new AppError('Can only process pending withdrawals', 400);
+        }
+
+        // Update withdrawal in a transaction
+        const updatedWithdrawal = await prisma.$transaction(async (tx) => {
+            // Update withdrawal status
+            const updated = await tx.withdrawal.update({
+                where: { id: parseInt(id) },
                 data: {
                     status,
-                    remarks,
-                    processedAt: status === 'COMPLETED' ? new Date() : null,
-                    processedBy: req.user.id,
-                    transactionHash: transaction_hash
-                }
-            });
-
-            await notificationService.createWithdrawalNotification(
-                withdrawal.userId,
-                withdrawal.id,
-                status,
-                withdrawal.amount
-            );
-
-            res.json({
-                success: true,
-                message: `Withdrawal ${status} successfully`,
-                data: updatedWithdrawal
-            });
-        } catch (error) {
-            logger.error('Process withdrawal error:', {
-                error: error.message,
-                user_id: req.user?.id
-            });
-
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error'
-            });
-        }
-    }
-
-    /**
-     * Get all withdrawals (Admin only)
-     * @param {Request} req 
-     * @param {Response} res 
-     */
-    async getAllWithdrawals(req, res) {
-        try {
-            // Only admin can view all withdrawals
-            if (!req.user.isAdmin) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Not authorized'
-                });
-            }
-
-            const { status, withdrawal_method, start_date, end_date, min_amount, max_amount, page = 1, limit = 10 } = req.query;
-
-            const withdrawals = await prisma.withdrawal.findMany({
-                where: {
-                    ...(status && { status }),
-                    ...(withdrawal_method && { method: withdrawal_method }),
-                    ...(start_date && end_date && {
-                        createdAt: {
-                            gte: new Date(start_date),
-                            lte: new Date(end_date)
-                        }
-                    }),
-                    ...(min_amount && max_amount && {
-                        amount: {
-                            gte: min_amount,
-                            lte: max_amount
-                        }
-                    })
+                    processedAt: new Date(),
+                    details: {
+                        ...withdrawal.details,
+                        processedAt: new Date(),
+                        processedBy: req.user.id,
+                        remarks: remarks || (status === 'SUCCESSFUL' ? 'Approved by admin' : 'Rejected by admin')
+                    }
                 },
-                orderBy: { createdAt: 'desc' },
-                skip: (page - 1) * limit,
-                take: limit,
                 include: {
                     user: {
                         select: {
-                            username: true,
+                            id: true,
+                            firstName: true,
+                            lastName: true,
                             email: true
                         }
                     }
                 }
             });
 
-            const total = await prisma.withdrawal.count({
-                where: {
-                    ...(status && { status }),
-                    ...(withdrawal_method && { method: withdrawal_method }),
-                    ...(start_date && end_date && {
-                        createdAt: {
-                            gte: new Date(start_date),
-                            lte: new Date(endDate)
+            // Update node withdrawal and statement if exists
+            if (withdrawal.transactionId) {
+                await Promise.all([
+                    tx.nodeWithdrawal.updateMany({
+                        where: { transactionId: withdrawal.transactionId },
+                        data: { 
+                            status: status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED',
+                            reason: remarks || (status === 'SUCCESSFUL' ? 'Approved by admin' : 'Rejected by admin')
                         }
                     }),
-                    ...(min_amount && max_amount && {
-                        amount: {
-                            gte: min_amount,
-                            lte: max_amount
+                    tx.nodeStatement.updateMany({
+                        where: {
+                            referenceType: 'WITHDRAWAL',
+                            referenceId: withdrawal.id
+                        },
+                        data: { 
+                            status: status === 'SUCCESSFUL' ? 'SUCCESSFUL' : 'FAILED',
+                            description: remarks 
+                                ? `${withdrawal.description || 'Withdrawal request'} - ${remarks}`
+                                : `${withdrawal.description || 'Withdrawal request'} - ${status === 'SUCCESSFUL' ? 'Approved by admin' : 'Rejected by admin'}`
                         }
                     })
-                }
-            });
+                ]);
+            }
 
-            res.json({
-                success: true,
-                data: {
-                    withdrawals: withdrawals.map(w => ({
-                        ...w,
-                        phone: w.details?.phone,
-                        failureReason: w.details?.failureReason,
-                        attempts: w.details?.attempts,
-                        fee: w.details?.fee
-                    })),
-                    pagination: {
-                        total,
-                        pages: Math.ceil(total / limit),
-                        currentPage: parseInt(page),
-                        limit: parseInt(limit)
+            // Update node balance if withdrawal is successful
+            if (status === 'SUCCESSFUL' && withdrawal.details?.nodeId) {
+                await tx.node.update({
+                    where: { id: withdrawal.details.nodeId },
+                    data: {
+                        availableBalance: {
+                            decrement: withdrawal.amount
+                        }
+                    }
+                });
+            }
+
+            // Create notification within the transaction
+            await notificationService.createWithdrawalNotification(
+                withdrawal.userId,
+                withdrawal.id,
+                status,
+                withdrawal.amount,
+                remarks,
+                tx
+            );
+
+            return updated;
+        });
+
+        res.json({
+            success: true,
+            message: `Withdrawal ${status.toLowerCase()} successfully`,
+            data: {
+                ...updatedWithdrawal,
+                phone: updatedWithdrawal.details?.phone,
+                failureReason: updatedWithdrawal.details?.failureReason,
+                attempts: updatedWithdrawal.details?.attempts,
+                fee: updatedWithdrawal.details?.fee
+            }
+        });
+    })
+
+    /**
+     * Get all withdrawals (Admin only)
+     * @param {Request} req 
+     * @param {Response} res 
+     */
+    getAllWithdrawals = catchAsync(async (req, res) => {
+        const { status, startDate, endDate, page = 1, limit = 10, search } = req.query;
+
+        // Build where clause
+        const where = {
+            ...(status && { status }),
+            ...(startDate && endDate && {
+                createdAt: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate)
+                }
+            }),
+            ...(search && {
+                OR: [
+                    { transactionId: { contains: search } },
+                    { user: { 
+                        OR: [
+                            { firstName: { contains: search } },
+                            { lastName: { contains: search } },
+                            { email: { contains: search } }
+                        ]
+                    }}
+                ]
+            })
+        };
+
+        // Get withdrawals with filters
+        const [withdrawals, total] = await Promise.all([
+            prisma.withdrawal.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * parseInt(limit),
+                take: parseInt(limit),
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
                     }
                 }
-            });
-        } catch (error) {
-            logger.error('Get all withdrawals error:', {
-                error: error.message,
-                user_id: req.user?.id
-            });
+            }),
+            prisma.withdrawal.count({ where })
+        ]);
 
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error'
-            });
-        }
-    }
+        // Get withdrawal statistics
+        const stats = await prisma.withdrawal.groupBy({
+            by: ['status'],
+            _count: true,
+            _sum: {
+                amount: true
+            }
+        });
+
+        // Initialize default stats for all statuses
+        const defaultStats = {
+            pending: { count: 0, amount: "0" },
+            processing: { count: 0, amount: "0" },
+            successful: { count: 0, amount: "0" },
+            failed: { count: 0, amount: "0" },
+            rejected: { count: 0, amount: "0" }
+        };
+
+        // Convert stats to proper format with defaults
+        const formattedStats = stats.reduce((acc, stat) => {
+            const status = stat.status.toLowerCase();
+            // Convert Decimal to string to preserve precision
+            const amount = stat._sum.amount?.toString() || "0";
+            return {
+                ...acc,
+                [status]: {
+                    count: stat._count,
+                    amount
+                }
+            };
+        }, defaultStats);
+
+        res.json({
+            success: true,
+            data: {
+                withdrawals: withdrawals.map(w => ({
+                    ...w,
+                    phone: w.details?.phone,
+                    failureReason: w.details?.failureReason,
+                    attempts: w.details?.attempts,
+                    fee: w.details?.fee
+                })),
+                stats: formattedStats,
+                pagination: {
+                    total,
+                    pages: Math.ceil(total / parseInt(limit)),
+                    currentPage: parseInt(page),
+                    limit: parseInt(limit)
+                }
+            }
+        });
+    })
 }
 
 module.exports = new WithdrawalController();

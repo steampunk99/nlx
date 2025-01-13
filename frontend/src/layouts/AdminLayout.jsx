@@ -63,8 +63,12 @@ export function AdminLayout() {
   const activePath = location.pathname
 
   const handleNavigation = useCallback((to) => {
-    if (to !== location.pathname) {
-      navigate(to)
+    if (to && to !== location.pathname) {
+      try {
+        navigate(to)
+      } catch (error) {
+        console.error(error)
+      }
     }
   }, [navigate, location.pathname])
 

@@ -12,7 +12,8 @@
     "test:auth": "jest auth.test.js",
     "test:network": "jest network.test.js",
     "test:package": "jest package.test.js",
-    "test:withdrawal": "jest withdrawal.test.js"
+    "test:withdrawal": "jest withdrawal.test.js",
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

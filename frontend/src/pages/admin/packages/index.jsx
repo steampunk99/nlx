@@ -1,11 +1,37 @@
-import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
-import { Plus, Package, Users, DollarSign, Activity } from 'lucide-react';
-import { useAdminPackages } from '../../../hooks/useAdminPackages';
-import { PackageList } from '../../../components/admin/packages/PackageList';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Package, Users, DollarSign, Activity, Search, X } from 'lucide-react';
+import { useAdminPackages } from '@/hooks/useAdminPackages';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import PackageForm from './packages-form';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useDebounce } from '@/hooks/use-debounce';
 
 // Format currency in UGX
 const formatCurrency = (amount) => {
@@ -39,9 +65,25 @@ const itemVariants = {
   }
 };
 
-export default function AdminPackages() {
-  const navigate = useNavigate();
-  const { data: stats, isLoading } = useAdminPackages().usePackageStats();
+export function AdminPackagesPage() {
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const debouncedSearch = useDebounce(search, 500);
+
+  const { 
+    packages, 
+    pagination, 
+    isLoading,
+    stats,
+    updatePackage
+  } = useAdminPackages({
+    page,
+    search: debouncedSearch,
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  });
 
   const statCards = [
     {
@@ -74,12 +116,40 @@ export default function AdminPackages() {
     }
   ];
 
+  const handleEditClick = (pkg) => {
+    setSelectedPackage(pkg);
+    setIsCreateOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setSelectedPackage(null);
+    setIsCreateOpen(false);
+  };
+
+  const handleCreateClick = () => {
+    setSelectedPackage(null);
+    setIsCreateOpen(true);
+  };
+
+  const handleStatusChange = async (pkg) => {
+    try {
+      await updatePackage.mutateAsync({
+        id: pkg.id,
+        data: {
+          status: pkg.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update package status:', error);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Package Management</h1>
         <Button 
-          onClick={() => navigate('create')}
+          onClick={handleCreateClick}
           className="gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -114,7 +184,183 @@ export default function AdminPackages() {
         ))}
       </motion.div>
 
-      <PackageList />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Packages</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search packages..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8"
+                />
+                {search && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-2"
+                    onClick={() => setSearch('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Statistics</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : packages?.length > 0 ? (
+                  packages.map((pkg) => (
+                    <TableRow key={pkg.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{pkg.name}</div>
+                          <div className="text-sm text-muted-foreground">Level {pkg.level}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatCurrency(pkg.price)}</TableCell>
+                      <TableCell>
+                        <Badge variant={pkg.status === 'ACTIVE' ? 'success' : 'secondary'}>
+                          {pkg.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-sm">
+                            <span className="font-medium">{pkg.statistics.activeSubscriptions}</span>
+                            <span className="text-muted-foreground"> active subscriptions</span>
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium">{formatCurrency(pkg.statistics.totalRevenue)}</span>
+                            <span className="text-muted-foreground"> revenue</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-4 w-4"
+                              >
+                                <circle cx="12" cy="12" r="1" />
+                                <circle cx="12" cy="5" r="1" />
+                                <circle cx="12" cy="19" r="1" />
+                              </svg>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEditClick(pkg)}>
+                              Edit Package
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleStatusChange(pkg)}
+                            >
+                              {pkg.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      No packages found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+            >
+              First
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(page + 1)}
+              disabled={page === pagination?.pages}
+            >
+              Next
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(pagination?.pages)}
+              disabled={page === pagination?.pages}
+            >
+              Last
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isCreateOpen} onOpenChange={handleDialogClose}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPackage ? 'Edit Package' : 'Create Package'}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedPackage 
+                ? 'Edit the package details below.'
+                : 'Fill in the package details below to create a new package.'}
+            </DialogDescription>
+          </DialogHeader>
+          <PackageForm
+            packageData={selectedPackage}
+            onSuccess={handleDialogClose}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+export default AdminPackagesPage;

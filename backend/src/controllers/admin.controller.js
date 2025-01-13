@@ -63,7 +63,11 @@ class AdminController {
     }
   }
 
-  // Get all transactions - ADMIN
+  /**
+   * Get all transactions - ADMIN
+   * @param {Request} req 
+   * @param {Response} res
+   */
   async getTransactions(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -73,9 +77,7 @@ class AdminController {
       const type = req.query.type;
       const startDate = req.query.startDate;
       const endDate = req.query.endDate;
-
       const where = {};
-
       // Add filters
       if (status) {
         where.status = status;
@@ -105,15 +107,12 @@ class AdminController {
           }
         ];
       }
-
       // Get total count with the same where clause
       const total = await prisma.nodePayment.count({ where });
-
       // Get pending count (always get this regardless of filters)
       const pendingCount = await prisma.nodePayment.count({
         where: { status: 'PENDING' }
       });
-
       // Get paginated transactions
       const transactions = await prisma.nodePayment.findMany({
         where,
@@ -131,7 +130,6 @@ class AdminController {
         skip: (page - 1) * limit,
         take: limit
       });
-
       res.json({
         success: true,
         data: {
@@ -264,26 +262,48 @@ class AdminController {
    */
   async getSystemStats(req, res) {
     try {
-      
       const [
-        totalUsers,
+        users,
         activeUsers,
-        totalNodes,
+        nodes,
         activeNodes,
-        totalPackages,
+        packages,
         activePackages,
         pendingWithdrawals,
         nodePayments,
         commissions,
         withdrawals
       ] = await Promise.all([
-        userService.count(),
-        userService.count({ status: 'ACTIVE' }),
-        nodeService.count(),
-        nodeService.count({ status: 'ACTIVE' }),
-        packageService.count(),
-        packageService.count({ status: 'ACTIVE' }),
-        nodeWithdrawalService.count({ status: 'PENDING' }),
+        // Total users
+        prisma.user.count(),
+        // Active users
+        prisma.user.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Total nodes
+        prisma.node.count(),
+        // Active nodes
+        prisma.node.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Total packages
+        prisma.package.count(),
+        // Active packages
+        prisma.package.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Pending withdrawals count
+        prisma.nodeWithdrawal.count({
+          where: {
+            status: 'PENDING'
+          }
+        }),
         // All node payments (packages, upgrades, etc)
         prisma.nodePayment.aggregate({
           _sum: {
@@ -296,50 +316,52 @@ class AdminController {
             amount: true
           }
         }),
-        // All withdrawals
+        // All successful withdrawals
         prisma.nodeWithdrawal.aggregate({
           _sum: {
             amount: true
+          },
+          where: {
+            status: 'SUCCESSFUL'
           }
         })
       ]);
 
-      // Calculate total system revenue
+      // Calculate total revenue and net revenue
       const totalRevenue = Number(nodePayments._sum.amount || 0);
       const totalCommissions = Number(commissions._sum.amount || 0);
       const totalWithdrawals = Number(withdrawals._sum.amount || 0);
       const systemRevenue = totalRevenue - totalCommissions - totalWithdrawals;
 
-      res.json({
+      return res.json({
         success: true,
         data: {
           users: {
-            total: totalUsers,
+            total: users,
             active: activeUsers
           },
           nodes: {
-            total: totalNodes,
+            total: nodes,
             active: activeNodes
           },
           packages: {
-            total: totalPackages,
+            total: packages,
             active: activePackages
           },
           pendingWithdrawals,
-          systemRevenue,
           revenue: {
             total: totalRevenue,
             commissions: totalCommissions,
-            withdrawals: totalWithdrawals
+            withdrawals: totalWithdrawals,
+            systemRevenue
           }
         }
       });
-
     } catch (error) {
       console.error('Get system stats error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error retrieving system statistics'
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
       });
     }
   }
@@ -350,28 +372,67 @@ class AdminController {
    * @param {Response} res 
    */
   async createPackage(req, res) {
+    const { 
+      name, 
+      description, 
+      price, 
+      level,
+      status = 'ACTIVE',
+      benefits,
+      maxNodes = 1,
+      duration = 30,
+      features,
+      dailyMultiplier = 1
+    } = req.body;
+
     try {
-      const { error } = validatePackage(req.body);
-      if (error) {
-        return res.status(400).json({
-          success: false,
-          message: error.details[0].message
+      // Start transaction
+      const result = await prisma.$transaction(async (tx) => {
+        // Check if package with same name exists
+        const existingPackage = await tx.package.findFirst({
+          where: { name }
         });
-      }
 
-      const pkg = await packageService.create(req.body);
+        if (existingPackage) {
+          throw new Error('A package with this name already exists');
+        }
 
-      res.status(201).json({
+        // Validate price
+        if (price <= 0) {
+          throw new Error('Package price must be greater than zero');
+        }
+
+        // Create package
+        const newPackage = await tx.package.create({
+          data: {
+            name,
+            description,
+            price: parseFloat(price),
+            level: parseInt(level),
+            status,
+            benefits: benefits ? JSON.parse(benefits) : null,
+            maxNodes: parseInt(maxNodes),
+            duration: parseInt(duration),
+            features: features ? JSON.stringify(features) : null,
+            dailyMultiplier: parseFloat(dailyMultiplier)
+          }
+        });
+
+        return newPackage;
+      });
+
+      return res.status(201).json({
         success: true,
-        message: 'Package created successfully',
-        data: pkg
+        data: result
       });
 
     } catch (error) {
-      console.error('Create package error:', error);
-      res.status(500).json({
+      console.error('Error creating package:', error);
+      return res.status(
+        error.message === 'A package with this name already exists' ? 409 : 500
+      ).json({
         success: false,
-        message: 'Internal server error'
+        message: error.message || 'Internal server error'
       });
     }
   }
@@ -382,17 +443,217 @@ class AdminController {
    * @param {Response} res 
    */
   async updatePackage(req, res) {
+    const { id } = req.params;
+    const updateData = req.body;
+
     try {
-      const { id } = req.params;
-      const { error } = validatePackage(req.body);
-      if (error) {
-        return res.status(400).json({
-          success: false,
-          message: error.details[0].message
+      const result = await prisma.$transaction(async (tx) => {
+        // Check if package exists
+        const existingPackage = await tx.package.findUnique({
+          where: { id: parseInt(id) },
+          include: {
+            nodePackages: {
+              where: { status: 'ACTIVE' }
+            }
+          }
         });
+
+        if (!existingPackage) {
+          throw new Error('Package not found');
+        }
+
+        // If package has active subscriptions, prevent critical updates
+        if (existingPackage.nodePackages.length > 0) {
+          const criticalFields = ['price', 'duration', 'maxNodes', 'dailyMultiplier'];
+          criticalFields.forEach(field => {
+            if (updateData[field] && updateData[field] !== existingPackage[field]) {
+              throw new Error(
+                `Cannot modify ${field} for package with active subscriptions`
+              );
+            }
+          });
+        }
+
+        // Format data for update
+        const formattedData = {
+          name: updateData.name,
+          description: updateData.description,
+          price: updateData.price ? parseFloat(updateData.price) : undefined,
+          level: updateData.level ? parseInt(updateData.level) : undefined,
+          status: updateData.status,
+          benefits: updateData.benefits ? JSON.parse(updateData.benefits) : undefined,
+          maxNodes: updateData.maxNodes ? parseInt(updateData.maxNodes) : undefined,
+          duration: updateData.duration ? parseInt(updateData.duration) : undefined,
+          features: updateData.features ? JSON.stringify(updateData.features) : undefined,
+          dailyMultiplier: updateData.dailyMultiplier ? parseFloat(updateData.dailyMultiplier) : undefined
+        };
+
+        // Remove undefined values
+        Object.keys(formattedData).forEach(key => {
+          if (formattedData[key] === undefined) {
+            delete formattedData[key];
+          }
+        });
+
+        // Update package
+        const updatedPackage = await tx.package.update({
+          where: { id: parseInt(id) },
+          data: formattedData
+        });
+
+        return updatedPackage;
+      });
+
+      return res.json({
+        success: true,
+        data: result
+      });
+
+    } catch (error) {
+      console.error('Error updating package:', error);
+      return res.status(
+        error.message === 'Package not found' ? 404 :
+        error.message.includes('Cannot modify') ? 400 : 500
+      ).json({
+        success: false,
+        message: error.message || 'Internal server error'
+      });
+    }
+  }
+
+  /**
+   * Get all packages with pagination and filters
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async getPackages(req, res) {
+    const { 
+      status,
+      level,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    try {
+      const where = {};
+      
+      // Build filter conditions
+      if (status) where.status = status;
+      if (level) where.level = parseInt(level);
+      if (search) {
+        where.OR = [
+          { name: { contains: search } },
+          { description: { contains: search } }
+        ];
       }
 
-      const pkg = await packageService.findById(id);
+      // Get packages with pagination
+      const [packages, total] = await Promise.all([
+        prisma.package.findMany({
+          where,
+          orderBy: { [sortBy]: sortOrder },
+          skip: (parseInt(page) - 1) * parseInt(limit),
+          take: parseInt(limit),
+          include: {
+            _count: {
+              select: {
+                nodePackages: true,
+                nodePayments: true
+              }
+            }
+          }
+        }),
+        prisma.package.count({ where })
+      ]);
+
+      // Calculate package statistics
+      const packagesWithStats = await Promise.all(
+        packages.map(async (pkg) => {
+          const [revenue, commissions] = await Promise.all([
+            prisma.nodePayment.aggregate({
+              select: {
+                _sum: {
+                  select: {
+                    amount: true
+                  }
+                }
+              },
+              where: {
+                packageId: pkg.id,
+                status: "SUCCESSFUL"
+              }
+            }),
+            prisma.commission.aggregate({
+              select: {
+                _sum: {
+                  select: {
+                    amount: true
+                  }
+                }
+              },
+              where: {
+                packageId: pkg.id,
+                status: "PROCESSED"
+              }
+            })
+          ]);
+
+          return {
+            ...pkg,
+            statistics: {
+              activeSubscriptions: pkg._count.nodePackages,
+              totalPayments: pkg._count.nodePayments,
+              totalRevenue: revenue._sum.amount || 0,
+              totalCommissions: commissions._sum.amount || 0
+            }
+          };
+        })
+      );
+
+      return res.json({
+        success: true,
+        data: packagesWithStats,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / parseInt(limit))
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Internal server error'
+      });
+    }
+  }
+
+  /**
+   * Get package statistics
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async getPackageStats(req, res) {
+    const { id } = req.params;
+
+    try {
+      const pkg = await prisma.package.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          _count: {
+            select: {
+              nodePackages: true,
+              nodePayments: true
+            }
+          }
+        }
+      });
+
       if (!pkg) {
         return res.status(404).json({
           success: false,
@@ -400,19 +661,81 @@ class AdminController {
         });
       }
 
-      await packageService.update(id, req.body);
+      // Get detailed statistics
+      const [
+        activeSubscriptions,
+        revenue,
+        commissions,
+        recentPayments
+      ] = await Promise.all([
+        prisma.nodePackage.count({
+          where: {
+            packageId: parseInt(id),
+            status: 'ACTIVE'
+          }
+        }),
+        prisma.nodePayment.aggregate({
+          where: {
+            packageId: parseInt(id),
+            status: 'SUCCESSFUL'
+          },
+          _sum: {
+            amount: true
+          }
+        }),
+        prisma.commission.aggregate({
+          where: {
+            packageId: parseInt(id),
+            status: 'PROCESSED'
+          },
+          _sum: {
+            amount: true
+          }
+        }),
+        prisma.nodePayment.findMany({
+          where: {
+            packageId: parseInt(id),
+            status: 'SUCCESSFUL'
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: {
+            node: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          }
+        })
+      ]);
 
-      res.json({
+      return res.json({
         success: true,
-        message: 'Package updated successfully',
-        data: pkg
+        data: {
+          package: pkg,
+          statistics: {
+            activeSubscriptions,
+            totalSubscriptions: pkg._count.nodePackages,
+            totalPayments: pkg._count.nodePayments,
+            totalRevenue: revenue._sum.amount || 0,
+            totalCommissions: commissions._sum.amount || 0,
+            netRevenue: (revenue._sum.amount || 0) - (commissions._sum.amount || 0),
+            recentPayments
+          }
+        }
       });
 
     } catch (error) {
-      console.error('Update package error:', error);
-      res.status(500).json({
+      console.error('Error fetching package statistics:', error);
+      return res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: error.message || 'Internal server error'
       });
     }
   }
@@ -701,6 +1024,104 @@ class AdminController {
       ).json({
         success: false,
         message: error.message || 'Internal server error'
+      });
+    }
+  }
+
+  async getPackagesStats(req, res) {
+    try {
+      const [totalPackages, activePackages, totalUsers, totalRevenue] = await Promise.all([
+        prisma.package.count(),
+        prisma.package.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        prisma.nodePackage.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        prisma.nodePayment.aggregate({
+          where: {
+            status: 'SUCCESSFUL'
+          },
+          _sum: {
+            amount: true
+          }
+        })
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          totalPackages,
+          activePackages,
+          totalUsers,
+          totalRevenue: totalRevenue._sum.amount || 0
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching package stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch package statistics',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get network statistics
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async getNetworkStats(req, res) {
+    try {
+      const [
+        nodes,
+        activeNodes,
+        levelDistribution
+      ] = await Promise.all([
+        // Total nodes
+        prisma.node.count(),
+        // Active nodes
+        prisma.node.count({
+          where: {
+            status: 'ACTIVE'
+          }
+        }),
+        // Level distribution
+        prisma.node.groupBy({
+          by: ['level'],
+          _count: true,
+          orderBy: {
+            level: 'asc'
+          }
+        })
+      ]);
+
+      // Format level distribution
+      const distribution = levelDistribution.reduce((acc, curr) => {
+        acc[curr.level] = curr._count;
+        return acc;
+      }, {});
+
+      return res.json({
+        success: true,
+        data: {
+          nodes: {
+            total: nodes,
+            active: activeNodes
+          },
+          levelDistribution: distribution
+        }
+      });
+    } catch (error) {
+      console.error('Get network stats error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message 
       });
     }
   }

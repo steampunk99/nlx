@@ -14,7 +14,7 @@ import { Label } from "../../components/ui/label"
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Checkbox } from "../../components/ui/checkbox"
-import { toast } from '../../components/ui/use-toast'
+import toast from 'react-hot-toast'
 
 // List of countries with codes
 const countries = [

@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
 
 

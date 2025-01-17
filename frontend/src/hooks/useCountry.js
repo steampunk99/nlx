@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import useCountryStore from '../store/countryStore';
+import { useAtom } from 'jotai';
+import { userAtom } from '../lib/auth';
 
 // Define currency mappings for common countries
 const CURRENCY_MAPPINGS = {
@@ -54,42 +56,31 @@ const CURRENCY_MAPPINGS = {
 export function useCountry() {
   const { country, currency, setCountryInfo } = useCountryStore();
   const [loading, setLoading] = useState(false);
-  const conversionRate = 3900; // USDT to UGX conversion rate
+  const [user] = useAtom(userAtom);
 
   useEffect(() => {
-    const detectCountry = async () => {
-      // If we already have country info in store, don't fetch again
-      if (country !== 'UG' || currency.code !== 'UGX') {
-        return;
-      }
-
+    const setUserCountry = () => {
       setLoading(true);
       try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        console.log('IP API Response:', data);
-        
-        const countryCode = data.country || 'UG';
-        const currencyInfo = CURRENCY_MAPPINGS[countryCode] || CURRENCY_MAPPINGS['UG'];
-        console.log('Currency Info for', countryCode, ':', currencyInfo);
-        
-        setCountryInfo(countryCode, currencyInfo);
+        // Get country from user profile, fallback to UG if not available
+        const userCountry = user?.country || 'UG';
+        const currencyInfo = CURRENCY_MAPPINGS[userCountry] || CURRENCY_MAPPINGS['UG'];
+        setCountryInfo(userCountry, currencyInfo);
       } catch (error) {
-        console.error('Error detecting country:', error);
-        // Fallback to Uganda as default
+        console.error('Error setting country:', error);
         setCountryInfo('UG', CURRENCY_MAPPINGS['UG']);
       } finally {
         setLoading(false);
       }
     };
 
-    detectCountry();
-  }, [country, currency.code, setCountryInfo]);
+    setUserCountry();
+  }, [user?.country]); // Re-run only when user's country changes
 
   const formatAmount = (amount) => {
     const value = Number(amount);
-  if (isNaN(value)) return "0";
+    if (isNaN(value)) return "0";
+    
     // If currency is UGX, show the original amount
     if (currency.code === 'UGX') {
       return new Intl.NumberFormat('en-US', {
@@ -98,38 +89,41 @@ export function useCountry() {
         maximumFractionDigits: 0
       }).format(amount);
     }
+
+    // Base conversion rates (1 USD = 3900 UGX)
+    const UGX_TO_USD = 1 / 3900; // 1 UGX = 0.000256 USD
     
-    // For other currencies, convert from UGX using USDT as intermediate
-    const amountInUSDT = amount / conversionRate;
-    
-    // Conversion rates from USDT
-    const rates = {
-      'EUR': 0.91,  // 1 USDT = 0.91 EUR
-      'USD': 1,     // 1 USDT = 1 USD
-      'GBP': 0.79,  // 1 USDT = 0.79 GBP
-      'KES': 157,   // 1 USDT = 157 KES
-      'TZS': 2490,  // 1 USDT = 2490 TZS
-      'NGN': 907,   // 1 USDT = 907 NGN
-      'ZAR': 18.7,  // 1 USDT = 18.7 ZAR
-      'XOF': 600,   // CFA Franc BCEAO
-      'XAF': 600,   // CFA Franc BEAC
-      'ZWD': 3620,  // Zimbabwe Dollar
-      'ETB': 56,    // Ethiopian Birr
-      'GHS': 12.3   // Ghana Cedi
+    // Direct conversion rates from UGX
+    const directRates = {
+      'EUR': UGX_TO_USD * 0.91,    // EUR/USD = 0.91
+      'USD': UGX_TO_USD,           // 1 UGX = 0.000256 USD
+      'GBP': UGX_TO_USD * 0.79,    // GBP/USD = 0.79
+      'KES': 1 / 27.5713,          // 1 UGX = 0.0403 KES
+      'TZS': 1 / 1.567,            // 1 UGX = 0.638 TZS
+      'NGN': 1 / 4.21,             // 1 UGX = 0.232 NGN
+      'ZAR': 1 / 208.77,           // 1 UGX = 0.00479 ZAR
+      'ZMW': 1 / 123.091,          // 1 UGX = 0.00751 ZMW (from current rate)
+      'XOF': 1 / 6.49,             // 1 UGX = 0.154 XOF
+      'XAF': 1 / 6.49,             // 1 UGX = 0.154 XAF
+      'ETB': 1 / 69.44,            // 1 UGX = 0.0144 ETB
+      'GHS': 1 / 317.46            // 1 UGX = 0.00315 GHS
     };
     
-    const rate = rates[currency.code] || 1;
-    const convertedAmount = amountInUSDT * rate;
+    const rate = directRates[currency.code];
+    if (!rate) {
+      console.warn(`No conversion rate found for ${currency.code}, showing original amount`);
+      return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(amount);
+    }
     
-    console.log(`Converting ${amount} UGX to ${currency.code}:`, {
-      amountInUSDT,
-      rate,
-      finalAmount: convertedAmount
-    });
-
+    const convertedAmount = amount * rate;
+    
     return new Intl.NumberFormat('en-US', {
       style: 'decimal',
-      minimumFractionDigits: 0,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(convertedAmount);
   };
@@ -138,7 +132,6 @@ export function useCountry() {
     country,
     currency,
     loading,
-    formatAmount,
-    conversionRate
+    formatAmount
   };
 }

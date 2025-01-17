@@ -64,25 +64,23 @@ export default function ActivationPage() {
   const {
     availablePackages, 
     userPackage,
-
     packagesLoading,
     purchasePackage,
-   
   } = usePackages()
 
 
-  useEffect(() => {
-    if (userPackage) {
-      toast.success(' Subscription detected, redirecting...')
-      setTimeout(() => {
-        navigate('/dashboard')
-      }, 2000);
-    }
-    else {
-      toast.error('Make a payment to activate your account')
+  // useEffect(() => {
+  //   if (userPackage) {
+  //     toast.success(' Subscription detected, redirecting...')
+  //     setTimeout(() => {
+  //       navigate('/dashboard')
+  //     }, 2000);
+  //   }
+  //   else {
+  //     toast.error('Make a payment to activate your account')
      
-    }
-  }, [userPackage])
+  //   }
+  // }, [userPackage])
 
   const handlePackagePurchase = (pkg) => {
     if (user.country === 'UG') {

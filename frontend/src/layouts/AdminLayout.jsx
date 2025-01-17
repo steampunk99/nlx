@@ -51,10 +51,10 @@ export function AdminLayout() {
   const handleLogout = async () => {
     try {
       await logout()
-      toast.success('Logged out successfully')
+
       navigate('/login')
     } catch (error) {
-      toast.error('Failed to logout')
+     
     }
   }
 

@@ -1,19 +1,21 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useSiteConfig } from '../../hooks/useSiteConfig'
 
 export default function PrivacyPage() {
+  const { siteName, siteLogoUrl, siteBaseUrl, supportEmail, supportPhone, supportLocation } = useSiteConfig()
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <Link 
-            to="/" 
+            to="/login" 
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
-            Back to Home
+            Back to Login
           </Link>
         </div>
       </div>
@@ -125,16 +127,16 @@ export default function PrivacyPage() {
             <p className="text-gray-600">
               For privacy-related inquiries, please contact us at:
               <br />
-              Email: privacy@triplepride.com
+              Email: {supportEmail}
               <br />
-              Address: [Your Business Address]
+              Phone: {supportPhone}
             </p>
           </section>
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500 text-center">
-            Last updated: December 8, 2024
+            Last updated: January 18, 2025
           </p>
         </div>
       </motion.div>

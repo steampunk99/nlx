@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
-
+import { useSiteConfig } from '../../hooks/useSiteConfig'
 export default function TermsPage() {
+  const { siteName, siteLogoUrl, siteBaseUrl, supportEmail, supportPhone, supportLocation } = useSiteConfig()
   return (
     <div className="min-h-screen bg-gray-50 mt-12">
       {/* Header */}
@@ -19,14 +20,14 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-600 mb-4">
-              Welcome to Earn Drip. By accessing and using our platform, you agree to be bound by these Terms of Service.
+              Welcome to {siteName}. By accessing and using our platform, you agree to be bound by these Terms of Service.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Definitions</h2>
             <ul className="list-disc pl-6 text-gray-600 space-y-2">
-              <li>"Platform" refers to the Earn Drip website and services</li>
+              <li>"Platform" refers to the {siteName} website and services</li>
               <li>"User" refers to any individual or entity using our Platform</li>
               <li>"Content" refers to all materials and information provided through the Platform</li>
             </ul>
@@ -86,16 +87,18 @@ export default function TermsPage() {
             <p className="text-gray-600">
               For questions about these Terms of Service, please contact us at:
               <br />
-              Email: support@triplepride.com
+              Email: {supportEmail}
               <br />
-              Address: [Your Business Address]
+              Phone: {supportPhone}
+              <br />
+              Location: {supportLocation}
             </p>
           </section>
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500 text-center">
-            Last updated: December 8, 2024
+            Last updated: January 18, 2025
           </p>
         </div>
       </motion.div>

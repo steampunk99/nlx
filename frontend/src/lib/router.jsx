@@ -70,7 +70,7 @@ export function AppRouter() {
       <Route path="*" element={<NotFoundPage />} />
         {/* Public Routes */}
         <Route element={<MainLayout />}>
-          <Route index element={<HomePage />} />
+          <Route index element={<LoginPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           

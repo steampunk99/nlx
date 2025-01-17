@@ -93,12 +93,12 @@ const NetworkTree = ({ networkData }) => {
                 <div className={styles.subtitle}>Level {level} • {node.position || 'N/A'}</div>
                 <div className={styles.stats}>
                   <div className={styles.stat}>
-                    {/* <div className="font-medium">{node.sponsored?.length || 0}</div>
-                    <div className="text-gray-500">Direct</div> */}
+                    <div className="font-medium">{node.directCount || 0}</div>
+                    <div className="text-gray-500">Direct</div>
                   </div>
                   <div className={styles.stat}>
-                    {/* <div className="font-medium">{node.package?.name || 'No Package'}</div>
-                    <div className="text-gray-500">Package</div> */}
+                    <div className="font-medium text-xs truncate">{node.package?.name || 'No Package'}</div>
+                    <div className="text-gray-500">Package</div>
                   </div>
                 </div>
               </div>
@@ -138,11 +138,11 @@ const NetworkTree = ({ networkData }) => {
             <div className={nodeStyles.ROOT.subtitle}>Network Owner</div>
             <div className={nodeStyles.ROOT.stats}>
               <div className={nodeStyles.ROOT.stat}>
-                <div className="font-medium">{data.sponsored?.length || 0}</div>
+                <div className="font-medium">{data.directCount || 0}</div>
                 <div className="text-gray-500">Direct</div>
               </div>
               <div className={nodeStyles.ROOT.stat}>
-                <div className="font-medium">{data.package?.package?.name || 'No Package'}</div>
+                <div className="font-medium text-xs truncate">{data.package?.name || 'No Package'}</div>
                 <div className="text-gray-500">Package</div>
               </div>
             </div>

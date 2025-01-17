@@ -76,7 +76,6 @@ router.get('/binary-tree', [
 router.get('/genealogy', [
     auth,
     query('depth').optional().isInt({ min: 1, max: 10 }).default(5),
-    validate
 ], networkController.getGenealogyTree);
 
 /**

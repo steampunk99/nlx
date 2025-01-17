@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../components/ui/button'
-
+import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { usePackages } from '../hooks/usePackages';
+import { useSiteConfig } from '../hooks/useSiteConfig'
 import { cn } from "../lib/utils"
 import { 
   LayoutDashboard, 
@@ -27,6 +28,12 @@ import {
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 
 export function DashboardLayout() {
+  const { 
+    siteName, 
+    supportPhone, 
+    supportEmail, 
+    supportLocation 
+  } = useSiteConfig();
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -53,11 +60,7 @@ export function DashboardLayout() {
 
   const handleLogout = async () => {
     try {
-      await logout()
-      
-      toast.success('Logged out successfully')
-      
-      navigate('/login')
+      await logout()   
     } catch (error) {
       toast.error(error.message)
     }
@@ -81,7 +84,7 @@ export function DashboardLayout() {
       )}>
         {(!isCollapsed || isMobileView) && (
           <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-white">Earn Drip</span>
+            <span className="font-bold text-white">{siteName}</span>
           </Link>
         )}
       </div>

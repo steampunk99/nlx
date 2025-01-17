@@ -83,7 +83,7 @@ export function Header() {
               /> */}
             </motion.div>
             <Link
-              to="/"
+              to="/login"
               className="flex items-center gap-2 transition duration-300 hover:opacity-80"
             >
               <span className="sr-only"></span>

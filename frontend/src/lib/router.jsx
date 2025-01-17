@@ -11,8 +11,8 @@ import { toast } from '../components/ui/use-toast'
 import NotFoundPage from '../pages/NotFound'
 import PaymentStatusPage from '@/pages/auth/payment-status'
 import AdminSettingsPage from '@/pages/admin/settings'
-import AdminWithdrawalsPage from '../pages/admin/finance/withdrawals'
-
+import AdminWithdrawalsPage from '@/pages/admin/finance/withdrawals'
+import NetworkPage from '@/pages/dashboard/network' 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
 const LoginPage = lazy(() => import('../pages/auth/login'))
@@ -20,7 +20,7 @@ const RegisterPage = lazy(() => import('../pages/auth/register'))
 const ForgotPasswordPage = lazy(() => import('../pages/auth/forgot-password'))
 const ResetPasswordPage = lazy(() => import('../pages/auth/reset-password'))
 const DashboardPage = lazy(() => import('../pages/dashboard/overview'))
-const NetworkPage = lazy(() => import('../pages/dashboard/network'))
+
 const CommissionsPage = lazy(() => import('../pages/dashboard/commissions'))
 const PackagesPage = lazy(() => import('../pages/dashboard/packages/packages'))
 const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))

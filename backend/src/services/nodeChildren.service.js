@@ -208,107 +208,173 @@ class NodeChildrenService {
     }
 
     async getGenealogyTree({ userId, depth = 5 }) {
+        const start = Date.now();
+        console.log(`[Genealogy] Starting genealogy tree fetch for user ${userId} with depth ${depth}`);
+        
         try {
-            // Get the root user's node
+            // 1. Get root node with package info
+            console.log(`[Genealogy] Fetching root node for user ${userId}`);
             const rootNode = await prisma.node.findFirst({
                 where: { userId },
-                include: {
+                select: {
+                    id: true,
+                    position: true,
+                    status: true,
                     user: {
                         select: {
                             firstName: true,
                             lastName: true,
                             email: true
                         }
+                    },
+                    package: {
+                        include: {
+                            package: true
+                        }
+                    },
+                    sponsored: {
+                        select: {
+                            id: true
+                        }
                     }
                 }
             });
 
             if (!rootNode) {
+                console.log(`[Genealogy] No node found for user ${userId}`);
                 throw new Error('Node not found for user');
             }
 
-            // Recursive function to get all children for a node
-            async function getChildrenRecursive(nodeId, currentLevel, maxLevel) {
-                if (currentLevel > maxLevel) return null;
+            console.log(`[Genealogy] Found root node ${rootNode.id}`);
 
-                // Get up to 3 children for this node
-                const children = await prisma.node.findMany({
-                    where: { 
-                        sponsorId: nodeId,
-                        position: { in: ['ONE', 'TWO', 'THREE'] }
-                    },
-                    orderBy: {
-                        position: 'asc'
-                    },
-                    take: 3,
-                    include: {
-                        user: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                                email: true
+            // 2. Get all sponsored nodes in a single query
+            console.log(`[Genealogy] Fetching all sponsored nodes`);
+            const allNodes = await prisma.node.findMany({
+                where: {
+                    OR: [
+                        { sponsorId: rootNode.id }, // Level 1
+                        {
+                            sponsor: {
+                                sponsorId: rootNode.id
                             }
+                        }, // Level 2
+                        {
+                            sponsor: {
+                                sponsor: {
+                                    sponsorId: rootNode.id
+                                }
+                            }
+                        }, // Level 3
+                        {
+                            sponsor: {
+                                sponsor: {
+                                    sponsor: {
+                                        sponsorId: rootNode.id
+                                    }
+                                }
+                            }
+                        }, // Level 4
+                        {
+                            sponsor: {
+                                sponsor: {
+                                    sponsor: {
+                                        sponsor: {
+                                            sponsorId: rootNode.id
+                                        }
+                                    }
+                                }
+                            }
+                        } // Level 5
+                    ].slice(0, depth) // Only include levels up to specified depth
+                },
+                select: {
+                    id: true,
+                    sponsorId: true,
+                    position: true,
+                    status: true,
+                    user: {
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    },
+                    package: {
+                        include: {
+                            package: true
+                        }
+                    },
+                    sponsored: {
+                        select: {
+                            id: true
                         }
                     }
-                });
-
-                // Process each child recursively
-                const processedChildren = await Promise.all(
-                    children.map(async (child) => {
-                        const childChildren = await getChildrenRecursive(
-                            child.id,
-                            currentLevel + 1,
-                            maxLevel
-                        );
-
-                        return {
-                            ...child,
-                            children: childChildren || []
-                        };
-                    })
-                );
-
-                return processedChildren;
-            }
-
-            // Get all children recursively
-            const allChildren = await getChildrenRecursive(rootNode.id, 1, depth);
-
-            // Organize children by levels
-            const levels = {};
-            function organizeByLevels(nodes, level = 1) {
-                if (!nodes || nodes.length === 0) return;
-                
-                levels[level] = levels[level] || [];
-                levels[level].push(...nodes);
-
-                // Process next level
-                nodes.forEach(node => {
-                    if (node.children && node.children.length > 0) {
-                        organizeByLevels(node.children, level + 1);
-                    }
-                });
-            }
-
-            organizeByLevels(allChildren);
-
-            // Log the structure for debugging
-            console.log('Network structure:', {
-                totalLevels: Object.keys(levels).length,
-                nodesPerLevel: Object.entries(levels).map(([level, nodes]) => ({
-                    level,
-                    count: nodes.length
-                }))
+                }
             });
 
-            return {
+            console.log(`[Genealogy] Found ${allNodes.length} total nodes`);
+
+            // 3. Organize nodes by level (in memory)
+            const nodesByLevel = {};
+            const nodesById = new Map();
+
+            // Create a map of all nodes for quick lookup
+            allNodes.forEach(node => {
+                nodesById.set(node.id, node);
+            });
+
+            // Function to calculate node's level
+            function getNodeLevel(node) {
+                let level = 1;
+                let currentNode = node;
+                
+                while (currentNode.sponsorId && currentNode.sponsorId !== rootNode.id) {
+                    const sponsor = nodesById.get(currentNode.sponsorId);
+                    if (!sponsor) break;
+                    currentNode = sponsor;
+                    level++;
+                }
+                
+                return currentNode.sponsorId === rootNode.id ? level : null;
+            }
+
+            // Organize nodes into levels
+            allNodes.forEach(node => {
+                const level = getNodeLevel(node);
+                if (level && level <= depth) {
+                    nodesByLevel[level] = nodesByLevel[level] || [];
+                    nodesByLevel[level].push({
+                        id: node.id,
+                        sponsorId: node.sponsorId,
+                        position: node.position,
+                        status: node.status,
+                        user: node.user,
+                        package: node.package?.package,
+                        directCount: node.sponsored?.length || 0,
+                        level: level
+                    });
+                }
+            });
+
+            const response = {
                 id: rootNode.id,
                 user: rootNode.user,
                 status: rootNode.status,
-                children: levels
+                position: rootNode.position,
+                package: rootNode.package?.package,
+                directCount: rootNode.sponsored?.length || 0,
+                level: 0,
+                children: nodesByLevel
             };
+
+            const duration = Date.now() - start;
+            console.log(`[Genealogy] Completed in ${duration}ms. Found nodes in ${Object.keys(nodesByLevel).length} levels`);
+            
+            return response;
+
         } catch (error) {
-            console.error('Error getting genealogy tree:', error);
+            const duration = Date.now() - start;
+            console.error(`[Genealogy] Failed after ${duration}ms:`, error);
             throw error;
         }
     }
@@ -974,8 +1040,8 @@ class NodeChildrenService {
                             select: {
                                 amount: true
                             }
-                        }
-                     }
+                         }
+                    }
                 });
 
                 if (level2Referrals.length > 0) {

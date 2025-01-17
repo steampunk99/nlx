@@ -1,10 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Icon } from '@iconify/react'
 import { Users, UserPlus, ArrowUpRight } from 'lucide-react'
 import { useNetworkStats, useNetworkLevels, useRecentReferrals, useGenealogyTree } from '../../hooks/useDashboard'
-import { Skeleton } from "../../components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from 'react'
-import { Button } from "../../components/ui/button"
+import { Button } from "@/components/ui/button"
 import { 
   Dialog, 
   DialogContent, 
@@ -12,17 +12,17 @@ import {
   DialogTitle, 
   DialogDescription,
   DialogFooter
-} from "../../components/ui/dialog"
-import { Input } from "../../components/ui/input"
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { Copy, Check, Share2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../../lib/axios'
+import { api } from '@/lib/axios'
 import toast from 'react-hot-toast'
-import { useAuth } from '../../hooks/useAuth'   
+import { useAuth } from '@/hooks/useAuth'   
 import { useNavigate } from 'react-router-dom'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
-import NetworkTree from '../../components/network/NetworkTree'
+import NetworkTree from '@/components/network/NetworkTree'
 
 export default function NetworkPage() {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
@@ -116,7 +116,11 @@ export default function NetworkPage() {
 
         {/* Network Stats */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {networkStats?.map((stat, index) => (
+          {isLoadingStats ? (
+            [...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-40" />
+            ))
+          ) : networkStats?.map((stat, index) => (
             <Card key={index} className="overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -151,7 +155,17 @@ export default function NetworkPage() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="h-[400px] w-full">
-              <NetworkTree networkData={genealogyData} />
+              {isLoadingGenealogy ? (
+                <Skeleton className="h-full w-full" />
+              ) : (
+                genealogyData ? (
+                  <NetworkTree networkData={genealogyData} />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-400">No network data available</p>
+                  </div>
+                )
+              )}
             </div>
           </CardContent>
         </Card>
@@ -164,30 +178,36 @@ export default function NetworkPage() {
               <CardDescription>Breakdown of your network by levels</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="relative overflow-x-auto rounded-lg border">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Level</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Members</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Active</th>
-
-                      {/* <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Commissions</th> */}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {networkLevels?.map((level) => (
-                      <tr key={level.level} className="bg-card hover:bg-muted/50 transition-colors">
-                        <td className="px-6 py-4 font-medium">Level {level.level}</td>
-                        <td className="px-6 py-4">{level.members}</td>
-                        <td className="px-6 py-4">{level.active}</td>
-                     
-                        {/* <td className="px-6 py-4 font-medium">{level.commissions}</td> */}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {isLoadingLevels ? (
+                <Skeleton className="h-80 w-full" />
+              ) : (
+                networkLevels?.length > 0 ? (
+                  <div className="relative overflow-x-auto rounded-lg border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Level</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Members</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Active</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {networkLevels.map((level) => (
+                          <tr key={level.level} className="bg-card hover:bg-muted/50 transition-colors">
+                            <td className="px-6 py-4 font-medium">Level {level.level}</td>
+                            <td className="px-6 py-4">{level.members}</td>
+                            <td className="px-6 py-4">{level.active}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="flex h-40 items-center justify-center">
+                    <p className="text-muted-foreground">No network levels data available</p>
+                  </div>
+                )
+              )}
             </CardContent>
           </Card>
 
@@ -198,35 +218,45 @@ export default function NetworkPage() {
               <CardDescription>Latest members who joined your network</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {recentReferrals?.map((referral, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500/20 to-purple-500/20 ring-1 ring-white/10 flex items-center justify-center">
-                        <Icon icon="ph:user" className="h-5 w-5 text-yellow-500" />
+              {isLoadingReferrals ? (
+                <Skeleton className="h-80 w-full" />
+              ) : (
+                recentReferrals?.length > 0 ? (
+                  <div className="space-y-6">
+                    {recentReferrals.map((referral, index) => (
+                      <div 
+                        key={index} 
+                        className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500/20 to-purple-500/20 ring-1 ring-white/10 flex items-center justify-center">
+                            <Icon icon="ph:user" className="h-5 w-5 text-yellow-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{referral.name}</p>
+                            <p className="text-sm text-muted-foreground">{referral.date}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{referral.package}</p>
+                          <span className={cn(
+                            "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+                            referral.status === 'active' 
+                              ? "bg-green-500/10 text-green-500" 
+                              : "bg-yellow-500/10 text-yellow-500"
+                          )}>
+                            {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{referral.name}</p>
-                        <p className="text-sm text-muted-foreground">{referral.date}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">{referral.package}</p>
-                      <span className={cn(
-                        "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-                        referral.status === 'active' 
-                          ? "bg-green-500/10 text-green-500" 
-                          : "bg-yellow-500/10 text-yellow-500"
-                      )}>
-                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
-                      </span>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="flex h-40 items-center justify-center">
+                    <p className="text-muted-foreground">No recent referrals</p>
+                  </div>
+                )
+              )}
             </CardContent>
           </Card>
         </div>

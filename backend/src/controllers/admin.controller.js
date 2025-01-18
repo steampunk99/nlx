@@ -9,6 +9,8 @@ const { prisma } = require('../config/prisma');
 const logger = require('../services/logger.service');
 const bcrypt = require('bcryptjs');
 const { generateUsername } = require('../utils/userUtils');
+const fs = require('fs');
+const path = require('path');
 
 class AdminController {
   /**
@@ -857,7 +859,8 @@ class AdminController {
         depositDollarRate,
         withdrawalDollarRate,
         withdrawalCharge,
-        usdtWalletAddress
+        usdtWalletAddress,
+        promoImageUrl
       } = req.body;
 
       // Get existing config or create new one
@@ -879,7 +882,8 @@ class AdminController {
           depositDollarRate: depositDollarRate ? parseFloat(depositDollarRate) : undefined,
           withdrawalDollarRate: withdrawalDollarRate ? parseFloat(withdrawalDollarRate) : undefined,
           withdrawalCharge: withdrawalCharge ? parseFloat(withdrawalCharge) : undefined,
-          usdtWalletAddress: usdtWalletAddress || undefined
+          usdtWalletAddress: usdtWalletAddress || undefined,
+          promoImageUrl: promoImageUrl || undefined
         },
         create: {
           siteName: siteName || "Zillionaires",
@@ -893,7 +897,8 @@ class AdminController {
           depositDollarRate: depositDollarRate ? parseFloat(depositDollarRate) : 3900.0,
           withdrawalDollarRate: withdrawalDollarRate ? parseFloat(withdrawalDollarRate) : 3900.0,
           withdrawalCharge: withdrawalCharge ? parseFloat(withdrawalCharge) : 0.0,
-          usdtWalletAddress
+          usdtWalletAddress,
+          promoImageUrl
         }
       });
 
@@ -1122,6 +1127,50 @@ class AdminController {
       return res.status(500).json({ 
         success: false, 
         message: error.message 
+      });
+    }
+  }
+
+  async uploadImage(req, res) {
+    try {
+      if (!req.files || !req.files.image) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'No image file uploaded'
+        });
+      }
+
+      const file = req.files.image;
+      
+      // Validate file type
+      if (!file.mimetype.startsWith('image/')) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Please upload an image file'
+        });
+      }
+
+      // Generate unique filename
+      const timestamp = Date.now();
+      const ext = path.extname(file.name);
+      const filename = `${timestamp}${ext}`;
+      
+      // Move file to uploads directory
+      const uploadPath = path.join(__dirname, '../../../frontend/public/uploads/', filename);
+      
+      await file.mv(uploadPath);
+
+      return res.json({
+        status: 'success',
+        data: {
+          path: `/uploads/${filename}`
+        }
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to upload image'
       });
     }
   }

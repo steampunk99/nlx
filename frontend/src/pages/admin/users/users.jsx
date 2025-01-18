@@ -24,27 +24,17 @@ const UsersPage = () => {
   }
 
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [deleteUserId, setDeleteUserId] = useState(null)
   const [selectedUserId, setSelectedUserId] = useState(null)
 
 
-  const { useUsers, useUpdateUserStatus, useDeleteUser } = useAdmin()
+  const { useUsers, useDeleteUser } = useAdmin()
   const { data, isLoading, refetch } = useUsers()
-  const updateStatus = useUpdateUserStatus()
   const deleteUser = useDeleteUser()
 
   const handleSearch = (e) => {
     setSearch(e.target.value)
-  }
-
-  const handleStatusChange = async (userId, newStatus) => {
-    try {
-      await updateStatus.mutateAsync({ userId, newStatus })
-      toast.success('User status updated successfully')
-    } catch (error) {
-      toast.error(error.message || 'Failed to update user status')
-    }
   }
 
   const handleDelete = async () => {
@@ -56,19 +46,6 @@ const UsersPage = () => {
       toast.success('User deleted successfully')
     } catch (error) {
       toast.error(error.message || 'Failed to delete user')
-    }
-  }
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800'
-      case 'INACTIVE':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'SUSPENDED':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -114,14 +91,13 @@ const UsersPage = () => {
                   <Filter className="h-4 w-4 text-gray-400" />
                 </div>
                 <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 bg-transparent"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
                 >
-                  <option value="">All Status</option>
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
-                  <option value="SUSPENDED">Suspended</option>
+                  <option value="">All Nodes</option>
+                  <option value="ACTIVE">Active Nodes</option>
+                  <option value="INACTIVE">Inactive Nodes</option>
                 </select>
               </div>
             </div>
@@ -191,15 +167,13 @@ const UsersPage = () => {
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm">
-                        <select
-                          value={user.status || ''}
-                          onChange={(e) => handleStatusChange(user.id, e.target.value)}
-                          className={`rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusColor(user.status)}`}
-                        >
-                          <option value="ACTIVE">Active</option>
-                          <option value="INACTIVE">Inactive</option>
-                          <option value="SUSPENDED">Suspended</option>
-                        </select>
+                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                          user.node?.status === "ACTIVE" 
+                            ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20"
+                            : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
+                        }`}>
+                          {user.node?.status || 'INACTIVE'}
+                        </span>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm">
                         <span className="font-medium text-gray-900">

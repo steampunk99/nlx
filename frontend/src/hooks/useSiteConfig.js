@@ -12,6 +12,7 @@ export function useSiteConfig() {
     siteName: config.siteName,
     siteLogoUrl: config.siteLogoUrl,
     siteBaseUrl: config.siteBaseUrl,
+    promoImageUrl: config.promoImageUrl,
     mtnCollectionNumber: config.mtnCollectionNumber,
     airtelCollectionNumber: config.airtelCollectionNumber,
     supportPhone: config.supportPhone,

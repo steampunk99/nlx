@@ -94,7 +94,7 @@ router.put('/users/:id/status', [
     auth,
     param('id').isString(),
     body('status').isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
-    validate
+    
 ], adminController.updateUserStatus);
 
 /**
@@ -107,7 +107,7 @@ router.put('/users/:id/status', [
 router.delete('/users/:id', [
     isAdmin,
     param('id').isString(),
-    validate
+    
 ], adminController.deleteUser);
 
 /**
@@ -426,8 +426,12 @@ router.post('/withdrawals/:id/process', [
  */
 router.get('/network/stats', adminController.getNetworkStats);
 
+// Upload image
+router.post('/upload-image', auth, adminController.uploadImage);
+
 // Admin Settings Routes
-router.get('/config', adminController.getAdminConfig);
-router.put('/config', adminController.updateAdminConfig);
+
+router.get('/config', auth, adminController.getAdminConfig);
+router.put('/config', auth, adminController.updateAdminConfig);
 
 module.exports = router;

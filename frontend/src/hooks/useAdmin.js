@@ -158,7 +158,7 @@ export function useAdmin() {
         return response.data;
       },
       onSuccess: () => {
-        queryClient.invalidateQueries(queryKeys.adminConfig);
+        queryClient.invalidateQueries({ queryKey: queryKeys.adminConfig });
         toast.success('Settings updated successfully');
       },
       onError: (error) => {

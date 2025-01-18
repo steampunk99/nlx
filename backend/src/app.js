@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const path = require('path')
+const fileUpload = require('express-fileupload');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -29,10 +30,6 @@ const { errorHandler } = require('./middleware/error');
 const app = express();
 
 // Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// CORS configuration
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
       ? ['https://earndrip.com','http:www.earndrip.com', 'https://www.earndrip.com', 'http://ample-youthfulness-production.up.railway.app', 'https://ample-youthfulness-production.up.railway.app']  // Frontend internal URL
@@ -41,6 +38,16 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// File upload middleware
+app.use(fileUpload({
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max file size
+  createParentPath: true,
+  useTempFiles: true,
+  tempFileDir: '/tmp/'
+}));
 
 app.use(helmet({
     contentSecurityPolicy: false // Required for Swagger UI

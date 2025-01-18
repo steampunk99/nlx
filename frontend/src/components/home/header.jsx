@@ -5,7 +5,7 @@ import { Button } from "../ui/button"
 import { HoverLink } from "../ui/hover-link"
 import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { cn } from "../../lib/utils"
-// import defaultLogo from '@/assets/logo.png'
+import defaultLogo from "../../assets/logo.png"
 import { useAuth } from '../../hooks/useAuth';
 import { usePackages } from '../../hooks/usePackages';
 import { Avatar } from '../ui/avatar';
@@ -76,11 +76,11 @@ export function Header() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-2"
             >
-              {/* <img 
-                src={siteLogoUrl || defaultLogo} 
+              <img 
+                src={defaultLogo} 
                 alt={siteName}
-                className="h-8 w-auto" 
-              /> */}
+                className="h-12 w-12" 
+              />
             </motion.div>
             <Link
               to="/login"

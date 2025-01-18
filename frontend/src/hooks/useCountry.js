@@ -99,7 +99,7 @@ export function useCountry() {
       'USD': UGX_TO_USD,           // 1 UGX = 0.000256 USD
       'GBP': UGX_TO_USD * 0.79,    // GBP/USD = 0.79
       'KES': 1 / 27.5713,          // 1 UGX = 0.0403 KES
-      'TZS': 1 / 1.567,            // 1 UGX = 0.638 TZS
+      'TZS': 1 / 1.467,            // 1 UGX = 0.638 TZS
       'NGN': 1 / 2.37,             // 1 UGX = 0.232 NGN
       'ZAR': 1 / 197.17,           // 1 UGX = 0.00479 ZAR
       'ZMW': 1 / 123.091,          // 1 UGX = 0.00751 ZMW (from current rate)

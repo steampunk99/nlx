@@ -54,8 +54,9 @@ const packageFeatures = [
   "40% Direct Referral Commission",
   "10% Level 2 Commission",
   "5% Level 3 Commission",
-  "5% Level 4 Commission",
-  "5% Level 5 Commission",
+  "2% Level 4 Commission",
+  "2% Level 5 Commission",
+  "2% Level 6 Commission",
   "Unlimited referrals"
 ];
 

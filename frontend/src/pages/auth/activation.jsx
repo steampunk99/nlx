@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
-import { Check, Star, TrendingUp, Users, Network } from 'lucide-react'
+import { Check, Star, CheckCircle2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog'
 import { usePackages } from '../../hooks/usePackages'
 import { motion } from 'framer-motion'
@@ -49,8 +49,15 @@ const cardVariants = {
   }
 }
 
-
-
+const packageFeatures = [
+  "Lifetime access",
+  "40% Direct Referral Commission",
+  "10% Level 2 Commission",
+  "5% Level 3 Commission",
+  "5% Level 4 Commission",
+  "5% Level 5 Commission",
+  "Unlimited referrals"
+];
 
 export default function ActivationPage() {
   const navigate = useNavigate()
@@ -190,7 +197,14 @@ export default function ActivationPage() {
                         </span>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">One-time investment</p>
+                    <div className="space-y-2 mt-4">
+                      {packageFeatures.map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <p className="text-sm text-muted-foreground">{feature}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   
                   <div className="space-y-3">
@@ -212,48 +226,7 @@ export default function ActivationPage() {
                     ))}
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t border-primary/10">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "rounded-full p-2",
-                        isPremium ? "bg-purple-500/10" : "bg-primary/10"
-                      )}>
-                        <TrendingUp className={cn(
-                          "h-4 w-4",
-                          isPremium ? "text-purple-500" : "text-primary"
-                        )} />
-                      </div>
-                      <span className="text-sm">Level {pkg.level} Package</span>
-                    </div>
-                    {pkg.maxNodes && (
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "rounded-full p-2",
-                          isPremium ? "bg-purple-500/10" : "bg-primary/10"
-                        )}>
-                          <Network className={cn(
-                            "h-4 w-4",
-                            isPremium ? "text-purple-500" : "text-primary"
-                          )} />
-                        </div>
-                        <span className="text-sm">Up to {pkg.maxNodes} nodes</span>
-                      </div>
-                    )}
-                    {pkg.duration && (
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "rounded-full p-2",
-                          isPremium ? "bg-purple-500/10" : "bg-primary/10"
-                        )}>
-                          <Users className={cn(
-                            "h-4 w-4",
-                            isPremium ? "text-purple-500" : "text-primary"
-                          )} />
-                        </div>
-                        <span className="text-sm">{pkg.duration} days validity</span>
-                      </div>
-                    )}
-                  </div>
+               
 
                   <Button 
                     className={cn(

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 export default function AdminSettingsPage() {
     const { useAdminConfig, useUpdateAdminConfig } = useAdmin();
@@ -52,8 +53,8 @@ export default function AdminSettingsPage() {
                         <CardTitle>Site Information</CardTitle>
                         <CardDescription>Basic information about your site</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="siteName">Site Name</Label>
                                 <Input
@@ -65,25 +66,95 @@ export default function AdminSettingsPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="siteLogoUrl">Logo URL</Label>
+                                <Label htmlFor="siteBaseUrl">Base URL</Label>
                                 <Input
-                                    id="siteLogoUrl"
-                                    name="siteLogoUrl"
-                                    value={formData.siteLogoUrl || ''}
+                                    id="siteBaseUrl"
+                                    name="siteBaseUrl"
+                                    value={formData.siteBaseUrl || ''}
                                     onChange={handleChange}
-                                    placeholder="https://earndrip.com/logo.png"
+                                    placeholder="https://earndrip.com"
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="siteBaseUrl">Base URL</Label>
-                            <Input
-                                id="siteBaseUrl"
-                                name="siteBaseUrl"
-                                value={formData.siteBaseUrl || ''}
-                                onChange={handleChange}
-                                placeholder="https://earndrip.com"
-                            />
+
+                        <div className="grid grid-cols-2 gap-6">
+                            {/* Logo Upload */}
+                            <div className="space-y-2">
+                                <Label>Site Logo</Label>
+                                <div className="p-4 border rounded-lg bg-muted/10">
+                                    <div className="flex flex-col items-center gap-4">
+                                        {formData.siteLogoUrl && (
+                                            <div className="relative group">
+                                                <img 
+                                                    src={formData.siteLogoUrl} 
+                                                    alt="Site Logo" 
+                                                    className="w-32 h-32 object-contain rounded-lg border bg-white"
+                                                />
+                                                <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <button
+                                                        type="button"
+                                                        className="text-white text-sm hover:underline"
+                                                        onClick={() => setFormData(prev => ({ ...prev, siteLogoUrl: null }))}
+                                                    >
+                                                        Remove Logo
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <ImageUpload 
+                                            onImageSelected={(path) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    siteLogoUrl: path
+                                                }));
+                                            }}
+                                        />
+                                        <p className="text-sm text-muted-foreground text-center">
+                                            Upload a square logo (PNG or SVG recommended).<br/>
+                                            Max size: 5MB
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Promo Image Upload */}
+                            <div className="space-y-2">
+                                <Label>Promotional Image</Label>
+                                <div className="p-4 border rounded-lg bg-muted/10">
+                                    <div className="flex flex-col items-center gap-4">
+                                        {formData.promoImageUrl && (
+                                            <div className="relative group">
+                                                <img 
+                                                    src={formData.promoImageUrl} 
+                                                    alt="Promotional" 
+                                                    className="w-full h-32 object-cover rounded-lg border bg-white"
+                                                />
+                                                <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <button
+                                                        type="button"
+                                                        className="text-white text-sm hover:underline"
+                                                        onClick={() => setFormData(prev => ({ ...prev, promoImageUrl: null }))}
+                                                    >
+                                                        Remove Image
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <ImageUpload 
+                                            onImageSelected={(path) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    promoImageUrl: path
+                                                }));
+                                            }}
+                                        />
+                                        <p className="text-sm text-muted-foreground text-center">
+                                            Upload a promotional banner image.<br/>
+                                            Recommended size: 1200x400px
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

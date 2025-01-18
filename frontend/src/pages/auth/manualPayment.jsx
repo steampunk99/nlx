@@ -287,11 +287,11 @@ const handlePaste = async () => {
 
             {/* USDT Payment Info */}
             <div className="bg-gradient-to-br from-purple-500/5 to-primary/5 rounded-lg p-6 space-y-4">
-              <div className="flex justify-center">
+              {/* <div className="flex justify-center">
                 <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center">
                   <CreditCard className="w-16 h-16 text-primary animate-pulse" />
                 </div>
-              </div>
+              </div> */}
 　　 　　　　　
               <div className="space-y-4 text-center">
                 <div>

@@ -6,10 +6,10 @@ import { ArrowUpRight, Users, DollarSign, Package, Activity, ChevronRight, Trend
 import { Skeleton } from "../../components/ui/skeleton"
 import { useDashboardStats, useEarnings, useRecentActivities } from "../../hooks/useDashboard"
 import { motion } from "framer-motion"
-import { ResponsiveContainer,LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { cn } from "../../lib/utils"
 import { usePackages } from "../../hooks/usePackages"
 import { useCountry } from "@/hooks/useCountry"
+import { useSiteConfig } from "@/hooks/useSiteConfig" 
 
 
   
@@ -20,7 +20,7 @@ function DashboardOverview() {
   const { data: recentActivities, isLoading: isLoadingActivities } = useRecentActivities()
   const { data: earnings, isLoading: isLoadingEarnings } = useEarnings()
   const { country, currency, formatAmount } = useCountry()
-  
+  const { siteLogoUrl, promoImageUrl } = useSiteConfig() 
   const { userPackage} = usePackages()
   // Sample earnings data - will replace with actual API data when available
   const earningsData = [
@@ -197,49 +197,29 @@ function DashboardOverview() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Earnings Chart */}
+        {/* Promo Image */}
         <Card className="overflow-hidden border-none bg-gradient-to-br from-gray-900 to-gray-800">
           <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-xl text-white">Earnings Overview</CardTitle>
-            <CardDescription className="text-gray-400">Your earnings history over time</CardDescription>
+            <CardTitle className="text-xl text-white">Promotional Offers</CardTitle>
+            <CardDescription className="text-gray-400">Latest updates and offers</CardDescription>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={earningsData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="rgba(255,255,255,0.5)"
-                    tick={{ fill: 'rgba(255,255,255,0.5)' }}
-                  />
-                  <YAxis 
-                    stroke="rgba(255,255,255,0.5)"
-                    tick={{ fill: 'rgba(255,255,255,0.5)' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(17,17,17,0.9)',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: 'white'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="amount" 
-                    stroke="url(#gradient)" 
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <defs>
-                    <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#EAB308" />
-                      <stop offset="100%" stopColor="#9333EA" />
-                    </linearGradient>
-                  </defs>
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-[400px] flex items-center justify-center rounded-xl">
+              {promoImageUrl ? (
+                <img 
+                  src={promoImageUrl} 
+                  alt="Promotional Offer" 
+                  className="w-full h-full object-contain rounded-lg"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = siteLogoUrl || '/placeholder-promo.jpg'; 
+                  }}
+                />
+              ) : (
+                <div className="text-gray-400 text-center">
+                  <p>No promotional content available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -7,6 +7,7 @@ const useSiteConfigStore = create((set) => ({
     siteName: 'Earn Drip',
     siteLogoUrl: null,
     siteBaseUrl: 'https://earndrip.com',
+    promoImageUrl: null,
 
     // Payment Collection Numbers
     mtnCollectionNumber: null,

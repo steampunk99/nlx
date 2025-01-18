@@ -303,6 +303,7 @@ model AdminConfig {
   siteName              String   @default("Earn Drip")
   siteLogoUrl          String?
   siteBaseUrl          String   @default("https://earndrip.com")
+  promoImageUrl        String?  // URL for the promotional image
 
   // Payment Collection Numbers
   mtnCollectionNumber   String?

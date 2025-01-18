@@ -87,7 +87,7 @@ export function useCountry() {
         style: 'decimal',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(amount);
+      }).format(Math.round(amount));
     }
 
     // Base conversion rates (1 USD = 3900 UGX)
@@ -99,19 +99,17 @@ export function useCountry() {
       'USD': UGX_TO_USD,           // 1 UGX = 0.000256 USD
       'GBP': UGX_TO_USD * 0.79,    // GBP/USD = 0.79
       'KES': 1 / 27.5713,          // 1 UGX = 0.0403 KES
-      'TZS': 1 / 1.567,            // 1 UGX = 0.638 TZS
+      'TZS': 1 / 1.467,            // 1 UGX = 0.638 TZS
       'NGN': 1 / 2.37,             // 1 UGX = 0.232 NGN
       'ZAR': 1 / 197.17,           // 1 UGX = 0.00479 ZAR
-      'ZMW': 1 / 123.091,          // 1 UGX = 0.00751 ZMW (from current rate)
+      'ZMW': 1 / 123.091,          // 1 UGX = 0.00751 ZMW
       'XOF': 1 / 6.49,             // 1 UGX = 0.154 XOF
       'XAF': 1 / 6.49,             // 1 UGX = 0.154 XAF
-      'ETB': 1 / 29.4,            // 1 UGX = 0.0144 ETB
-      'GHS': 1 / 247.25       ,     // 1 UGX = 0.00315 GHS
-      'RWF': 1/ 2.65,
-      'SDG': 1/ 6.13,
-      'BIF': 1/ 1.25
-      
-     
+      'ETB': 1 / 29.4,             // 1 UGX = 0.0144 ETB
+      'GHS': 1 / 247.25,           // 1 UGX = 0.00315 GHS
+      'RWF': 1 / 2.65,
+      'SDG': 1 / 6.13,
+      'BIF': 1 / 1.25
     };
     
     const rate = directRates[currency.code];
@@ -120,17 +118,23 @@ export function useCountry() {
       return new Intl.NumberFormat('en-US', {
         style: 'decimal',
         minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }).format(amount);
+        maximumFractionDigits: 0
+      }).format(Math.round(amount));
     }
     
     const convertedAmount = amount * rate;
+
+    // List of currencies that should not show decimals
+    const noDecimalCurrencies = [
+      'UGX', 'TZS', 'RWF', 'BIF', 'XOF', 'XAF', 'CFA', 
+      'NGN', 'KES', 'ETB', 'GHS', 'ZMW', 'ZAR'
+    ];
     
     return new Intl.NumberFormat('en-US', {
       style: 'decimal',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(convertedAmount);
+      minimumFractionDigits: 0,
+      maximumFractionDigits: noDecimalCurrencies.includes(currency.code) ? 0 : 2
+    }).format(Math.round(convertedAmount));
   };
 
   return {

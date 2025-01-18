@@ -140,5 +140,6 @@ router.post('/login', validateLogin, authController.login);
  *                 format: email
  */
 router.post('/forgot-password', authController.requestPasswordReset);
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;

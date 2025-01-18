@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth, isActive, isAdmin } = require('../middleware/auth');
 const { body, param } = require('express-validator');
-const { validate } = require('../middleware/validate');
+
 const paymentController = require('../controllers/payment.controller');
 const mobileMoneyController = require('../controllers/mobileMoney.controller');
 const ugandaMobileMoneyUtil = require('../utils/ugandaMobileMoneyUtil');
@@ -59,7 +59,7 @@ router.post('/manual-payment', auth, [
     body('amount').isNumeric().withMessage('Amount is required and must be a number'),
     body('packageId').notEmpty().withMessage('Package ID is required'),
     body('transactionId').notEmpty().withMessage('Transaction ID is required')
-], validate, paymentController.processManualPayment);
+], paymentController.processManualPayment);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ router.post('/upgrade', auth, [
     body('newPackageId'),
     body('amount'),
     body('phone'),
-    validate
+    
 ], paymentController.processUpgradePayment);
 
 

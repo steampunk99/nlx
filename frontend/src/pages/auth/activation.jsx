@@ -277,7 +277,7 @@ export default function ActivationPage() {
 
 
       {/* Add custom styles to the head */}
-      <style jsx global>{`
+      <style jsx="true" global="true">{`
         @keyframes text-gradient {
           0%, 100% {
             background-position: 0% 50%;

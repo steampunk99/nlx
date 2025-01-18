@@ -100,13 +100,18 @@ export function useCountry() {
       'GBP': UGX_TO_USD * 0.79,    // GBP/USD = 0.79
       'KES': 1 / 27.5713,          // 1 UGX = 0.0403 KES
       'TZS': 1 / 1.567,            // 1 UGX = 0.638 TZS
-      'NGN': 1 / 4.21,             // 1 UGX = 0.232 NGN
-      'ZAR': 1 / 208.77,           // 1 UGX = 0.00479 ZAR
+      'NGN': 1 / 2.37,             // 1 UGX = 0.232 NGN
+      'ZAR': 1 / 197.17,           // 1 UGX = 0.00479 ZAR
       'ZMW': 1 / 123.091,          // 1 UGX = 0.00751 ZMW (from current rate)
       'XOF': 1 / 6.49,             // 1 UGX = 0.154 XOF
       'XAF': 1 / 6.49,             // 1 UGX = 0.154 XAF
-      'ETB': 1 / 69.44,            // 1 UGX = 0.0144 ETB
-      'GHS': 1 / 317.46            // 1 UGX = 0.00315 GHS
+      'ETB': 1 / 29.4,            // 1 UGX = 0.0144 ETB
+      'GHS': 1 / 247.25       ,     // 1 UGX = 0.00315 GHS
+      'RWF': 1/ 2.65,
+      'SDG': 1/ 6.13,
+      'BIF': 1/ 1.25
+      
+     
     };
     
     const rate = directRates[currency.code];

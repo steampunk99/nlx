@@ -10,6 +10,11 @@ import { cn } from "../../lib/utils"
 import { usePackages } from "../../hooks/usePackages"
 import { useCountry } from "@/hooks/useCountry"
 import { useSiteConfig } from "@/hooks/useSiteConfig" 
+import { Badge } from '../../components/ui/badge'
+import { Link } from 'react-router-dom'
+import { useCommissions } from '../../hooks/useCommissions'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/axios'
 
 
   
@@ -20,6 +25,7 @@ function DashboardOverview() {
   const { data: recentActivities, isLoading: isLoadingActivities } = useRecentActivities()
   const { data: earnings, isLoading: isLoadingEarnings } = useEarnings()
   const { country, currency, formatAmount } = useCountry()
+  const { commissions, commissionStats } = useCommissions()
   const { siteLogoUrl, promoImageUrl } = useSiteConfig() 
   const { userPackage} = usePackages()
   // Sample earnings data - will replace with actual API data when available
@@ -32,6 +38,29 @@ function DashboardOverview() {
     { date: 'Jun', amount: 1400 },
   ]
 
+  const availableBalance = commissionStats?.totalCommissions || 0
+
+    // Fetch withdrawal history
+    const { data: withdrawalsData } = useQuery({
+      queryKey: ['withdrawals'],
+      queryFn: async () => {
+        const response = await api.get('/withdrawals')
+        return response.data.data
+      }
+    })
+
+  const withdrawalHistory = withdrawalsData?.withdrawals?.map((withdrawal) => ({
+    id: withdrawal.id,
+    amount: withdrawal.amount,
+    phone: withdrawal.details?.phone,
+    status: withdrawal.status,
+    createdAt: withdrawal.createdAt
+  })) || []
+
+  // Calculate total withdrawn amount
+  const totalWithdrawn = withdrawalHistory.reduce((total, withdrawal) => 
+    total + (withdrawal.status === 'SUCCESSFUL' ? Number(withdrawal.amount) : 0)
+  , 0)
 
 
   if (isLoadingStats || isLoadingActivities) {
@@ -55,12 +84,12 @@ function DashboardOverview() {
   const stats = [
     {
       title: "Available Balance",
-      value: `${currency.symbol} ${formatAmount(earnings?.availableBalance || 0)}`,
+      value: `${currency.symbol} ${formatAmount(availableBalance || 0)}`,
       description: "Your available balance",
       icon: DollarSign,
       color: "text-green-500",
       bgColor: "bg-transparent",
-      secondaryValue: `${currency.symbol} ${formatAmount(earnings?.availableBalance || 0)}`,
+      secondaryValue: `${currency.symbol} ${formatAmount(availableBalance || 0)}`,
       secondaryLabel: "This month"
     },
     {

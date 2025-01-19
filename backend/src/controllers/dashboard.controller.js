@@ -189,7 +189,7 @@ const getRecentActivities = async (req, res) => {
       ...commissions.map(comm => ({
         type: 'commission',
         description: `Earned commission from ${comm.package?.name || 'package'}`,
-        amount: `$${comm.amount.toFixed(2)}`,
+        amount: comm.amount, // Format as UGX
         date: comm.createdAt,
         icon: '💰'
       })),

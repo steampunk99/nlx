@@ -492,13 +492,17 @@ class PaymentController {
             completedAt: new Date()
         }, tx);
 
+        // Calculate package revenue
+        await systemRevenueService.calculatePackageRevenue(payment, payment.package, tx);
+
+
         logger.info('Payment processed successfully:', {
             paymentId: payment.id,
             nodePackageId: nodePackage.id,
             status: payment.status
         });
 
-  
+        // Calculate commissions
         await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
 
         return payment;

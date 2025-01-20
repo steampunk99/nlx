@@ -82,7 +82,7 @@ export function AdminDashboardPage() {
               <h3 className="text-sm font-medium text-muted-foreground">Total Users</h3>
               <Users className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="mt-2">
+            <div className="mt-2 font-mono">
               <div className="text-2xl font-bold">{formatNumber(stats?.users?.total || 0)}</div>
               <div className="flex items-center mt-1 text-xs">
                 <span className="text-muted-foreground">
@@ -99,7 +99,7 @@ export function AdminDashboardPage() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold">{formatNumber(stats?.packages?.active || 0)}</div>
+              <div className="text-2xl font-bold font-mono">{formatNumber(stats?.packages?.active || 0)}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {formatNumber(stats?.packages?.total || 0)} total packages
               </div>
@@ -113,7 +113,7 @@ export function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</div>
+              <div className="text-2xl font-bold font-mono">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {formatCurrency(stats?.revenue?.commissions || 0)} in commissions
               </div>
@@ -126,7 +126,7 @@ export function AdminDashboardPage() {
               <h3 className="text-sm font-medium text-muted-foreground">Network Overview</h3>
               <Network className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="mt-2">
+            <div className="mt-2 font-mono">
               <div className="text-2xl font-bold">{formatNumber(networkStats?.nodes?.total || 0)}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {formatNumber(networkStats?.nodes?.active || 0)} active nodes
@@ -193,7 +193,7 @@ export function AdminDashboardPage() {
                   </div>
                   <div className="text-right">
                     <span className={cn(
-                      "text-sm font-medium",
+                      "text-sm font-medium font-mono",
                       tx.status === 'PENDING' && "text-blue-600",
                       tx.status === 'SUCCESSFUL' && "text-green-600",
                       tx.status === 'FAILED' && "text-red-600"
@@ -229,7 +229,7 @@ export function AdminDashboardPage() {
                 />
               </div>
               <div>
-                <div className="flex justify-between text-sm mb-1">
+                <div className="flex justify-between text-sm mb-1 ">
                   <span>Pending Withdrawals</span>
                   <span>{formatNumber(stats?.pendingWithdrawals || 0)}</span>
                 </div>
@@ -246,42 +246,15 @@ export function AdminDashboardPage() {
             <h3 className="text-lg font-medium mb-4">Revenue Breakdown</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="h-[300px] relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Package Sales', value: stats?.revenue?.total || 0, color: '#16a34a' },
-                        { name: 'Commissions', value: stats?.revenue?.commissions || 0, color: '#86efac' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {({ data }) => data.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) => formatCurrency(value)}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255,255,255,0.8)',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+              
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <div className="text-2xl font-bold text-green-700">
+                <div className="text-sm text-gray-700 mb-6">
+                    Net System Revenue
+                  </div>
+                  <div className="text-2xl font-bold text-green-700 font-mono">
                     {formatCurrency(stats?.revenue?.systemRevenue || 0)}
                   </div>
-                  <div className="text-sm text-green-600">
-                    Total Revenue
-                  </div>
+                 
                 </div>
               </div>
 
@@ -291,23 +264,25 @@ export function AdminDashboardPage() {
                     <div className="w-3 h-3 rounded-full bg-[#16a34a]" />
                     <span className="font-medium text-green-700">Package Sales</span>
                   </div>
-                  <span className="font-semibold text-green-700">{formatCurrency(stats?.revenue?.total || 0)}</span>
+                  <span className="font-semibold text-green-700 font-mono">{formatCurrency(stats?.revenue?.total || 0)}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2 rounded-lg bg-green-50">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-orange-50">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#86efac]" />
-                    <span className="font-medium text-green-700">Commissions</span>
+                    <div className="w-3 h-3 rounded-full bg-orange-400" />
+                    <span className="text-sm text-orange-700">Commissions</span>
                   </div>
-                  <span className="font-semibold text-green-700">{formatCurrency(stats?.revenue?.commissions || 0)}</span>
+                  <span className="font-semibold text-orange-700 font-mono">- {formatCurrency(stats?.revenue?.commissions || 0)}</span>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-green-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-600">Total Revenue</span>
-                    <span className="text-lg font-bold text-green-700">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</span>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-orange-50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-400" />
+                    <span className="text-sm text-orange-300">Withdrawals</span>
                   </div>
+                  <span className="font-semibold text-orange-700 font-mono">- {formatCurrency(stats?.revenue?.withdrawals || 0)}</span>
                 </div>
+
               </div>
             </div>
           </Card>

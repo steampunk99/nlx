@@ -46,6 +46,22 @@ export function usePackages(options = {}) {
     }
   }
 
+  // Fetch all packages (for admin)
+  const { data: adminPackages = [], isLoading: adminPackagesLoading } = useQuery({
+    queryKey: ['adminPackages'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/admin/packages')
+        return response.data.data || []
+      } catch (error) {
+        handleAuthError(error, 'Fetching admin packages')
+        throw error
+      }
+    },
+    enabled: isAuthenticated(),
+    ...options
+  })
+
   // Fetch available packages
   const { 
     data: availablePackages = [], 
@@ -157,11 +173,12 @@ export function usePackages(options = {}) {
 
   return {
     // Data
+    adminPackages,
     availablePackages,
     userPackage,
     
     // Loading states
-    packagesLoading: packagesLoading || !isAuthenticated(),
+    packagesLoading: adminPackagesLoading || packagesLoading || !isAuthenticated(),
     isLoadingUserPackage: isLoadingUserPackage || !isAuthenticated(),
     
     // Errors

@@ -13,8 +13,8 @@ import { Link } from 'react-router-dom'
 import { useCommissions } from '../../hooks/useCommissions'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/axios'
-import { Coins } from 'lucide-react'
-import { ArrowUpRight, Users, DollarSign, Package, Activity, ChevronRight, TrendingUp } from 'lucide-react'
+
+import { ArrowUpRight,Coins,Gift, Users, DollarSign, Package, Activity, ChevronRight, TrendingUp } from 'lucide-react'
 import { Skeleton } from "../../components/ui/skeleton"
 
 
@@ -240,29 +240,78 @@ function DashboardOverview() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Promo Image */}
-        <Card className="overflow-hidden border-none bg-gradient-to-br from-gray-900 to-gray-800">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-xl text-white">Promotional Offers</CardTitle>
-            <CardDescription className="text-gray-400">Latest updates and offers</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="h-[400px] flex items-center justify-center rounded-xl">
-              {promoImageUrl ? (
-                <img 
-                  src={promoImageUrl} 
-                  alt="Promotional Offer" 
-                  className="w-full h-full object-contain rounded-lg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = siteLogoUrl || '/placeholder-promo.jpg'; 
-                  }}
-                />
-              ) : (
-                <div className="text-gray-400 text-center">
-                  <p>No promotional content available</p>
-                </div>
-              )}
+        <Card className="overflow-hidden border-none bg-gradient-to-b from-purple-900 via-green-900 to-indigo-900 relative">
+          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:3rem_3rem]" />
+          <div className="absolute h-full w-full bg-gradient-to-r from-purple-500/10 via-transparent to-transparent" />
+          
+          <CardHeader className="relative border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+                </span>
+              </motion.div>
+              <CardTitle className="text-xl bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-bold">
+                Special Offers
+              </CardTitle>
             </div>
+           
+          </CardHeader>
+          
+          <CardContent className="p-6 relative">
+            <motion.div 
+              className="h-[400px] rounded-xl overflow-hidden group relative"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
+              {promoImageUrl ? (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <motion.img 
+                    src={promoImageUrl} 
+                    alt="Promotional Offer" 
+                    className="w-full h-full object-contain rounded-lg"
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = siteLogoUrl || '/placeholder-promo.jpg'; 
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <motion.div 
+                      className="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20"
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <p className="text-white font-medium mb-2">🎉 Limited Time Offer!</p>
+                     
+                    </motion.div>
+                  </div>
+                </>
+              ) : (
+                <motion.div 
+                  className="h-full flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-lg p-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <Gift className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <p className="text-gray-400 text-center">
+                    Stay tuned for exciting promotional offers!
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
           </CardContent>
         </Card>
 
@@ -273,7 +322,7 @@ function DashboardOverview() {
               <div>
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5 text-yellow-500" />
-                  <span className="text-sm font-medium text-center">Recent Activity</span>
+                  <span className="text-sm font-medium text-center">Your network activity</span>
                 </CardTitle>
                 <CardDescription>Latest updates from your network</CardDescription>
               </div>

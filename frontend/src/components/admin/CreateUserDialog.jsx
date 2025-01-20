@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAdmin } from '@/hooks/admin/useAdmin'
+import { usePackages } from '@/hooks/payments/usePackages'
 import { UserPlus, Loader2, Eye, EyeOff, Copy, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -42,6 +43,7 @@ export function CreateUserDialog() {
   const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -52,12 +54,16 @@ export function CreateUserDialog() {
     status: 'ACTIVE',
     country: 'UG',
     createNode: true,
-    referralCode: ''
+    referralCode: '',
+    packageId: ''
   })
   const [errors, setErrors] = useState({})
 
   const { useCreateUser } = useAdmin()
   const createUser = useCreateUser()
+  const { adminPackages, availablePackages, packagesLoading } = usePackages()
+
+  const packages = formData.role === 'ADMIN' ? adminPackages : availablePackages
 
   const validateForm = () => {
     const newErrors = {}
@@ -78,6 +84,7 @@ export function CreateUserDialog() {
     if (!formData.lastName) newErrors.lastName = 'Last name is required'
     if (!formData.phone) newErrors.phone = 'Phone is required'
     if (!formData.country) newErrors.country = 'Country is required'
+    if (!formData.packageId) newErrors.packageId = 'Package is required'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -98,10 +105,18 @@ export function CreateUserDialog() {
     e.preventDefault()
     if (!validateForm()) return
 
+    setIsSubmitting(true)
     try {
-      await createUser.mutateAsync(formData)
+      const response = await createUser.mutateAsync({
+        ...formData,
+        packageId: formData.packageId ? parseInt(formData.packageId) : undefined
+      })
+      
+      // Show success message and wait for 1.5 seconds
       toast.success('User created successfully')
-      setOpen(false)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      // Reset form and close dialog
       setFormData({
         email: '',
         password: '',
@@ -112,10 +127,15 @@ export function CreateUserDialog() {
         status: 'ACTIVE',
         country: 'UG',
         createNode: true,
-        referralCode: ''
+        referralCode: '',
+        packageId: ''
       })
+      setOpen(false)
     } catch (error) {
-      toast.error(error.message || 'Failed to create user')
+      console.error('Create user error:', error)
+      toast.error(error.response?.data?.message || 'Failed to create user')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -146,141 +166,136 @@ export function CreateUserDialog() {
           Create User
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create New User</DialogTitle>
           <DialogDescription>
-            Create a new user account with network node. Fill in all required fields.
+            Add a new user to the system. Fill in all required fields.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Personal Information */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="firstName">
-                First Name
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
               <Input
                 id="firstName"
-                name="firstName"
                 value={formData.firstName}
-                onChange={handleChange}
-                className={cn(errors.firstName && "border-red-500")}
-                placeholder="John"
+                onChange={(e) =>
+                  setFormData({ ...formData, firstName: e.target.value })
+                }
+                className={cn(errors.firstName && 'border-red-500')}
               />
               {errors.firstName && (
-                <p className="text-xs text-red-500">{errors.firstName}</p>
+                <p className="text-sm text-red-500">{errors.firstName}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="lastName">
-                Last Name
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
               <Input
                 id="lastName"
-                name="lastName"
                 value={formData.lastName}
-                onChange={handleChange}
-                className={cn(errors.lastName && "border-red-500")}
-                placeholder="Doe"
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
+                className={cn(errors.lastName && 'border-red-500')}
               />
               {errors.lastName && (
-                <p className="text-xs text-red-500">{errors.lastName}</p>
+                <p className="text-sm text-red-500">{errors.lastName}</p>
               )}
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="email">
-              Email
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={cn(errors.email && "border-red-500")}
-              placeholder="john@example.com"
-            />
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email}</p>
-            )}
+          {/* Contact Information */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className={cn(errors.email && 'border-red-500')}
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                className={cn(errors.phone && 'border-red-500')}
+              />
+              {errors.phone && (
+                <p className="text-sm text-red-500">{errors.phone}</p>
+              )}
+            </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="password">
-              Password
-            </Label>
+          {/* Password */}
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Input
                 id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={formData.password}
-                onChange={handleChange}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 className={cn(
-                  errors.password && "border-red-500",
-                  "pr-20" // Make room for the icons
+                  'pr-20',
+                  errors.password && 'border-red-500'
                 )}
-                placeholder="••••••••"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
-                <button
+              <div className="absolute right-0 top-0 h-full flex items-center gap-1 pr-2">
+                <Button
                   type="button"
-                  onClick={handleCopyPassword}
-                  className="p-1 hover:text-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  title="Copy password"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </button>
-                <button
-                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="p-1 hover:text-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  title={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                </button>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleCopyPassword}
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </div>
             {errors.password && (
-              <p className="text-xs text-red-500">{errors.password}</p>
+              <p className="text-sm text-red-500">{errors.password}</p>
             )}
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="phone">
-              Phone
-            </Label>
-            <Input
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className={cn(errors.phone && "border-red-500")}
-              placeholder="+256 XXX XXX XXX"
-            />
-            {errors.phone && (
-              <p className="text-xs text-red-500">{errors.phone}</p>
-            )}
-          </div>
-
+          {/* User Settings */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="role">
-                Role
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value) => handleSelectChange('role', value)}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, role: value, packageId: '' })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select role" />
@@ -291,13 +306,13 @@ export function CreateUserDialog() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="status">
-                Status
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => handleSelectChange('status', value)}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
@@ -305,89 +320,103 @@ export function CreateUserDialog() {
                 <SelectContent>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="country">
-              Country
-            </Label>
-            <Select
-              value={formData.country}
-              onValueChange={(value) => handleSelectChange('country', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.country && (
-              <p className="text-xs text-red-500">{errors.country}</p>
-            )}
+          {/* Location and Package */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Select
+                value={formData.country}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, country: value })
+                }
+              >
+                <SelectTrigger className={cn(errors.country && 'border-red-500')}>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.country && (
+                <p className="text-sm text-red-500">{errors.country}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="package">Package</Label>
+              <Select
+                value={formData.packageId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, packageId: value })
+                }
+                disabled={packagesLoading}
+              >
+                <SelectTrigger 
+                  className={cn(
+                    "w-full bg-background",
+                    errors.packageId && "border-red-500"
+                  )}
+                >
+                  <SelectValue placeholder={packagesLoading ? "Loading packages..." : "Select package"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {packages?.map((pkg) => (
+                    <SelectItem 
+                      key={pkg.id} 
+                      value={pkg.id.toString()}
+                      className="cursor-pointer"
+                    >
+                      {pkg.name} - Level {pkg.level} ({pkg.price} {pkg.currency})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.packageId && (
+                <p className="text-sm text-red-500">{errors.packageId}</p>
+              )}
+            </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="referralCode">
-              Referral Code (Optional)
-            </Label>
-            <Input
-              id="referralCode"
-              name="referralCode"
-              value={formData.referralCode}
-              onChange={handleChange}
-              className={cn(errors.referralCode && "border-red-500")}
-              placeholder="Enter referral code"
-            />
-            {errors.referralCode && (
-              <p className="text-xs text-red-500">{errors.referralCode}</p>
-            )}
-            <p className="text-xs text-gray-500">
-              Leave empty if no referral code is available
-            </p>
-          </div>
-
+          {/* Optional Settings */}
           {formData.role === 'USER' && (
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="createNode"
-                name="createNode"
-                checked={formData.createNode}
-                onChange={(e) => handleSelectChange('createNode', e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            <div className="space-y-2">
+              <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+              <Input
+                id="referralCode"
+                value={formData.referralCode}
+                onChange={(e) =>
+                  setFormData({ ...formData, referralCode: e.target.value })
+                }
+                placeholder="Enter referral code if available"
               />
-              <Label htmlFor="createNode" className="text-sm font-normal">
-                Create network node for this user
-              </Label>
             </div>
           )}
+
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={isSubmitting || createUser.isLoading}
+              className="w-full relative"
+            >
+              {(isSubmitting || createUser.isLoading) ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin absolute left-1/2 -translate-x-[24px]" />
+                  <span>Creating User...</span>
+                </>
+              ) : (
+                'Create User'
+              )}
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>
-          <Button 
-            type="submit" 
-            onClick={handleSubmit} 
-            disabled={createUser.isLoading}
-            className="w-full"
-          >
-            {createUser.isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Create User'
-            )}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

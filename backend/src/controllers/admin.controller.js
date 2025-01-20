@@ -3,14 +3,14 @@ const nodeService = require('../services/node.service');
 const packageService = require('../services/package.service');
 const nodePackageService = require('../services/nodePackage.service');
 const nodeWithdrawalService = require('../services/nodeWithdrawal.service');
-const nodePaymentService = require('../services/nodePayment.service');
-const { validatePackage } = require('../middleware/validate');
-const { prisma } = require('../config/prisma');
-const logger = require('../services/logger.service');
 const bcrypt = require('bcryptjs');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+const logger = require('../services/logger.service');
 const { generateUsername } = require('../utils/userUtils');
 const fs = require('fs');
 const path = require('path');
+const commissionUtil = require('../utils/commission.utils');
 
 class AdminController {
   /**
@@ -924,7 +924,8 @@ class AdminController {
         status = 'ACTIVE',
         country = 'UG',
         createNode = true,
-        referralCode = ''
+        referralCode = '',
+        packageId
       } = req.body;
 
       // Start a transaction
@@ -987,51 +988,128 @@ class AdminController {
           }
         });
 
-        // Create node if requested and user is not an admin
+        // Create node if requested
         let node = null;
-        if (createNode && role === 'USER') {
+        if (createNode) {
           // Get the last node to determine placement if no sponsor
           const lastNode = !sponsorNode ? await tx.node.findFirst({
             orderBy: { id: 'desc' },
             where: { status: 'ACTIVE' }
           }) : null;
 
+          // Get the selected package
+          let selectedPackage = null;
+          if (packageId) {
+            selectedPackage = await tx.package.findUnique({ 
+              where: { id: parseInt(packageId) } 
+            });
+            
+            if (!selectedPackage) {
+              throw new Error('Selected package not found');
+            }
+          }
+
           node = await tx.node.create({
             data: {
               userId: user.id,
               status: 'ACTIVE',
-              position: 'ONE',
-              level: 1,
-              placementId: sponsorNode?.id || lastNode?.id || null,
-              sponsorId: sponsorNode?.id || lastNode?.id || null
+              sponsorId: sponsorNode?.id,
+              placementId: lastNode?.id,
+              level: selectedPackage?.level || 1
             }
           });
+
+          // Assign the package to the node
+          if (selectedPackage) {
+            const now = new Date();
+            const expiresAt = new Date();
+            expiresAt.setDate(now.getDate() + selectedPackage.duration);
+
+            // Create node package assignment
+            await tx.nodePackage.create({
+              data: {
+                nodeId: node.id,
+                packageId: selectedPackage.id,
+                status: 'ACTIVE',
+                activatedAt: now,
+                expiresAt: expiresAt
+              }
+            });
+
+            // Create payment record
+            const payment = await tx.nodePayment.create({
+              data: {
+                transactionDetails: `Admin assigned package ${selectedPackage.id} to user ${user.id}`,
+                amount: selectedPackage.price,
+                transactionId: `ADMIN_PKG_${Date.now()}`,
+                reference: `ADMIN_PKG_${user.id}_${selectedPackage.id}`,
+                type: 'ADMIN',
+                packageId: selectedPackage.id,
+                nodeId: node.id,
+                paymentMethod: 'ADMIN',
+                status: 'SUCCESSFUL'
+              }
+            });
+
+            // Create successful statement
+            await tx.nodeStatement.create({
+              data: {
+                nodeId: node.id,
+                amount: selectedPackage.price,
+                type: 'DEBIT',
+                status: 'SUCCESSFUL',
+                description: `Package purchase - ${selectedPackage.name} (Admin Assigned)`,
+                referenceType: 'DEPOSIT',
+                referenceId: payment.id
+              }
+            });
+
+            // Create system revenue record
+            await tx.systemRevenue.create({
+              data: {
+                amount: selectedPackage.price,
+                type: 'PACKAGE_PURCHASE',
+                description: `Package purchase - ${selectedPackage.name} (Admin Assigned)`,
+                status: 'SUCCESSFUL',
+                paymentId: payment.id
+              }
+            });
+
+            // Calculate and distribute commissions
+            await commissionUtil.calculateCommissions(
+              node.id,
+              selectedPackage.price,
+              selectedPackage.id,
+              tx
+            );
+
+            // Create notification for user
+            await tx.notification.create({
+              data: {
+                userId: user.id,
+                title: 'Package Assigned',
+                message: `An admin has assigned you the ${selectedPackage.name} package.`,
+                type: 'PACKAGE',
+                
+              }
+            });
+          }
         }
 
         return { user, node };
       });
 
-      // Remove password from response
-      const { user, node } = result;
-      const { password: _, ...userWithoutPassword } = user;
-
-      return res.status(201).json({
+      res.json({
         success: true,
         message: 'User created successfully',
-        data: {
-          user: userWithoutPassword,
-          node
-        }
+        data: result
       });
 
     } catch (error) {
-      console.error('Error creating user:', error);
-      return res.status(
-        error.message === 'An account with this email already exists' ? 409 :
-        error.message === 'Invalid referral code' ? 400 : 500
-      ).json({
+      console.error('Create user error:', error);
+      res.status(500).json({
         success: false,
-        message: error.message || 'Internal server error'
+        message: error.message || 'Failed to create user'
       });
     }
   }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAdmin } from '@/hooks/useAdmin';
+import { useAdmin } from '@/hooks/admin/useAdmin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

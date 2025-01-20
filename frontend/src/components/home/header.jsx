@@ -6,11 +6,11 @@ import { HoverLink } from "../ui/hover-link"
 import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { cn } from "../../lib/utils"
 import defaultLogo from "../../assets/logo.png"
-import { useAuth } from '../../hooks/useAuth';
-import { usePackages } from '../../hooks/usePackages';
+import { useAuth } from '../../hooks/auth/useAuth';
+import { usePackages } from '../../hooks/payments/usePackages';
 import { Avatar } from '../ui/avatar';
 import toast from "react-hot-toast"
-import { useSiteConfig } from '../../hooks/useSiteConfig'
+import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 const navigation = [
   { 

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { ChevronRight } from "lucide-react"
-import { useSiteConfig } from '../../hooks/useSiteConfig'
+import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 export function Footer() {
   const { 

@@ -8,6 +8,7 @@ const { generateUsername } = require('../utils/userUtils');
 const crypto = require('crypto');
 const { JWT_SECRET } = require('../config/environment');
 const emailService = require('../services/email.service');
+const adminNotificationUtils = require('../utils/admin-notification.utils');
 
 class AuthController {
   /**
@@ -189,6 +190,31 @@ class AuthController {
             ipAddress: req.ip
           }
         });
+
+        // Send welcome email
+        await emailService.sendWelcomeEmail(user.email, user.firstName);
+
+        // Notify admins of new registration
+        await adminNotificationUtils.newUserRegistered(user);
+
+        // If referral code exists, link the referral
+        if (referralCode) {
+          const referrer = await prisma.user.findFirst({
+            where: { referralCode }
+          });
+
+          if (referrer) {
+            await prisma.referral.create({
+              data: {
+                referrerId: referrer.id,
+                refereeId: user.id
+              }
+            });
+
+            // Notify admins of new referral
+            await adminNotificationUtils.newReferralJoined(referrer, user);
+          }
+        }
 
         return res.status(201).json({
           success: true,

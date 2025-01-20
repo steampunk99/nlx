@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '../lib/utils'
 import { Icon } from '@iconify/react'
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/auth/useAuth'
 import {
   Sheet,
   SheetContent,
@@ -21,15 +21,44 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import toast from 'react-hot-toast'
+import { NotificationBell } from "@/components/NotificationBell"
 
 const navigation = [
-  { name: 'Overview', href: '/admin' },
-  { name: 'Users', href: '/admin/users' },
-  { name: 'Packages', href: '/admin/packages' },
-  { name: 'Withdrawals', href: '/admin/finance/withdrawals' },
-  { name: 'Commissions', href: '/admin/finance/commissions' },
-  { name: 'Transactions', href: '/admin/finance/transactions' },
-  { name: 'Settings', href: '/admin/settings' }
+  { 
+    name: 'Overview', 
+    href: '/admin',
+    icon: 'lucide:layout-dashboard'
+  },
+  { 
+    name: 'Users', 
+    href: '/admin/users',
+    icon: 'lucide:users'
+  },
+  { 
+    name: 'Packages', 
+    href: '/admin/packages',
+    icon: 'lucide:package'
+  },
+  { 
+    name: 'Withdrawals', 
+    href: '/admin/finance/withdrawals',
+    icon: 'lucide:wallet'
+  },
+  { 
+    name: 'Commissions', 
+    href: '/admin/finance/commissions',
+    icon: 'lucide:coins'
+  },
+  { 
+    name: 'Transactions', 
+    href: '/admin/finance/transactions',
+    icon: 'lucide:receipt'
+  },
+  { 
+    name: 'Settings', 
+    href: '/admin/settings',
+    icon: 'lucide:settings'
+  }
 ]
 
 export function AdminLayout() {
@@ -112,25 +141,20 @@ export function AdminLayout() {
                         <SheetTitle>Menu</SheetTitle>
                       </SheetHeader>
                       <div className="flex flex-col gap-1 mt-6">
-                        {navigation.map((item) => {
-                          const isActive = location.pathname === item.href ||
-                            (item.href !== '/admin' && location.pathname.startsWith(item.href))
-                          
-                          return (
-                            <Link
-                              key={item.name}
-                              to={item.href}
-                              onClick={() => setIsOpen(false)}
-                              className={cn(
-                                "px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                                "hover:bg-gray-100",
-                                isActive && "bg-blue-50 text-blue-600"
-                              )}
-                            >
-                              {item.name}
-                            </Link>
-                          )
-                        })}
+                        {navigation.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100",
+                              location.pathname === item.href ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
+                            )}
+                          >
+                            <Icon icon={item.icon} className="w-5 h-5" />
+                            {item.name}
+                          </Link>
+                        ))}
                       </div>
                     </SheetContent>
                   </Sheet>
@@ -140,27 +164,21 @@ export function AdminLayout() {
               <>
                 <div className="overflow-x-auto">
                   <ul className="flex -mb-[1px] min-w-max">
-                    {navigation.map((item) => {
-                      const isActive = location.pathname === item.href ||
-                        (item.href !== '/admin' && location.pathname.startsWith(item.href))
-                      
-                      return (
-                        <li key={item.name}>
-                          <Link
-                            to={item.href}
-                            className={cn(
-                              "relative inline-flex items-center px-6 py-5 text-sm font-medium transition-colors",
-                              "hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500",
-                              isActive
-                                ? "text-blue-600 before:absolute before:bottom-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-purple-500 before:via-blue-500 before:to-cyan-500"
-                                : "text-gray-500 hover:text-gray-700"
-                            )}
-                          >
-                            {item.name}
-                          </Link>
-                        </li>
-                      )
-                    })}
+                    {navigation.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          to={item.href}
+                          className={cn(
+                            "relative inline-flex items-center px-6 py-5 text-sm font-medium transition-colors",
+                            "hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500",
+                            location.pathname === item.href ? "text-blue-600 before:absolute before:bottom-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-purple-500 before:via-blue-500 before:to-cyan-500" : "text-gray-500 hover:text-gray-700"
+                          )}
+                        >
+                          <Icon icon={item.icon} className="w-5 h-5 mr-2" />
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
                   </ul>
                 </div>
                 <div className="flex items-center gap-2 pr-4">
@@ -187,6 +205,7 @@ export function AdminLayout() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  <NotificationBell />
                 </div>
               </>
             )}

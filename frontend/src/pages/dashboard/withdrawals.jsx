@@ -7,9 +7,9 @@ import { api } from "../../lib/axios"
 import toast from "react-hot-toast"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { useAuth } from "../../hooks/useAuth"
-import { useCommissions } from "../../hooks/useCommissions"
-import { useCountry } from "@/hooks/useCountry"
+import { useAuth } from "../../hooks/auth/useAuth"
+import { useCommissions } from "../../hooks/dashboard/useCommissions"
+import { useCountry } from "@/hooks/config/useCountry"
 
 export default function WithdrawalsPage() {
   const { user } = useAuth()

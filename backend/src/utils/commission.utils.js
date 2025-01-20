@@ -1,5 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { logger } = require('../services/logger.service');
+const notificationService = require('../services/notification.service');
+const adminNotificationUtils = require('./admin-notification.utils');
 
 const prisma = new PrismaClient();
 
@@ -14,7 +16,7 @@ const prisma = new PrismaClient();
 async function calculateCommissions(nodeId, amount, packageId, tx = prisma) {
     try {
         // Get node details first without transaction
-        const node = await prisma.node.findUnique({
+        const node = await tx.node.findUnique({
             where: { id: nodeId },
             include: {
                 user: true
@@ -31,8 +33,17 @@ async function calculateCommissions(nodeId, amount, packageId, tx = prisma) {
             packageId
         });
 
+        // Get the package details
+        const pkg = await tx.package.findUnique({
+            where: { id: packageId }
+        });
+
+        if (!pkg) {
+            throw new Error('Package not found');
+        }
+
         // Get sponsor chain without transaction
-        const sponsorChain = await getSponsorChain(node.id, 10);
+        const sponsorChain = await getSponsorChain(node.id, 7);
 
         const commissionRates = {
             1: 40,
@@ -90,6 +101,21 @@ async function calculateCommissions(nodeId, amount, packageId, tx = prisma) {
                         })
                     ]);
 
+                    // Create notification for commission earned
+                    await notificationService.create({
+                        userId: sponsor.user.id,
+                        title: 'Commission Earned',
+                        message: `You have earned a commission of ${commissionAmount} from your network.`,
+                        type: 'COMMISSION_EARNED'
+                    }, tx);
+
+                    // Notify admins of commission earned
+                    await adminNotificationUtils.commissionEarned(
+                        sponsor.user,
+                        commissionAmount,
+                        pkg.name
+                    );
+
                     // Update sponsor's balance
                     await tx.node.update({
                         where: { id: sponsor.id },
@@ -126,7 +152,7 @@ async function calculateCommissions(nodeId, amount, packageId, tx = prisma) {
     } catch (error) {
         logger.error('Error calculating commissions', {
             error: error.message,
-            nodeId,
+            nodeId: nodeId,
             amount
         });
         throw error;

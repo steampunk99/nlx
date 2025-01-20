@@ -3,7 +3,7 @@ import { ScrollArea } from '../ui/scroll-area'
 import { Skeleton } from '../ui/skeleton'
 import { Badge } from '../ui/badge'
 import { Card } from '../ui/card'
-import { useAdmin } from '../../hooks/useAdmin'
+import { useAdmin } from '../../hooks/admin/useAdmin'
 import { Button } from '../ui/button'
 
 export function UserDetailsDialog({ userId, open, onOpenChange }) {

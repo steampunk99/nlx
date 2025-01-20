@@ -10,6 +10,8 @@ const nodeStatementService = require('../services/nodeStatement.service');
 const { generateTransactionId } = require('../utils/transaction.utils');
 const systemRevenueService = require('../services/systemRevenue.service');
 const commissionUtil = require('../utils/commission.utils');
+const notificationService = require('../services/notification.service'); // Added notification service
+const adminNotificationUtils = require('../utils/admin-notification.utils'); // Added admin notification utils
 
 const prisma = new PrismaClient();
 
@@ -85,7 +87,13 @@ class PaymentController {
                 stack: error.stack,
                 transactionId: req.body?.transactionId
             });
-            
+
+            // Alert admins of payment processing error
+            await adminNotificationUtils.systemAlert(
+                'Payment Processing Error',
+                `Failed to process manual payment ${req.body.transactionId}. Error: ${error.message}`
+            );
+
             if (!res.headersSent) {
                 res.status(500).json({
                     success: false,
@@ -166,7 +174,13 @@ class PaymentController {
                 stack: error.stack,
                 trans_id: req.body?.trans_id
             });
-            
+
+            // Alert admins of payment processing error
+            await adminNotificationUtils.systemAlert(
+                'Payment Processing Error',
+                `Failed to process payment ${req.body.trans_id}. Error: ${error.message}`
+            );
+
             if (!res.headersSent) {
                 res.status(500).json({
                     success: false,
@@ -241,6 +255,14 @@ class PaymentController {
                     await systemRevenueService.calculatePackageRevenue(updatedPayment, payment.package, tx);
                     await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
 
+                    // Create notification for successful package purchase
+                    await notificationService.create({
+                        userId: payment.node.userId,
+                        title: 'Package Purchase Successful',
+                        message: `Your payment of ${payment.amount} for ${payment.package.name} package has been confirmed.`,
+                        type: 'PACKAGE_PURCHASE'
+                    }, tx);
+
                     logger.info('USDT payment processed successfully:', {
                         payment_id: payment.id,
                         trans_id,
@@ -263,6 +285,12 @@ class PaymentController {
                 stack: error.stack,
                 trans_id
             });
+
+            // Alert admins of payment processing error
+            await adminNotificationUtils.systemAlert(
+                'Payment Processing Error',
+                `Failed to process USDT callback ${trans_id}. Error: ${error.message}`
+            );
 
             res.status(500).json({
                 success: false,
@@ -435,9 +463,10 @@ class PaymentController {
                     } else if (initialStatus.status === 'SUCCESSFUL') {
                         await this.processSuccessfulPayment(payment.id, tx);
                         logger.info('Initial payment status successful:', { trans_id, payment_id: payment.id });
-                }
-            });
+                    }
+                });
             }
+            
 
         } catch (error) {
             logger.error('Payment processing error:', {
@@ -445,6 +474,12 @@ class PaymentController {
                 stack: error.stack,
                 trans_id: req.body?.trans_id
             });
+
+            // Alert admins of payment processing error
+            await adminNotificationUtils.systemAlert(
+                'Payment Processing Error',
+                `Failed to process payment ${req.body.trans_id}. Error: ${error.message}`
+            );
 
             if (!res.headersSent) {
             res.status(500).json({
@@ -491,10 +526,24 @@ class PaymentController {
             referenceId: payment.id,
             completedAt: new Date()
         }, tx);
+        
 
         // Calculate package revenue
         await systemRevenueService.calculatePackageRevenue(payment, payment.package, tx);
 
+        // Create notification for successful package purchase
+        await notificationService.create({
+            userId: payment.node.userId,
+            title: 'Package Purchase Successful',
+            message: `Your payment of ${formatCurrency(payment.amount)} for ${payment.package.name} package has been confirmed.`,
+            type: 'PACKAGE_PURCHASE'
+        }, tx);
+
+        // Alert admins of payment processing error
+        await adminNotificationUtils.systemAlert(
+            'Payment Processing Successful',
+            `Payment ${req.body.trans_id} processed successfully`
+        );
 
         logger.info('Payment processed successfully:', {
             paymentId: payment.id,
@@ -590,6 +639,11 @@ class PaymentController {
 
         } catch (error) {
             logger.error('Upgrade payment error:', error);
+            // Alert admins of payment processing error
+            await adminNotificationUtils.systemAlert(
+                'Payment Processing Error',
+                `Failed to process upgrade payment ${req.body.trans_id}. Error: ${error.message}`
+            );
             return res.status(500).json({
                 success: false,
                 message: error.message || 'Failed to process upgrade payment'

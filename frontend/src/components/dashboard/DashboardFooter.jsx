@@ -1,4 +1,4 @@
-import { useHealth } from '@/hooks/useHealth';
+import { useHealth } from '@/hooks/auth/useHealth';
 import { cn } from '@/lib/utils';
 import { Activity, CheckCircle2, Dot, XCircle } from 'lucide-react';
 

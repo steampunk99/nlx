@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Loader2 } from "lucide-react"
-import { useAdminWithdrawals } from "@/hooks/useAdminWithdrawals"
+import { useAdminWithdrawals } from "@/hooks/admin/useAdminWithdrawals"
 import { cn } from "@/lib/utils"
 
 const ITEMS_PER_PAGE = 10;

@@ -1,4 +1,4 @@
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/auth/useAuth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
 import { Button } from "../../components/ui/button"

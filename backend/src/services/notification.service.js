@@ -1,15 +1,16 @@
 const { PrismaClient } = require('@prisma/client');
+const { logger } = require('../services/logger.service');
 const prisma = new PrismaClient();
 
 class NotificationService {
-    async findAll(userId, filters = {}) {
-        const { startDate, endDate, type, isRead, priority } = filters;
+    async findAll(userId, page = 1, limit = 10, filters = {}) {
+        const { startDate, endDate, type, isRead } = filters;
         const where = { userId };
 
         if (startDate && endDate) {
             where.createdAt = {
-                gte: startDate,
-                lte: endDate
+                gte: new Date(startDate),
+                lte: new Date(endDate)
             };
         }
 
@@ -21,127 +22,128 @@ class NotificationService {
             where.isRead = isRead;
         }
 
-        if (priority) {
-            where.priority = priority;
-        }
+        const skip = (page - 1) * limit;
 
-        return prisma.notification.findMany({
-            where,
-            include: {
-                user: true,
-                relatedUser: true,
-                referenceData: true
-            },
-            orderBy: [
-                { priority: 'desc' },
-                { createdAt: 'desc' }
-            ]
-        });
+        try {
+            const [notifications, total] = await Promise.all([
+                prisma.notification.findMany({
+                    where,
+                    include: {
+                        user: true
+                    },
+                    orderBy: [
+                        { createdAt: 'desc' }
+                    ],
+                    skip,
+                    take: limit
+                }),
+                prisma.notification.count({ where })
+            ]);
+
+            return {
+                data: notifications,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(total / limit)
+                }
+            };
+        } catch (error) {
+            logger.error('Error fetching notifications:', {
+                error: error.message,
+                userId,
+                filters
+            });
+            throw error;
+        }
     }
 
     async findById(id) {
         return prisma.notification.findUnique({
             where: { id },
             include: {
-                user: true,
-                relatedUser: true,
-                referenceData: true
-            }
-        });
-    }
-
-    async create(notificationData, tx = prisma) {
-        const data = {
-            ...notificationData,
-            createdAt: new Date(),
-            isRead: false
-        };
-
-        return tx.notification.create({
-            data,
-            include: {
                 user: true
             }
         });
     }
 
-    async markAsRead(id, tx = prisma) {
-        return tx.notification.update({
+    async create(data, tx = prisma) {
+        try {
+            return tx.notification.create({
+                data: {
+                    userId: data.userId,
+                    title: data.title,
+                    message: data.message,
+                    type: data.type,
+                    isRead: false
+                }
+            });
+        } catch (error) {
+            logger.error('Error creating notification:', {
+                error: error.message,
+                data
+            });
+            throw error;
+        }
+    }
+
+    async markAsRead(id) {
+        return prisma.notification.update({
             where: { id },
-            data: {
-                isRead: true,
-                updatedAt: new Date()
-            },
-            include: {
-                user: true
-            }
+            data: { isRead: true }
         });
     }
 
-    async markAllAsRead(userId, tx = prisma) {
-        return tx.notification.updateMany({
-            where: {
-                userId,
-                isRead: false
-            },
-            data: {
-                isRead: true,
-                readAt: new Date()
-            }
+    async markAllAsRead(userId) {
+        return prisma.notification.updateMany({
+            where: { userId },
+            data: { isRead: true }
         });
     }
 
-    async delete(id, tx = prisma) {
-        return tx.notification.delete({
+    async delete(id) {
+        return prisma.notification.delete({
             where: { id }
         });
     }
 
-    async deleteOldNotifications(days = 30, tx = prisma) {
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - days);
-
-        return tx.notification.deleteMany({
-            where: {
-                createdAt: {
-                    lt: cutoffDate
-                },
-                isRead: true
-            }
-        });
-    }
-
-    async getUnreadCount(userId) {
-        return prisma.notification.count({
-            where: {
-                userId,
-                isRead: false
-            }
+    async deleteAll(userId) {
+        return prisma.notification.deleteMany({
+            where: { userId }
         });
     }
 
     // System Notifications
-    async createSystemNotification(userId, title, message, priority = 'NORMAL', tx = prisma) {
+    async createSystemNotification(userId, title, message, tx = prisma) {
         return this.create({
             userId,
             title,
             message,
-            type: 'SYSTEM',
-            priority
+            type: 'SYSTEM'
         }, tx);
     }
 
-    // Financial Notifications
-    async createWithdrawalNotification(userId, withdrawalId, status, amount, remarks = '', tx = prisma) {
-        const title = `Withdrawal ${status.toLowerCase()}`;
-        let message = `Your withdrawal request of UGX ${amount.toLocaleString()} has been ${status.toLowerCase()}.`;
+    // Payment Notifications
+    async createPaymentNotification(userId, amount, status, tx = prisma) {
+        const title = status === 'SUCCESSFUL' ? 'Payment Successful' : 'Payment Failed';
+        const message = status === 'SUCCESSFUL' 
+            ? `Your payment of ${amount} has been processed successfully.`
+            : `Your payment of ${amount} has failed. Please try again.`;
 
-        if (status === 'SUCCESSFUL') {
-            message += ' The funds have been transferred to your account.';
-        } else if (status === 'REJECTED') {
-            message += remarks ? ` Reason: ${remarks}` : ' Please contact support for more information.';
-        }
-        
+        return this.create({
+            userId,
+            title,
+            message,
+            type: 'PAYMENT'
+        }, tx);
+    }
+
+    // Withdrawal Notifications
+    async createWithdrawalNotification(userId, amount, status, tx = prisma) {
+        const title = `Withdrawal ${status.toLowerCase()}`;
+        const message = this.getWithdrawalMessage(status, amount);
+
         return this.create({
             userId,
             title,
@@ -150,114 +152,63 @@ class NotificationService {
         }, tx);
     }
 
-    async createCommissionNotification(userId, commissionId, amount, type, tx = prisma) {
-        const title = 'New Commission Earned';
-        const message = `You have earned a new ${type.toLowerCase()} commission of $${amount}`;
-        
-        return this.create({
-            userId,
-            title,
-            message,
-            type: 'COMMISSION',
-            priority: 'HIGH',
-            metadata: { 
-                commissionId,
-                amount,
-                commissionType: type
-            }
-        }, tx);
+    getWithdrawalMessage(status, amount) {
+        switch (status) {
+            case 'SUCCESSFUL':
+                return `Your withdrawal of ${amount} has been processed successfully.`;
+            case 'FAILED':
+                return `Your withdrawal of ${amount} has failed. Please contact support.`;
+            case 'PENDING':
+                return `Your withdrawal request of ${amount} is being processed.`;
+            case 'CANCELLED':
+                return `Your withdrawal request of ${amount} has been cancelled.`;
+            default:
+                return `Your withdrawal request of ${amount} status has been updated to ${status}.`;
+        }
     }
 
-    // Network Notifications
-    async createNetworkNotification(userId, childId, event, metadata = {}, tx = prisma) {
-        let title, message, priority = 'NORMAL';
-
-        switch (event) {
-            case 'NEW_SIGNUP':
-                title = 'New Member Joined';
-                message = 'A new member has joined your network.';
-                break;
-            case 'PACKAGE_UPGRADE':
-                title = 'Network Package Upgrade';
-                message = 'A member in your network has upgraded their package.';
-                priority = 'HIGH';
-                break;
-            case 'ACHIEVEMENT':
-                title = 'Network Achievement';
-                message = 'A member in your network has reached a new milestone.';
-                priority = 'HIGH';
-                break;
-            default:
-                title = 'Network Update';
-                message = 'There has been an update in your network.';
-        }
-
+    // Commission Notifications
+    async createCommissionNotification(userId, amount, level, tx = prisma) {
         return this.create({
             userId,
-            title,
-            message,
-            type: 'NETWORK',
-            priority,
-            relatedUserId: childId,
-            metadata: {
-                event,
-                ...metadata
-            }
+            title: 'Commission Earned',
+            message: `You have earned a Level ${level} commission of ${amount}.`,
+            type: 'COMMISSION'
         }, tx);
     }
 
     // Package Notifications
-    async createPackageNotification(userId, packageId, event, metadata = {}, tx = prisma) {
-        let title, message, priority = 'NORMAL';
+    async createPackageNotification(userId, packageName, event, tx = prisma) {
+        let title, message;
 
         switch (event) {
             case 'PURCHASE':
                 title = 'Package Purchased';
-                message = 'Your package purchase has been confirmed.';
+                message = `You have successfully purchased the ${packageName} package.`;
                 break;
             case 'UPGRADE':
                 title = 'Package Upgraded';
-                message = 'Your package has been successfully upgraded.';
-                priority = 'HIGH';
+                message = `Your package has been upgraded to ${packageName}.`;
                 break;
             case 'EXPIRING':
                 title = 'Package Expiring Soon';
-                message = 'Your package will expire soon. Please renew to maintain your benefits.';
-                priority = 'HIGH';
+                message = `Your ${packageName} package will expire soon.`;
                 break;
             default:
                 title = 'Package Update';
-                message = 'There has been an update to your package.';
+                message = `Your ${packageName} package has been updated.`;
         }
 
         return this.create({
             userId,
             title,
             message,
-            type: 'PACKAGE',
-            priority,
-            metadata: {
-                event,
-                packageId,
-                ...metadata
-            }
-        }, tx);
-    }
-
-    // Promotional Notifications
-    async createPromotionalNotification(userId, promotionId, title, message, tx = prisma) {
-        return this.create({
-            userId,
-            title,
-            message,
-            type: 'PROMOTION',
-            priority: 'LOW',
-            metadata: { promotionId }
+            type: 'PACKAGE'
         }, tx);
     }
 
     async getNotificationStats(userId) {
-        const [unread, total, highPriority] = await Promise.all([
+        const [unread, total] = await Promise.all([
             prisma.notification.count({
                 where: {
                     userId,
@@ -265,13 +216,8 @@ class NotificationService {
                 }
             }),
             prisma.notification.count({
-                where: { userId }
-            }),
-            prisma.notification.count({
                 where: {
-                    userId,
-                    isRead: false,
-                    priority: 'HIGH'
+                    userId
                 }
             })
         ]);
@@ -279,137 +225,7 @@ class NotificationService {
         return {
             unread,
             total,
-            highPriority,
             readPercentage: total > 0 ? ((total - unread) / total) * 100 : 0
-        };
-    }
-
-    // Analytics Methods
-    async getNotificationAnalytics(userId, startDate, endDate) {
-        const notifications = await prisma.notification.findMany({
-            where: {
-                userId,
-                createdAt: {
-                    gte: startDate,
-                    lte: endDate
-                }
-            },
-            select: {
-                type: true,
-                priority: true,
-                isRead: true,
-                createdAt: true,
-                readAt: true
-            }
-        });
-
-        // Calculate metrics
-        const typeDistribution = {};
-        const priorityDistribution = {};
-        let totalResponseTime = 0;
-        let readCount = 0;
-
-        notifications.forEach(notification => {
-            // Type distribution
-            typeDistribution[notification.type] = (typeDistribution[notification.type] || 0) + 1;
-            
-            // Priority distribution
-            priorityDistribution[notification.priority] = (priorityDistribution[notification.priority] || 0) + 1;
-            
-            // Response time for read notifications
-            if (notification.isRead && notification.readAt) {
-                totalResponseTime += notification.readAt.getTime() - notification.createdAt.getTime();
-                readCount++;
-            }
-        });
-
-        return {
-            total: notifications.length,
-            typeDistribution,
-            priorityDistribution,
-            averageResponseTime: readCount > 0 ? totalResponseTime / readCount : 0, // in milliseconds
-            readRate: notifications.length > 0 ? (readCount / notifications.length) * 100 : 0
-        };
-    }
-
-    async getNotificationTrends(userId, days = 30) {
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - days);
-
-        const notifications = await prisma.notification.findMany({
-            where: {
-                userId,
-                createdAt: {
-                    gte: startDate
-                }
-            },
-            select: {
-                type: true,
-                priority: true,
-                isRead: true,
-                createdAt: true
-            },
-            orderBy: {
-                createdAt: 'asc'
-            }
-        });
-
-        // Group notifications by day
-        const dailyStats = {};
-        notifications.forEach(notification => {
-            const date = notification.createdAt.toISOString().split('T')[0];
-            if (!dailyStats[date]) {
-                dailyStats[date] = {
-                    total: 0,
-                    read: 0,
-                    byType: {},
-                    byPriority: {}
-                };
-            }
-
-            dailyStats[date].total++;
-            if (notification.isRead) dailyStats[date].read++;
-            
-            // Count by type
-            dailyStats[date].byType[notification.type] = 
-                (dailyStats[date].byType[notification.type] || 0) + 1;
-            
-            // Count by priority
-            dailyStats[date].byPriority[notification.priority] = 
-                (dailyStats[date].byPriority[notification.priority] || 0) + 1;
-        });
-
-        return {
-            dailyStats,
-            totalDays: days,
-            averageDaily: notifications.length / days
-        };
-    }
-
-    async generateNotificationReport(userId, startDate, endDate) {
-        const [analytics, trends, stats] = await Promise.all([
-            this.getNotificationAnalytics(userId, startDate, endDate),
-            this.getNotificationTrends(userId),
-            this.getNotificationStats(userId)
-        ]);
-
-        return {
-            period: {
-                start: startDate,
-                end: endDate
-            },
-            currentStats: stats,
-            analytics,
-            trends,
-            summary: {
-                totalNotifications: analytics.total,
-                readRate: analytics.readRate,
-                averageResponseTime: analytics.averageResponseTime,
-                mostCommonType: Object.entries(analytics.typeDistribution)
-                    .sort((a, b) => b[1] - a[1])[0]?.[0],
-                highPriorityRate: analytics.total > 0 ? 
-                    (analytics.priorityDistribution['HIGH'] || 0) / analytics.total * 100 : 0
-            }
         };
     }
 }

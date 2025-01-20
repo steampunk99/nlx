@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import useCountryStore from '../store/countryStore';
+import useCountryStore from '../../store/countryStore';
 import { useAtom } from 'jotai';
-import { userAtom } from '../lib/auth';
+import { userAtom } from '../../lib/auth';
 
 // Define currency mappings for common countries
 const CURRENCY_MAPPINGS = {

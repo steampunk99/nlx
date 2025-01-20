@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { usePaymentStatus } from '@/hooks/usePaymentStatus';
+import { usePaymentStatus } from '@/hooks/payments/usePaymentStatus';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';

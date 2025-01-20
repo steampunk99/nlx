@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAdmin } from '@/hooks/useAdmin'
+import { useAdmin } from '@/hooks/admin/useAdmin'
 import { UserPlus, Loader2, Eye, EyeOff, Copy, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import toast from 'react-hot-toast'
-import { useAuth } from '../hooks/useAuth'
-import { usePackages } from '../hooks/usePackages';
-import { useSiteConfig } from '../hooks/useSiteConfig'
+import { useAuth } from '../hooks/auth/useAuth'
+import { usePackages } from '../hooks/payments/usePackages';
+import { useSiteConfig } from '../hooks/config/useSiteConfig'
 import { cn } from "../lib/utils"
 import { 
   LayoutDashboard, 
@@ -26,6 +26,7 @@ import {
   SheetTitle,
 } from '../components/ui/sheet'
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
+import { UserNotificationBell } from "@/components/UserNotificationBell";
 
 export function DashboardLayout() {
   const { 
@@ -217,6 +218,39 @@ export function DashboardLayout() {
         isMobile && "pl-0"
       )}>
         <div className="container min-h-screen bg-gradient-to-tr from-yellow-500/10 to-purple-500/10 py-6">
+          <div className="lg:pl-72">
+            <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-transparent px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+              <button
+                type="button"
+                className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+                onClick={() => setIsMobileOpen(true)}
+              >
+                <span className="sr-only">Open sidebar</span>
+                {/* <Menu className="h-6 w-6" aria-hidden="true" /> */}
+              </button>
+
+              {/* Separator */}
+              <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
+
+              <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+                <div className="relative flex flex-1">
+                  {/* Search */}
+                </div>
+                <div className="flex items-center gap-x-4 lg:gap-x-6">
+                  {/* Notification Bell */}
+                  <UserNotificationBell />
+
+                  {/* Separator */}
+                  <div
+                    className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"
+                    aria-hidden="true"
+                  />
+
+                  {/* Profile dropdown */}
+                </div>
+              </div>
+            </div>
+          </div>
           <Outlet />
           <DashboardFooter />
         </div>

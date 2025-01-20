@@ -26,7 +26,7 @@ import {
   ChevronRight,
   Filter
 } from 'lucide-react'
-import { useCommissions } from '../../hooks/useCommissions';
+import { useCommissions } from '../../hooks/dashboard/useCommissions';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';

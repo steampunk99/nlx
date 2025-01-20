@@ -1,16 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import { useDashboardStats, useEarnings, useRecentActivities } from "../../hooks/useDashboard"
+import { useAuth } from '../../hooks/auth/useAuth'
+import { useDashboardStats, useEarnings, useRecentActivities } from "../../hooks/dashboard/useDashboard"
 import { motion } from "framer-motion"
 import { cn } from "../../lib/utils"
-import { usePackages } from "../../hooks/usePackages"
-import { useCountry } from "@/hooks/useCountry"
-import { useSiteConfig } from "@/hooks/useSiteConfig" 
+import { usePackages } from "../../hooks/payments/usePackages"
+import { useCountry } from "@/hooks/config/useCountry"
+import { useSiteConfig } from "@/hooks/config/useSiteConfig" 
 import { Badge } from '../../components/ui/badge'
 import { Link } from 'react-router-dom'
-import { useCommissions } from '../../hooks/useCommissions'
+import { useCommissions } from '../../hooks/dashboard/useCommissions'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/axios'
 

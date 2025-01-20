@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/auth/useAuth'
 import { ChevronRight, Loader2, Building2, User2, Check, X, LockKeyhole } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { trackReferralClick } from '../../services/tracking.service'

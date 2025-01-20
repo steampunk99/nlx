@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import useSiteConfigStore from '../store/siteConfigStore';
+import useSiteConfigStore from '../../store/siteConfigStore';
 
 export function useSiteConfig() {
   const { config, isLoading, error, fetchConfig } = useSiteConfigStore();

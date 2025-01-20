@@ -6,13 +6,13 @@ import { AdminLayout } from '../layouts/AdminLayout'
 import { SupportLayout } from '../layouts/SupportLayout'
 import { AuthLayout } from '../layouts/AuthLayout'
 import UpgradePage from '@/pages/dashboard/packages/upgrade'
-import { usePackages } from '../hooks/usePackages'
-import { toast } from '../components/ui/use-toast'
+import { usePackages } from '../hooks/payments/usePackages'
 import NotFoundPage from '../pages/NotFound'
 import PaymentStatusPage from '@/pages/auth/payment-status'
 import AdminSettingsPage from '@/pages/admin/settings'
 import AdminWithdrawalsPage from '@/pages/admin/finance/withdrawals'
 import NetworkPage from '@/pages/dashboard/network' 
+
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
 const LoginPage = lazy(() => import('../pages/auth/login'))

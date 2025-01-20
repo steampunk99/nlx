@@ -201,6 +201,14 @@ class WithdrawalController {
                             }
                         })
                     ]);
+
+                    // Create notification for successful withdrawal
+                    await notificationService.create({
+                        userId: withdrawal.userId,
+                        title: 'Withdrawal Successful',
+                        message: `Your withdrawal request of ${withdrawal.amount} has been processed and completed successfully.`,
+                        type: 'WITHDRAWAL_SUCCESS'
+                    }, tx);
                 } else {
                     // Update records to FAILED status
                     const failureReason = scriptNetworksResponse.message || 'Mobile money transfer failed';
@@ -235,6 +243,14 @@ class WithdrawalController {
                             }
                         })
                     ]);
+
+                    // Create notification for failed withdrawal
+                    await notificationService.create({
+                        userId: withdrawal.userId,
+                        title: 'Withdrawal Failed',
+                        message: `Your withdrawal request of ${withdrawal.amount} has failed. Please contact support if you need assistance.`,
+                        type: 'WITHDRAWAL_FAILED'
+                    }, tx);
                 }
 
                 return { withdrawal, scriptNetworksResponse };
@@ -272,6 +288,15 @@ class WithdrawalController {
                         }
                     })
                 ]);
+
+                // Create notification for failed withdrawal
+                await notificationService.create({
+                    userId: withdrawal.userId,
+                    title: 'Withdrawal Failed',
+                    message: `Your withdrawal request of ${withdrawal.amount} has failed. Please contact support if you need assistance.`,
+                    type: 'WITHDRAWAL_FAILED'
+                }, tx);
+
                 throw error;
             }
         });
@@ -454,6 +479,14 @@ class WithdrawalController {
                 }
             });
 
+            // Create notification for cancelled withdrawal
+            await notificationService.create({
+                userId: withdrawal.userId,
+                title: 'Withdrawal Cancelled',
+                message: `Your withdrawal request of ${withdrawal.amount} has been cancelled.`,
+                type: 'WITHDRAWAL_CANCELLED'
+            });
+
             await notificationService.createWithdrawalNotification(
                 userId,
                 id,
@@ -569,6 +602,30 @@ class WithdrawalController {
                         }
                     }
                 });
+            }
+
+            // Create notification within the transaction
+            if (status === 'SUCCESSFUL') {
+                await notificationService.create({
+                    userId: withdrawal.userId,
+                    title: 'Withdrawal Successful',
+                    message: `Your withdrawal request has been processed and completed successfully.`,
+                    type: 'WITHDRAWAL_SUCCESS'
+                }, tx);
+            } else if (status === 'FAILED') {
+                await notificationService.create({
+                    userId: withdrawal.userId,
+                    title: 'Withdrawal Failed',
+                    message: `Your withdrawal request has failed. Please contact support if you need assistance.`,
+                    type: 'WITHDRAWAL_FAILED'
+                }, tx);
+            } else if (status === 'REJECTED') {
+                await notificationService.create({
+                    userId: withdrawal.userId,
+                    title: 'Withdrawal Rejected',
+                    message: `Your withdrawal request has been rejected. Please contact support if you need assistance.`,
+                    type: 'WITHDRAWAL_REJECTED'
+                }, tx);
             }
 
             // Create notification within the transaction

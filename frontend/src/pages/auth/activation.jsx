@@ -3,18 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Button } from "../../components/ui/button"
 import { Check, Star, CheckCircle2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog'
-import { usePackages } from '../../hooks/usePackages'
+import { usePackages } from '../../hooks/payments/usePackages'
 import { motion } from 'framer-motion'
 import { Badge } from "../../components/ui/badge"
 import { Label } from '../../components/ui/label'
 import { Input } from '../../components/ui/input'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/auth/useAuth'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
 import { cn } from '../../lib/utils'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
-import { useCountry } from '../../hooks/useCountry'
+import { useCountry } from '../../hooks/config/useCountry'
 import ReactCountryFlag from 'react-country-flag'
 
 const containerVariants = {

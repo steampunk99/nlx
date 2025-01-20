@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/axios';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useSiteConfig } from '@/hooks/useSiteConfig';
+import { useSiteConfig } from '@/hooks/config/useSiteConfig';
 
 const POLL_INTERVAL = 15000; // Poll every 15 seconds
 

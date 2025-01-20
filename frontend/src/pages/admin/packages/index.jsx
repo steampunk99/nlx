@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Package, Users, DollarSign, Activity, Search, X } from 'lucide-react';
-import { useAdminPackages } from '@/hooks/useAdminPackages';
+import { useAdminPackages } from '@/hooks/admin/useAdminPackages';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDebounce } from '@/hooks/use-debounce';
+import { useDebounce } from '@/hooks/auth/use-debounce';
 
 // Format currency in UGX
 const formatCurrency = (amount) => {

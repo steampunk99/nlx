@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { usePackages } from '@/hooks/usePackages';
-import { useAuth } from '@/hooks/useAuth';
-import { useCountry } from '@/hooks/useCountry';
+import { usePackages } from '@/hooks/payments/usePackages';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useCountry } from '@/hooks/config/useCountry';
 import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

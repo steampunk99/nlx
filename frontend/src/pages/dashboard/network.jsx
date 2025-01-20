@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Icon } from '@iconify/react'
 import { Users, UserPlus, ArrowUpRight } from 'lucide-react'
-import { useNetworkStats, useNetworkLevels, useRecentReferrals, useGenealogyTree } from '../../hooks/useDashboard'
+import { useNetworkStats, useNetworkLevels, useRecentReferrals, useGenealogyTree } from '../../hooks/dashboard/useDashboard'
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,7 @@ import { Copy, Check, Share2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/axios'
 import toast from 'react-hot-toast'
-import { useAuth } from '@/hooks/useAuth'   
+import { useAuth } from '@/hooks/auth/useAuth'   
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 

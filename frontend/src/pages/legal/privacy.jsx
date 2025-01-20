@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useSiteConfig } from '../../hooks/useSiteConfig'
+import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 export default function PrivacyPage() {
   const { siteName, siteLogoUrl, siteBaseUrl, supportEmail, supportPhone, supportLocation } = useSiteConfig()

@@ -1,10 +1,10 @@
-import { useAdmin } from '../../hooks/useAdmin'
+import { useAdmin } from '../../hooks/admin/useAdmin'
 import { Card } from '../../components/ui/card'
 import { Users, Package, DollarSign, Network, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react'
 import { Progress } from '../../components/ui/progress'
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/auth/useAuth'
 import { cn } from '@/lib/utils'
 import { Badge } from '../../components/ui/badge'
 

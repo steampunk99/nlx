@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../lib/axios'
-import { clearAuthTokens } from '../lib/auth'
+import { api } from '../../lib/axios'
+import { clearAuthTokens } from '../../lib/auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAtom } from 'jotai'
-import { userAtom, setAuthTokens } from '../lib/auth'
-import  {usePackages}  from './usePackages'
+import { userAtom, setAuthTokens } from '../../lib/auth'
+import  {usePackages}  from '../payments/usePackages'
 import toast from 'react-hot-toast'
 
 export function useAuth() {

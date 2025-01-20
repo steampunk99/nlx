@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { ChevronRight, Mail, Lock, Loader, Loader2, LockOpen } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/auth/useAuth'
 import toast from 'react-hot-toast'
 
 import { Button } from "../../components/ui/button"

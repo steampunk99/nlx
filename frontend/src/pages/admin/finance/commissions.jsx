@@ -24,7 +24,7 @@ import {
 } from "../../../components/ui/select";
 import { Input } from "../../../components/ui/input";
 import { Icon } from '@iconify/react';
-import { useAdminCommissions } from '../../../hooks/useAdminCommissions';
+import { useAdminCommissions } from '../../../hooks/admin/useAdminCommissions';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { cn } from '../../../lib/utils';

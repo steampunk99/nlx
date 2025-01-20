@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useAdminPackages } from '@/hooks/useAdminPackages';
+import { useAdminPackages } from '@/hooks/admin/useAdminPackages';
 import { Loader2 } from 'lucide-react';
 import {
   Tabs,

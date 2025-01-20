@@ -3,19 +3,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Check, Star, TrendingUp, Users, Network } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { usePackages } from '@/hooks/usePackages'
+import { usePackages } from '@/hooks/payments/usePackages'
 import { motion } from 'framer-motion'
 import { Badge } from "@/components/ui/badge"
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/auth/useAuth'
 import {Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from '@/components/ui/table'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { BorderTrail } from '@/components/ui/border-trail'
 import { cn } from '@/lib/utils'
 import { UpgradePackageModal } from '@/pages/dashboard/packages/upgrade-package-modal'
-import { useCountry } from '@/hooks/useCountry'
+import { useCountry } from '@/hooks/config/useCountry'
 
 const containerVariants = {
   hidden: { opacity: 0 },

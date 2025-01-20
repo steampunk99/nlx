@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { getAuthTokens } from '../lib/auth'
+import { getAuthTokens } from '../../lib/auth'
 import toast from 'react-hot-toast'
-import { api } from '../lib/axios'
-import { useCountry } from './useCountry'
+import { api } from '../../lib/axios'
+import { useCountry } from '../config/useCountry'
 
 export function usePackages(options = {}) {
   const queryClient = useQueryClient()

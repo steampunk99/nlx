@@ -2,8 +2,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Button } from "../../components/ui/button"
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { ArrowUpRight, Users, DollarSign, Package, Activity, ChevronRight, TrendingUp } from 'lucide-react'
-import { Skeleton } from "../../components/ui/skeleton"
 import { useDashboardStats, useEarnings, useRecentActivities } from "../../hooks/useDashboard"
 import { motion } from "framer-motion"
 import { cn } from "../../lib/utils"
@@ -15,6 +13,9 @@ import { Link } from 'react-router-dom'
 import { useCommissions } from '../../hooks/useCommissions'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/axios'
+
+import { ArrowUpRight,Coins,Gift, Users, DollarSign, Package, Activity, ChevronRight, TrendingUp } from 'lucide-react'
+import { Skeleton } from "../../components/ui/skeleton"
 
 
   
@@ -28,15 +29,8 @@ function DashboardOverview() {
   const { commissions, commissionStats } = useCommissions()
   const { siteLogoUrl, promoImageUrl } = useSiteConfig() 
   const { userPackage} = usePackages()
-  // Sample earnings data - will replace with actual API data when available
-  const earningsData = [
-    { date: 'Jan', amount: 400 },
-    { date: 'Feb', amount: 600 },
-    { date: 'Mar', amount: 800 },
-    { date: 'Apr', amount: 1000 },
-    { date: 'May', amount: 1200 },
-    { date: 'Jun', amount: 1400 },
-  ]
+
+  
 
   const availableBalance = commissionStats?.totalCommissions || 0
 
@@ -94,12 +88,12 @@ function DashboardOverview() {
     },
     {
       title: "Total Withdrawn",
-      value: `${currency.symbol} ${formatAmount(earnings?.totalWithdrawn || 0)}`,
+      value: `${currency.symbol} ${formatAmount(totalWithdrawn|| 0)}`,
       description: "Your available balance",
       icon: DollarSign,
       color: "text-green-500",
       bgColor: "bg-transparent",
-      secondaryValue: `${currency.symbol} ${formatAmount(earnings?.totalWithdrawn || 0)}`,
+      secondaryValue: `${currency.symbol} ${formatAmount(totalWithdrawn|| 0)}`,
       secondaryLabel: "This month"
     },
     {
@@ -127,14 +121,46 @@ function DashboardOverview() {
 
   const getActivityIcon = (type) => {
     switch (type) {
-      case 'earning':
-        return DollarSign
-      case 'referral':
-        return Users
-      case 'package':
-        return Package
+      case 'commission':
+        return Coins;
+      case 'network':
+        return Users;
       default:
-        return Activity
+        return Activity;
+    }
+  }
+
+  const getActivityColor = (type) => {
+    switch (type) {
+      case 'commission':
+        return {
+          bg: 'bg-green-100 dark:bg-green-900/20',
+          text: 'text-green-600 dark:text-green-400',
+          ring: 'ring-green-600/20 dark:ring-green-400/20'
+        };
+      case 'network':
+        return {
+          bg: 'bg-blue-100 dark:bg-blue-900/20',
+          text: 'text-blue-600 dark:text-blue-400',
+          ring: 'ring-blue-600/20 dark:ring-blue-400/20'
+        };
+      default:
+        return {
+          bg: 'bg-yellow-100 dark:bg-yellow-900/20',
+          text: 'text-yellow-600 dark:text-yellow-400',
+          ring: 'ring-yellow-600/20 dark:ring-yellow-400/20'
+        };
+    }
+  }
+
+  const getActivityEmoji = (type) => {
+    switch (type) {
+      case 'commission':
+        return '💰';
+      case 'network':
+        return '🤝';
+      default:
+        return '🎉';
     }
   }
 
@@ -145,19 +171,6 @@ function DashboardOverview() {
       day: 'numeric',
       year: 'numeric'
     })
-  }
-
-  const getActivityColor = (type) => {
-    switch (type) {
-      case 'earning':
-        return "bg-green-500/10 text-green-500"
-      case 'referral':
-        return "bg-blue-500/10 text-blue-500"
-      case 'package':
-        return "bg-yellow-500/10 text-yellow-500"
-      default:
-        return "bg-purple-500/10 text-purple-500"
-    }
   }
 
   return (
@@ -227,29 +240,78 @@ function DashboardOverview() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Promo Image */}
-        <Card className="overflow-hidden border-none bg-gradient-to-br from-gray-900 to-gray-800">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-xl text-white">Promotional Offers</CardTitle>
-            <CardDescription className="text-gray-400">Latest updates and offers</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="h-[400px] flex items-center justify-center rounded-xl">
-              {promoImageUrl ? (
-                <img 
-                  src={promoImageUrl} 
-                  alt="Promotional Offer" 
-                  className="w-full h-full object-contain rounded-lg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = siteLogoUrl || '/placeholder-promo.jpg'; 
-                  }}
-                />
-              ) : (
-                <div className="text-gray-400 text-center">
-                  <p>No promotional content available</p>
-                </div>
-              )}
+        <Card className="overflow-hidden border-none bg-gradient-to-b from-purple-900 via-green-900 to-indigo-900 relative">
+          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:3rem_3rem]" />
+          <div className="absolute h-full w-full bg-gradient-to-r from-purple-500/10 via-transparent to-transparent" />
+          
+          <CardHeader className="relative border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+                </span>
+              </motion.div>
+              <CardTitle className="text-xl bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-bold">
+                Special Offers
+              </CardTitle>
             </div>
+           
+          </CardHeader>
+          
+          <CardContent className="p-6 relative">
+            <motion.div 
+              className="h-[400px] rounded-xl overflow-hidden group relative"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
+              {promoImageUrl ? (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <motion.img 
+                    src={promoImageUrl} 
+                    alt="Promotional Offer" 
+                    className="w-full h-full object-contain rounded-lg"
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = siteLogoUrl || '/placeholder-promo.jpg'; 
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <motion.div 
+                      className="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20"
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <p className="text-white font-medium mb-2">🎉 Limited Time Offer!</p>
+                     
+                    </motion.div>
+                  </div>
+                </>
+              ) : (
+                <motion.div 
+                  className="h-full flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-lg p-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <Gift className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <p className="text-gray-400 text-center">
+                    Stay tuned for exciting promotional offers!
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
           </CardContent>
         </Card>
 
@@ -260,7 +322,7 @@ function DashboardOverview() {
               <div>
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5 text-yellow-500" />
-                  <span className="text-sm font-medium text-center">Recent Activity</span>
+                  <span className="text-sm font-medium text-center">Your network activity</span>
                 </CardTitle>
                 <CardDescription>Latest updates from your network</CardDescription>
               </div>
@@ -271,14 +333,15 @@ function DashboardOverview() {
             <div className="divide-y max-h-[300px] overflow-y-auto">
               {recentActivities?.map((activity, index) => {
                 const ActivityIcon = getActivityIcon(activity.type)
-                const colorClass = getActivityColor(activity.type)
-                const isNew = index === 0 // Assuming first item is newest
+                const colors = getActivityColor(activity.type)
+                const emoji = getActivityEmoji(activity.type)
+                const isNew = index === 0
                 
                 return (
                   <div 
                     key={index} 
                     className={cn(
-                      "relative p-4 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                      "relative p-4 transition-all hover:bg-gray-50/50 dark:hover:bg-gray-800/50",
                       "animate-in fade-in slide-in-from-bottom-2 duration-500",
                       { "delay-100": index === 0 },
                       { "delay-200": index === 1 },
@@ -287,38 +350,47 @@ function DashboardOverview() {
                   >
                     {isNew && (
                       <span className="absolute right-4 top-4 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                       </span>
                     )}
                     <div className="flex items-start space-x-4">
                       <div className={cn(
-                        "flex h-12 w-12 items-center bg-green-100 justify-center rounded-full transition-transform hover:scale-105",
-                        
+                        "flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105",
+                        colors.bg
                       )}>
-                        <ActivityIcon className={cn("h-4 w-4 text-green-500", )} />
+                        <span className="text-xl" role="img" aria-label="activity icon">
+                          {emoji}
+                        </span>
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
                           <p className="font-medium">
-                            {activity.title || activity.description}
+                            {activity.description}
                           </p>
-                          <p className={cn(
-                            "font-medium",
-                            activity.type === 'earning' && "text-green-600 dark:text-green-400"
-                          )}>
-                           {formatAmount(activity.value || activity.amount)}
-                          </p>
+                          {activity?.amount && (
+                            <>
+                              <p className={cn(
+                                "font-medium",
+                                colors.text
+                              )}>
+                                {currency.symbol} {formatAmount(activity?.amount)}
+                              </p>
+                            </>
+                          )}
                         </div>
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground">
-                          {formatDate(activity.date)} 
+                            {formatDate(activity?.date)}
                           </p>
                           <span className={cn(
-                            "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-                            colorClass
+                            "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset",
+                            colors.bg,
+                            colors.text,
+                            colors.ring
                           )}>
-                            {activity.status}
+                            <ActivityIcon className="h-3 w-3" />
+                            {activity.type}
                           </span>
                         </div>
                       </div>

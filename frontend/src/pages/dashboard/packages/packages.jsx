@@ -123,16 +123,15 @@ export default function PackagesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Price</TableHead>
-                    <TableHead>Expires On</TableHead>
-                    <TableHead>Days Remaining</TableHead>
+            
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
                     <TableCell>{currency.symbol} {formatAmount(userPackage.package.price)}</TableCell>
-                    <TableCell>{userPackage.formattedExpiresAt}</TableCell>
-                    <TableCell>{userPackage.daysRemaining} days</TableCell>
+              
+              
                     <TableCell>{userPackage.status}</TableCell>
                   </TableRow>
                 </TableBody>

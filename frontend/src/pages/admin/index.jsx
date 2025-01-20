@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { Badge } from '../../components/ui/badge'
 
+
 export function AdminDashboardPage() {
   const { useSystemStats, useNetworkStats, useTransactions } = useAdmin()
   const { data: stats, isLoading: isStatsLoading } = useSystemStats()
@@ -112,7 +113,7 @@ export function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="mt-2">
-              <div className="text-2xl font-bold">{formatCurrency(stats?.revenue?.total || 0)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {formatCurrency(stats?.revenue?.commissions || 0)} in commissions
               </div>
@@ -186,7 +187,7 @@ export function AdminDashboardPage() {
                         {tx.type}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(tx.createdAt).toLocaleDateString()} • Node #{tx.nodeId}
+                        {new Date(tx.createdAt).toLocaleDateString()} • @{tx.node.user.username}
                       </p>
                     </div>
                   </div>
@@ -276,7 +277,7 @@ export function AdminDashboardPage() {
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
                   <div className="text-2xl font-bold text-green-700">
-                    {formatCurrency(stats?.revenue?.total || 0)}
+                    {formatCurrency(stats?.revenue?.systemRevenue || 0)}
                   </div>
                   <div className="text-sm text-green-600">
                     Total Revenue
@@ -304,7 +305,7 @@ export function AdminDashboardPage() {
                 <div className="mt-4 pt-4 border-t border-green-200">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-green-600">Total Revenue</span>
-                    <span className="text-lg font-bold text-green-700">{formatCurrency(stats?.revenue?.total || 0)}</span>
+                    <span className="text-lg font-bold text-green-700">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</span>
                   </div>
                 </div>
               </div>

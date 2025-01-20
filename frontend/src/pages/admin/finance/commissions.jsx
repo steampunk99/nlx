@@ -185,26 +185,7 @@ export default function CommissionsPage() {
             <p className="text-xs text-gray-500">{stats?.totalCount || 0} commission(s)</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Direct Commissions</CardTitle>
-            <Icon icon="ph:users-bold" className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.directAmount || 0)}</div>
-            <p className="text-xs text-gray-500">{stats?.directCount || 0} commission(s)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Matching Commissions</CardTitle>
-            <Icon icon="ph:git-fork-bold" className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.matchingAmount || 0)}</div>
-            <p className="text-xs text-gray-500">{stats?.matchingCount || 0} commission(s)</p>
-          </CardContent>
-        </Card>
+       
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>

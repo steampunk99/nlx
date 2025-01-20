@@ -308,6 +308,9 @@ class AdminController {
         }),
         // All node payments (packages, upgrades, etc)
         prisma.nodePayment.aggregate({
+          where: {
+            status: 'SUCCESSFUL'
+          },
           _sum: {
             amount: true
           }

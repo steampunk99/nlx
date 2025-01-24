@@ -21,10 +21,12 @@ import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/auth/useAuth'   
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useSiteConfig } from '@/hooks/config/useSiteConfig'
 
 import NetworkTree from '@/components/network/NetworkTree'
 
 export default function NetworkPage() {
+  const { siteName } = useSiteConfig()
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -59,7 +61,7 @@ export default function NetworkPage() {
     if (navigator.share && referralLinkData?.referralLink) {
       try {
         await navigator.share({
-          title: 'Join my network on Earn Drip',
+          title: `Join my network on ${siteName}`,
           text: 'Join my network and start your journey to financial freedom!',
           url: referralLinkData.referralLink
         })

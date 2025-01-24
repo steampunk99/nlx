@@ -9,10 +9,13 @@ import toast from 'react-hot-toast'
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
+import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const { login, isLoading, isError, error } = useAuth()
+
+  const {siteName} = useSiteConfig()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -60,7 +63,7 @@ const LoginPage = () => {
             >
               <div>
                 <h1 className="text-5xl font-bold mb-4">Welcome Back!</h1>
-                <p className="text-xl text-white/90">Sign in to continue your journey with Earn Drip</p>
+                <p className="text-xl text-white/90">Sign in to continue your journey with {siteName}</p>
               </div>
 
               <div className="space-y-6">

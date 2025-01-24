@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Checkbox } from "../../components/ui/checkbox"
 import toast from 'react-hot-toast'
+import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 // List of countries with codes
 const countries = [
@@ -34,6 +35,7 @@ const countries = [
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref');
+  const { siteName } = useSiteConfig()
   
   // Track referral click when page loads
   useEffect(() => {
@@ -162,7 +164,7 @@ export default function RegisterPage() {
               className="space-y-8 max-w-lg mx-auto"
             >
               <div>
-                <h1 className="text-5xl font-bold mb-4">Join Earn Drip</h1>
+                <h1 className="text-5xl font-bold mb-4">Join {siteName}</h1>
                 <p className="text-xl text-white/90">Start your journey to financial freedom</p>
               </div>
 

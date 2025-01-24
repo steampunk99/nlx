@@ -14,7 +14,7 @@ import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 const navigation = [
   { 
-    name: "Explore Earn Drip",
+    name: "Explore",
     href: "/privacy",
     submenu: [
       { name: "Terms & Conditions", href: "/terms" },

@@ -1,9 +1,11 @@
 import { useHealth } from '@/hooks/auth/useHealth';
 import { cn } from '@/lib/utils';
 import { Activity, CheckCircle2, Dot, XCircle } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/config/useSiteConfig';
 
 export function DashboardFooter() {
   const { data: health, isLoading, isError } = useHealth();
+  const { siteName } = useSiteConfig();
 
   const getStatusColor = () => {
     if (isLoading) return 'text-yellow-500';
@@ -48,7 +50,7 @@ export function DashboardFooter() {
         <div className="flex items-center space-x-4">
           {health?.version && (
             <div className="text-sm text-muted-foreground">
-              Earn Drip 2025
+              {siteName} 
             </div>
           )}
           {health?.environment && (

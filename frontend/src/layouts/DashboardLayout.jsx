@@ -28,6 +28,7 @@ import {
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 import { UserNotificationBell } from "@/components/UserNotificationBell";
 
+
 export function DashboardLayout() {
   const { 
     siteName, 
@@ -194,7 +195,7 @@ export function DashboardLayout() {
             <Menu className="h-6 w-6" />
           </Button>
           <div className="flex-1">
-            <span className="font-bold text-white">EARN DRIP</span>
+            <span className="font-bold text-white">{siteName}</span>
           </div>
         </div>
       )}
@@ -204,7 +205,7 @@ export function DashboardLayout() {
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetContent side="left" className="w-64 p-0 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-800">
             <SheetHeader className="p-4 text-left">
-              <SheetTitle className="text-white">Dashboard</SheetTitle>
+              <SheetTitle className="text-white">{siteName}</SheetTitle>
             </SheetHeader>
             <SidebarContent isMobileView />
           </SheetContent>

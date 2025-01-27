@@ -132,7 +132,7 @@ const PackageForm = ({ packageData, onSuccess }) => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Basic Information</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="features">Features & Benefits</TabsTrigger>
+         
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
@@ -300,47 +300,7 @@ const PackageForm = ({ packageData, onSuccess }) => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="features" className="space-y-4 mt-4">
-            <Card>
-              <CardContent className="space-y-4 pt-4">
-                <FormField
-                  control={form.control}
-                  name="features"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Features</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter package features"
-                          className="resize-none h-32"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="benefits"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Benefits (JSON)</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter benefits in JSON format"
-                          className="resize-none font-mono h-32"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+          
         </Tabs>
 
         <Button type="submit" disabled={isSubmitting} className="w-full">

@@ -174,7 +174,7 @@ export function useAuth() {
       toast('Creating your account...')
     },
     onSuccess: () => {
-      toast.success('Success, Ctivate your account to continue')
+      toast.success('Success, Activate your account to continue')
 
       setTimeout(() => navigate('/activation'), 2000)
     },

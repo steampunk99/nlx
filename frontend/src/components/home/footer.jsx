@@ -54,18 +54,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-900">Quick Links</h3>
             <div className="flex flex-col space-y-2">
-              <Link to="/about" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                About Us
-              </Link>
-              <Link to="/packages" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                Investment Packages
-              </Link>
-              <Link to="/contact" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
-                <ChevronRight className="h-4 w-4" />
-                Contact Us
-              </Link>
+              
               <Link to="/terms" className="text-sm text-gray-600 hover:text-[#0095E7] flex items-center">
                 <ChevronRight className="h-4 w-4" />
                 Terms of Service

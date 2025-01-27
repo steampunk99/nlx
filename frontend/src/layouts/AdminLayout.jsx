@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import toast from 'react-hot-toast'
 import { NotificationBell } from "@/components/NotificationBell"
+import { Moon, Sun } from 'lucide-react';
 
 const navigation = [
   { 
@@ -67,6 +68,10 @@ export function AdminLayout() {
   const { user, logout } = useAuth()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [isOpen, setIsOpen] = useState(false)
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('admin-dark-mode');
+    return saved ? JSON.parse(saved) : false;
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -76,6 +81,15 @@ export function AdminLayout() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('admin-dark-mode', JSON.stringify(isDark));
+  }, [isDark]);
 
   const handleLogout = async () => {
     try {
@@ -92,8 +106,12 @@ export function AdminLayout() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
   }
 
+  const toggleDarkMode = () => {
+    setIsDark(!isDark);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50/30">
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50/30'} text-foreground`}>
       {/* Navigation */}
       <div className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur-sm backdrop-saturate-150 supports-[backdrop-filter]:bg-white/50">
         {/* Gradient line */}
@@ -130,6 +148,19 @@ export function AdminLayout() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleDarkMode}
+                    className="h-9 w-9 px-0"
+                  >
+                    {isDark ? (
+                      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    ) : (
+                      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    )}
+                    <span className="sr-only">Toggle dark mode</span>
+                  </Button>
                   <Sheet open={isOpen} onOpenChange={setIsOpen}>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -205,6 +236,19 @@ export function AdminLayout() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleDarkMode}
+                    className="h-9 w-9 px-0"
+                  >
+                    {isDark ? (
+                      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    ) : (
+                      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    )}
+                    <span className="sr-only">Toggle dark mode</span>
+                  </Button>
                   <NotificationBell />
                 </div>
               </>
@@ -214,7 +258,7 @@ export function AdminLayout() {
       </div>
 
       {/* Content */}
-      <main className="max-w-full min-h-screen bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 px-4 py-6">
+      <main className={`max-w-full min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50/30'} px-4 py-6`}>
         <Outlet />
       </main>
     </div>

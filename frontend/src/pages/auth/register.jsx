@@ -171,15 +171,15 @@ export default function RegisterPage() {
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Create your personalized investment portfolio</p>
+                  <p className="text-white/90">Create your personalized entrepreneur portfolio</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Access exclusive investment opportunities</p>
+                  <p className="text-white/90">Access exclusive entrepreneur opportunities</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Join a community of successful investors</p>
+                  <p className="text-white/90">Join a community of successful entrepreneurs</p>
                 </div>
               </div>
             </motion.div>
@@ -195,7 +195,7 @@ export default function RegisterPage() {
           <div className="w-full max-w-md">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tight premium-text-gradient">Create Account</h2>
-              <p className="text-gray-400">Join our community of investors</p>
+              <p className="text-gray-400">Join our community of entrepreneurs</p>
             </div>
 
             {submitError && (

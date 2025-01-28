@@ -32,7 +32,7 @@ export function usePackages(options = {}) {
           toast.error('Access Denied, You do not have permission to perform this action.')
           break
         case 404:
-          toast.error('Resource Not Found')
+          toast.success('Session expired, please login again')
           break
         default:
           toast.error(`Error: ${error.response.status} - ${error.response.statusText}`)

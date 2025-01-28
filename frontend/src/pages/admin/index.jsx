@@ -1,13 +1,29 @@
 import { useAdmin } from '../../hooks/admin/useAdmin'
-import { Card } from '../../components/ui/card'
-import { Users, Package, DollarSign, Network, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card'
+import { 
+  Users, 
+  Package, 
+  DollarSign, 
+  Network, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Activity,
+  UserCheck,
+  Boxes,
+  TrendingUp,
+  Signal,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react'
 import { Progress } from '../../components/ui/progress'
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useAuth } from '@/hooks/auth/useAuth'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Badge } from '../../components/ui/badge'
-
+import { Button } from '@/components/ui/button'
+import { useHealth } from '@/hooks/auth/useHealth'
 
 export function AdminDashboardPage() {
   const { useSystemStats, useNetworkStats, useTransactions } = useAdmin()
@@ -15,6 +31,10 @@ export function AdminDashboardPage() {
   const { data: networkStats, isLoading: isNetworkLoading } = useNetworkStats()
   const { data: transactions, isLoading: isTransactionsLoading } = useTransactions({ dashboard: true })
   const [revenueData, setRevenueData] = useState([])
+  const { data: healthData, refetch: checkHealth, isLoading: isHealthLoading } = useHealth()
+  const [isHealthChecking, setIsHealthChecking] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState({ type: '', text: '' })
 
   const { user } = useAuth()
 
@@ -62,6 +82,24 @@ export function AdminDashboardPage() {
     return new Intl.NumberFormat('en-US').format(num || 0)
   }
 
+  const handleHealthCheck = async () => {
+    setIsHealthChecking(true)
+    try {
+      await checkHealth()
+      setToastMessage({
+        type: healthData?.ok ? 'success' : 'error',
+        text: healthData?.ok ? 'All systems operational' : 'System is currently offline'
+      })
+      setShowToast(true)
+      // Hide toast after 2 seconds
+      setTimeout(() => setShowToast(false), 2000)
+    } finally {
+      setTimeout(() => {
+        setIsHealthChecking(false)
+      }, 1000)
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Abstract Background */}
@@ -73,72 +111,152 @@ export function AdminDashboardPage() {
       />
 
       <div className="container mx-auto py-6 relative">
-        <h1 className="text-2xl font-bold tracking-tight mb-6">Welcome back, {user?.firstName}</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back, {user?.firstName}</h1>
+          <div className="relative">
+            {/* Toast Notification */}
+            {showToast && (
+              <div className={cn(
+                "absolute bottom-full mb-2 right-0 py-1 px-3 rounded-full text-xs font-medium shadow-lg transition-all duration-200 transform translate-y-0 opacity-100 z-50",
+                "flex items-center gap-1.5 min-w-[140px] whitespace-nowrap",
+                toastMessage.type === 'success' ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
+              )}>
+                {toastMessage.type === 'success' ? (
+                  <CheckCircle2 className="h-3 w-3" />
+                ) : (
+                  <XCircle className="h-3 w-3" />
+                )}
+                {toastMessage.text}
+              </div>
+            )}
+            
+            <Button 
+              variant="outline" 
+              className={cn(
+                "transition-all duration-300 w-10 h-10 p-0",
+                isHealthChecking && "animate-none",
+                healthData?.ok && !isHealthChecking && "border-green-500 text-green-600 hover:border-green-600 hover:text-green-700",
+                healthData && !healthData.ok && !isHealthChecking && "border-red-500 text-red-600 hover:border-red-600 hover:text-red-700",
+                "relative"
+              )}
+              onClick={handleHealthCheck}
+              disabled={isHealthChecking}
+            >
+              <Activity className={cn(
+                "h-4 w-4 transition-transform",
+                isHealthChecking && "animate-spin"
+              )} />
+              {healthData && !isHealthChecking && (
+                <span className={cn(
+                  "absolute -top-1 -right-1 w-2 h-2 rounded-full",
+                  healthData.ok ? "bg-green-500" : "bg-red-500"
+                )} />
+              )}
+            </Button>
+          </div>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {/* User Stats */}
-          <Card className="p-6 bg-white/60 backdrop-blur-lg border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">Total Users</h3>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="mt-2 font-mono">
-              <div className="text-2xl font-bold">{formatNumber(stats?.users?.total || 0)}</div>
-              <div className="flex items-center mt-1 text-xs">
-                <span className="text-muted-foreground">
+          <Card 
+            className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer border-none shadow-md"
+            onClick={() => {/* Navigate to users page */}}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-blue-800">Total Users</CardTitle>
+              <UserCheck className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-900">{formatNumber(stats?.users?.total || 0)}</div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-blue-700">
                   {formatNumber(stats?.users?.active || 0)} active users
-                </span>
+                </p>
+                <Badge variant="secondary" className="bg-blue-200 text-blue-700">
+                  {Math.round((stats?.users?.active / stats?.users?.total) * 100) || 0}% active
+                </Badge>
               </div>
-            </div>
+            </CardContent>
           </Card>
 
           {/* Package Stats */}
-          <Card className="p-6 bg-white/60 backdrop-blur-lg border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">Active Packages</h3>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold font-mono">{formatNumber(stats?.packages?.active || 0)}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {formatNumber(stats?.packages?.total || 0)} total packages
+          <Card 
+            className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer border-none shadow-md"
+            onClick={() => {/* Navigate to packages page */}}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-purple-800">Active Packages</CardTitle>
+              <Boxes className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-900">{formatNumber(stats?.packages?.active || 0)}</div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-purple-700">
+                  {formatNumber(stats?.packages?.total || 0)} total packages
+                </p>
+                <Badge variant="secondary" className="bg-purple-200 text-purple-700">
+                  {Math.round((stats?.packages?.active / stats?.packages?.total) * 100) || 0}% active
+                </Badge>
               </div>
-            </div>
+            </CardContent>
           </Card>
 
           {/* System revenue Stats */}
-          <Card className="p-6 bg-white/60 backdrop-blur-lg border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">System Revenue</h3>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold font-mono">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {formatCurrency(stats?.revenue?.commissions || 0)} in commissions
+          <Card 
+            className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer border-none shadow-md"
+            onClick={() => {/* Navigate to revenue page */}}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-green-800">System Revenue</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-900">{formatCurrency(stats?.revenue?.systemRevenue || 0)}</div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-green-700">
+                  {formatCurrency(stats?.revenue?.commissions || 0)} in commissions
+                </p>
+                <Badge variant="secondary" className="bg-green-200 text-green-700">
+                  +{formatNumber(transactions?.transactions?.length || 0)} txns
+                </Badge>
               </div>
-            </div>
+            </CardContent>
           </Card>
 
           {/* Network Stats */}
-          <Card className="p-6 bg-white/60 backdrop-blur-lg border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">Network Overview</h3>
-              <Network className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="mt-2 font-mono">
-              <div className="text-2xl font-bold">{formatNumber(networkStats?.nodes?.total || 0)}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {formatNumber(networkStats?.nodes?.active || 0)} active nodes
+          <Card 
+            className="bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer border-none shadow-md"
+            onClick={() => {/* Navigate to network page */}}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-amber-800">Network Overview</CardTitle>
+              <Signal className="h-4 w-4 text-amber-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-amber-900">{formatNumber(networkStats?.nodes?.total || 0)}</div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-amber-700">
+                  {formatNumber(networkStats?.nodes?.active || 0)} active nodes
+                </p>
+                <Badge variant="secondary" className="bg-amber-200 text-amber-700">
+                  {Math.round((networkStats?.nodes?.active / networkStats?.nodes?.total) * 100) || 0}% active
+                </Badge>
               </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 mt-6">
           {/* Revenue Chart */}
           <Card className="p-6 bg-white/60 backdrop-blur-lg border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <h3 className="text-lg font-medium mb-4">Revenue Trend</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">Revenue Trend</h3>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Link to="/admin/packages">View All</Link>
+                <ArrowUpRight className="h-4 w-4" />
+                
+              </Button>
+            </div>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={revenueData}>
@@ -170,7 +288,14 @@ export function AdminDashboardPage() {
           <Card className="p-6 bg-white/60 backdrop-blur-lg border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Recent Activity</h3>
-              <Badge variant="secondary">{transactions?.pendingCount || 0} pending</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  {transactions?.pendingCount || 0} pending
+                </Badge>
+                <Button variant="outline" size="sm">
+                  <Link to="/admin/finance/transactions">View All</Link>
+                </Button>
+              </div>
             </div>
             <div className="space-y-4">
               {transactions?.transactions?.slice(0, 5).map((tx) => (
@@ -192,17 +317,25 @@ export function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={cn(
+                    <p className={cn(
                       "text-sm font-medium font-mono",
                       tx.status === 'PENDING' && "text-blue-600",
                       tx.status === 'SUCCESSFUL' && "text-green-600",
                       tx.status === 'FAILED' && "text-red-600"
                     )}>
                       {formatCurrency(tx.amount)}
-                    </span>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    </p>
+                    <Badge 
+                      variant="secondary" 
+                      className={cn(
+                        "text-xs",
+                        tx.status === 'PENDING' && "bg-blue-100 text-blue-700",
+                        tx.status === 'SUCCESSFUL' && "bg-green-100 text-green-700",
+                        tx.status === 'FAILED' && "bg-red-100 text-red-700"
+                      )}
+                    >
                       {tx.status}
-                    </div>
+                    </Badge>
                   </div>
                 </div>
               ))}

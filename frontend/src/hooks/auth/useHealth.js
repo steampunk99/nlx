@@ -18,11 +18,18 @@ export function useHealth() {
           status: response.status,
           uptime: response.data?.uptime,
           version: response.data?.version,
-          environment: response.data?.environment
+          environment: response.data?.environment,
+          ok: true
         };
       } catch (error) {
-        console.error('Health check failed:', error);
-        throw error;
+        return {
+          status: error.response?.status || 500,
+          uptime: 0,
+          version: 'unknown',
+          environment: 'unknown',
+          ok: false,
+          error: error.message
+        };
       }
     },
     retry: 1, // Only retry once

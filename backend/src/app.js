@@ -46,7 +46,7 @@ app.use(fileUpload({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max file size
   createParentPath: true,
   useTempFiles: true,
-  tempFileDir: '/tmp/'
+  tempFileDir: path.join(__dirname, '../temp')
 }));
 
 app.use(helmet({

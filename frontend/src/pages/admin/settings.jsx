@@ -14,6 +14,10 @@ export default function AdminSettingsPage() {
     const { mutate: updateConfig, isLoading: isUpdating } = useUpdateAdminConfig();
 
     const [formData, setFormData] = useState(config || {});
+    const [imageLoadError, setImageLoadError] = useState({
+        logo: false,
+        promo: false
+    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,6 +30,13 @@ export default function AdminSettingsPage() {
     const handleSubmit = (e) => {
         e.preventDefault();
         updateConfig(formData);
+    };
+
+    const handleImageError = (type) => {
+        setImageLoadError(prev => ({
+            ...prev,
+            [type]: true
+        }));
     };
 
     if (isLoading) {
@@ -83,18 +94,25 @@ export default function AdminSettingsPage() {
                                 <Label>Site Logo</Label>
                                 <div className="p-4 border rounded-lg bg-muted/10">
                                     <div className="flex flex-col items-center gap-4">
-                                        {formData.siteLogoUrl && (
+                                        {formData.siteLogoUrl && !imageLoadError.logo && (
                                             <div className="relative group">
-                                                <img 
-                                                    src={formData.siteLogoUrl} 
-                                                    alt="Site Logo" 
-                                                    className="w-32 h-32 object-contain rounded-lg border bg-white"
-                                                />
+                                                <div className="w-32 h-32 rounded-lg border bg-white flex items-center justify-center">
+                                                    <img 
+                                                        src={formData.siteLogoUrl} 
+                                                        alt="Site Logo" 
+                                                        className="w-full h-full object-contain rounded-lg"
+                                                        onError={() => handleImageError('logo')}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
                                                 <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                     <button
                                                         type="button"
                                                         className="text-white text-sm hover:underline"
-                                                        onClick={() => setFormData(prev => ({ ...prev, siteLogoUrl: null }))}
+                                                        onClick={() => {
+                                                            setFormData(prev => ({ ...prev, siteLogoUrl: null }));
+                                                            setImageLoadError(prev => ({ ...prev, logo: false }));
+                                                        }}
                                                     >
                                                         Remove Logo
                                                     </button>
@@ -103,6 +121,7 @@ export default function AdminSettingsPage() {
                                         )}
                                         <ImageUpload 
                                             onImageSelected={(path) => {
+                                                setImageLoadError(prev => ({ ...prev, logo: false }));
                                                 setFormData(prev => ({
                                                     ...prev,
                                                     siteLogoUrl: path
@@ -122,18 +141,25 @@ export default function AdminSettingsPage() {
                                 <Label>Promotional Image</Label>
                                 <div className="p-4 border rounded-lg bg-muted/10">
                                     <div className="flex flex-col items-center gap-4">
-                                        {formData.promoImageUrl && (
+                                        {formData.promoImageUrl && !imageLoadError.promo && (
                                             <div className="relative group">
-                                                <img 
-                                                    src={formData.promoImageUrl} 
-                                                    alt="Promotional" 
-                                                    className="w-full h-32 object-cover rounded-lg border bg-white"
-                                                />
+                                                <div className="w-full h-32 rounded-lg border bg-white flex items-center justify-center">
+                                                    <img 
+                                                        src={formData.promoImageUrl} 
+                                                        alt="Promotional" 
+                                                        className="w-full h-full object-cover rounded-lg"
+                                                        onError={() => handleImageError('promo')}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
                                                 <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                     <button
                                                         type="button"
                                                         className="text-white text-sm hover:underline"
-                                                        onClick={() => setFormData(prev => ({ ...prev, promoImageUrl: null }))}
+                                                        onClick={() => {
+                                                            setFormData(prev => ({ ...prev, promoImageUrl: null }));
+                                                            setImageLoadError(prev => ({ ...prev, promo: false }));
+                                                        }}
                                                     >
                                                         Remove Image
                                                     </button>
@@ -142,6 +168,7 @@ export default function AdminSettingsPage() {
                                         )}
                                         <ImageUpload 
                                             onImageSelected={(path) => {
+                                                setImageLoadError(prev => ({ ...prev, promo: false }));
                                                 setFormData(prev => ({
                                                     ...prev,
                                                     promoImageUrl: path

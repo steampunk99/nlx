@@ -1236,10 +1236,24 @@ class AdminController {
       const ext = path.extname(file.name);
       const filename = `${timestamp}${ext}`;
       
-      // Move file to uploads directory
-      const uploadPath = path.join(__dirname, '../../../frontend/public/uploads/', filename);
+      // Create uploads directory if it doesn't exist
+      const uploadDir = path.join(__dirname, '../../../frontend/public/uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
       
-      await file.mv(uploadPath);
+      // Move file to uploads directory
+      const uploadPath = path.join(uploadDir, filename);
+      
+      try {
+        await file.mv(uploadPath);
+      } catch (moveError) {
+        console.error('File move error:', moveError);
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to save image file'
+        });
+      }
 
       return res.json({
         status: 'success',

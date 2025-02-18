@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Checkbox } from "../../components/ui/checkbox"
 import toast from 'react-hot-toast'
 import { useSiteConfig } from '../../hooks/config/useSiteConfig'
+import { Badge } from '@/components/ui/badge'
 
 // List of countries with codes
 const countries = [
@@ -272,11 +273,12 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
                 <Select 
+                  
                   name="country"
                   value={formData.country}
                   onValueChange={(value) => handleChange({ target: { name: 'country', value } })}
                 >
-                  <SelectTrigger className="bg-gray-900  text-white">
+                  <SelectTrigger className="bg-gray-900 border-none  text-white">
                     <SelectValue placeholder="Select your country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -300,11 +302,11 @@ export default function RegisterPage() {
                   defaultCountry={formData.country || 'UG'}
                   value={formData.phone}
                   onChange={(value) => handleChange({ target: { name: 'phone', value } })}
-                  className="flex h-12 w-full rounded-md border border-input bg-gray-900/50 px-3 py-2 
+                  className="flex h-12 w-full rounded-md border border-gray-800 bg-gray-900/50 px-3 py-2 
                   text-sm "
                 />
                 {formErrors.phone && (
-                  <p className="text-sm text-red-500">{formErrors.phone}</p>
+                  <Badge variant="secondary" >{formErrors.phone}</Badge>
                 )}
               </div>
 

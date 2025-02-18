@@ -66,7 +66,7 @@ export function Header() {
                           "px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200",
                           "bg-gray-800/50 hover:bg-gray-700/50 text-gray-200 hover:text-white",
                           "border border-gray-700 hover:border-gray-600",
-                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         )}>
                           {item.name}
                         </NavigationMenuTrigger>
@@ -160,7 +160,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-gray-900/95 backdrop-blur-lg border-t border-gray-800">
+        <div className="md:hidden bg-transparent backdrop-filter backdrop-blur-lg border-t border-gray-800">
           <div className="px-4 pt-4 pb-6 space-y-3">
             {navigation.map((item) => (
               <div key={item.name} className="space-y-2">

@@ -276,7 +276,7 @@ export default function RegisterPage() {
                   value={formData.country}
                   onValueChange={(value) => handleChange({ target: { name: 'country', value } })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-gray-900  text-white">
                     <SelectValue placeholder="Select your country" />
                   </SelectTrigger>
                   <SelectContent>

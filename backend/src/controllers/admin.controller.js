@@ -11,6 +11,7 @@ const { generateUsername } = require('../utils/userUtils');
 const fs = require('fs');
 const path = require('path');
 const commissionUtil = require('../utils/commission.utils');
+const cloudinaryService = require('../services/cloudinary.service');
 
 class AdminController {
   /**
@@ -1231,41 +1232,53 @@ class AdminController {
         });
       }
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const ext = path.extname(file.name);
-      const filename = `${timestamp}${ext}`;
-      
-      // Create uploads directory if it doesn't exist
-      const uploadDir = path.join(__dirname, '../../../frontend/public/uploads');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      
-      // Move file to uploads directory
-      const uploadPath = path.join(uploadDir, filename);
-      
-      try {
-        await file.mv(uploadPath);
-      } catch (moveError) {
-        console.error('File move error:', moveError);
-        return res.status(500).json({
+      // Validate file size (5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        return res.status(400).json({
           status: 'error',
-          message: 'Failed to save image file'
+          message: 'File size must be less than 5MB'
         });
       }
 
-      return res.json({
-        status: 'success',
-        data: {
-          path: `/uploads/${filename}`
-        }
-      });
+      try {
+        console.log('Starting file upload to Cloudinary:', {
+          name: file.name,
+          size: file.size,
+          mimetype: file.mimetype,
+          tempFilePath: file.tempFilePath
+        });
+
+        // Upload to Cloudinary using the temporary file path
+        const uploadResult = await cloudinaryService.uploadFile(file.tempFilePath, {
+          folder: 'earndrip/uploads',
+          resource_type: 'image',
+          public_id: `${Date.now()}_${path.parse(file.name).name}` // Add timestamp to prevent naming conflicts
+        });
+
+        console.log('Upload successful:', uploadResult);
+
+        return res.status(200).json({
+          status: 'success',
+          data: {
+            url: uploadResult.url,
+            publicId: uploadResult.publicId,
+            format: uploadResult.format,
+            size: uploadResult.size
+          }
+        });
+      } catch (uploadError) {
+        console.error('Upload error details:', uploadError);
+        return res.status(500).json({
+          status: 'error',
+          message: uploadError.message || 'Failed to upload image'
+        });
+      }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Image upload error:', error);
       return res.status(500).json({
         status: 'error',
-        message: 'Failed to upload image'
+        message: error.message || 'Internal server error'
       });
     }
   }

@@ -30,7 +30,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, logout } = useAuth()
-  const { siteName } = useSiteConfig()
+  const { siteName, siteLogoUrl } = useSiteConfig()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img src={defaultLogo} alt={siteName} className="h-8 w-8" />
+            <img src={siteLogoUrl} alt={siteName} className="h-8 w-8" />
             <span className="font-semibold text-lg bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
               {siteName}
             </span>

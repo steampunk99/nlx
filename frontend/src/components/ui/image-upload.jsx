@@ -60,7 +60,8 @@ export function ImageUpload({ onImageSelected, className }) {
         throw new Error(response.data?.message || 'Upload failed');
       }
       
-      onImageSelected(response.data.data.path);
+      // Pass the Cloudinary URL to the parent component
+      onImageSelected(response.data.data.url);
       toast.success('Image uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);

@@ -21,6 +21,7 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const commissionRoutes = require('./routes/commission.routes');
 const systemRevenueRoutes = require('./routes/systemRevenue.routes');
+const contactRoutes = require('./routes/contact.routes');
 
 const { auth } = require('./middleware/auth');
 
@@ -126,6 +127,7 @@ app.use('/api/v1/dashboard', auth, dashboardRoutes);
 app.use('/api/v1/notifications', auth, notificationRoutes);
 app.use('/api/v1/commissions', auth, commissionRoutes,createRateLimiter(1 * 60 * 1000, 50));
 app.use('/api/v1/system-revenue', systemRevenueRoutes);
+app.use('/api/v1/contact', contactRoutes, createRateLimiter(5 * 60 * 1000, 5));
 
 if(process.env.NODE_ENV === 'production') {
     app.get('*', (req,res) => {

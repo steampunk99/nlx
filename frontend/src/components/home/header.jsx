@@ -22,6 +22,7 @@ const navigation = [
     submenu: [
       { name: "Terms & Conditions", href: "/terms" },
       { name: "Privacy Policy", href: "/privacy" },
+      { name: "Contact Us", href: "/contact" },
     ]
   },
 ]

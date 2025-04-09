@@ -33,6 +33,7 @@ const ActivatePaymentPage = lazy(() => import('../pages/auth/payments'))
 // Legal Pages
 const TermsPage = lazy(() => import('../pages/legal/terms'))
 const PrivacyPage = lazy(() => import('../pages/legal/privacy'))
+const ContactPage = lazy(() => import('../pages/contact'))
 
 // Admin Pages
 const AdminDashboardPage = lazy(() => import('../pages/admin/index'))
@@ -73,6 +74,7 @@ export function AppRouter() {
           <Route index element={<LoginPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           
         </Route>
 

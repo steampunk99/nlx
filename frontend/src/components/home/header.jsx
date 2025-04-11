@@ -27,6 +27,7 @@ const navigation = [
   },
 ]
 
+//this is the header component
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

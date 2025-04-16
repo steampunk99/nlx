@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 // import ShimmerButton from "@/components/ui/shimmer-button"; // Optional: If you want a fancier button
 
 // Reverted back to Vite's import.meta.env
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; 
+const API_URL = import.meta.env.VITE_API_URLS || 'http://localhost:3000'; 
 
 function ContactForm() {
   const [formData, setFormData] = useState({

@@ -100,41 +100,14 @@ class EmailService {
     }
   }
 
-  async sendTestEmail(email) {
-    const mailOptions = {
-      from: {
-        name: 'Earn Drip',
-        address: process.env.SMTP_USER
-      },
-      to: email,
-      subject: 'Test Email - EARN DRIP',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333; text-align: center;">Test Email</h1>
-          <p>This is a test email to verify SMTP configuration.</p>
-          <hr style="margin: 30px 0; border: 1px solid #eee;">
-          <p style="color: #666; font-size: 12px; text-align: center;">
-            This is an automated test message from Earn Drip.
-          </p>
-        </div>
-      `,
-    };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      logger.info(`Test email sent to ${email}`);
-      return true;
-    } catch (error) {
-      logger.error('Error sending test email:', error);
-      throw error;
-    }
-  }
 
   async sendContactFormSubmission(name, email, message) {
     let recipientEmail;
     try {
       const adminConfig = await prisma.adminConfig.findFirst();
       recipientEmail = adminConfig?.supportEmail;
+      
     } catch (configError) {
       logger.error('Error fetching admin config for contact email:', configError);
     }

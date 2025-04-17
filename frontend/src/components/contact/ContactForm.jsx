@@ -7,8 +7,6 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 // import ShimmerButton from "@/components/ui/shimmer-button"; // Optional: If you want a fancier button
 
-// Reverted back to Vite's import.meta.env
-const API_URL = import.meta.env.VITE_API_URLS || 'http://localhost:3000'; 
 
 function ContactForm() {
   const [formData, setFormData] = useState({
@@ -33,7 +31,7 @@ function ContactForm() {
     // setSubmitStatus(null); // Removed unused state update
 
     try {
-      const response = await axios.post(`${API_URL}/api/v1/contact`, formData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/contact`, formData);
       
       if (response.data.success) {
         // setSubmitStatus('success'); // Removed unused state update

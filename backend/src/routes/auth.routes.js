@@ -141,5 +141,6 @@ router.post('/login', validateLogin, authController.login);
  */
 router.post('/forgot-password', authController.requestPasswordReset);
 router.post('/reset-password', authController.resetPassword);
+router.post('/contact', authController.handleSubmission);
 
 module.exports = router;

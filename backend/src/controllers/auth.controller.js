@@ -842,6 +842,35 @@ class AuthController {
     }
   }
 
+  async handleSubmission(req, res) {
+    const { name, email, message } = req.body;
+
+    console.log('Contact form submission:', { name, email, message });
+
+    try {
+      const success = await emailService.sendContactFormSubmission(name, email, message);
+
+      if (success) {
+        res.status(200).json({ 
+          success: true, 
+          message: 'Message sent successfully!' 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: 'Failed to send message. Please try again later.' 
+        });
+      }
+    } catch (error) {
+      logger.error('Contact form submission error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'An internal server error occurred.' 
+      });
+    }
+  }
+
+
   /**
    * Terminate all sessions except current
    * @param {Request} req 

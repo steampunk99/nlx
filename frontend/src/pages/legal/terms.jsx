@@ -5,7 +5,7 @@ import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 export default function TermsPage() {
   const { siteName, siteLogoUrl, siteBaseUrl, supportEmail, supportPhone, supportLocation } = useSiteConfig()
   return (
-    <div className="min-h-screen bg-gray-50 mt-12">
+    <div className="min-h-screen bg-black ">
       {/* Header */}
     
 
@@ -14,18 +14,18 @@ export default function TermsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="container mx-auto px-4 py-12 max-w-4xl"
       >
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Service</h1>
+        <h1 className="text-4xl font-bold text-white mb-8">Terms of Service</h1>
         
         <div className="prose prose-lg max-w-none">
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">1. Introduction</h2>
             <p className="text-gray-600 mb-4">
               Welcome to {siteName}. By accessing and using our platform, you agree to be bound by these Terms of Service.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Definitions</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">2. Definitions</h2>
             <ul className="list-disc pl-6 text-gray-600 space-y-2">
               <li>"Platform" refers to the {siteName} website and services</li>
               <li>"User" refers to any individual or entity using our Platform</li>
@@ -34,14 +34,14 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Account Registration</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">3. Account Registration</h2>
             <p className="text-gray-600 mb-4">
               Users must provide accurate and complete information when creating an account. You are responsible for maintaining the security of your account credentials.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. MLM Program Terms</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">4. MLM Program Terms</h2>
             <div className="text-gray-600 space-y-4">
               <p>
                 Our MLM program operates under the following guidelines:
@@ -56,7 +56,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. User Conduct</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">5. User Conduct</h2>
             <p className="text-gray-600 mb-4">
               Users must comply with all applicable laws and regulations. Prohibited activities include:
             </p>
@@ -69,21 +69,21 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Termination</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">6. Termination</h2>
             <p className="text-gray-600 mb-4">
               We reserve the right to terminate or suspend accounts that violate these terms or for any other reason at our discretion.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Changes to Terms</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">7. Changes to Terms</h2>
             <p className="text-gray-600 mb-4">
               We may modify these terms at any time. Continued use of the Platform constitutes acceptance of modified terms.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Contact Information</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">8. Contact Information</h2>
             <p className="text-gray-600">
               For questions about these Terms of Service, please contact us at:
               <br />

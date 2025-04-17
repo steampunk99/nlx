@@ -5,34 +5,38 @@ const prisma = new PrismaClient();
 
 class EmailService {
   constructor() {
+    // --- Use Gmail Transport ---
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'mail.earndrip.com', // SmarterASP.NET mail server
-      port: parseInt(process.env.SMTP_PORT) || 25, // Use port 587 for TLS
-      secure: false, // Use TLS
+      host: 'smtp.gmail.com', // Gmail SMTP server
+      port: 587,              // Port for TLS/STARTTLS
+      secure: false,          // Use TLS (true for 465 SSL, false for 587 TLS)
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+        user: process.env.GMAIL_USER,        // Your Gmail address from .env
+        pass: process.env.GMAIL_PASS // Your App Password from .env
       },
-      
+      // Optional: Add TLS options if needed, e.g., for self-signed certs in dev
+      // tls: {
+      //   rejectUnauthorized: false
+      // }
     });
 
     // Verify connection configuration
     this.transporter.verify((error, success) => {
       if (error) {
-        logger.error('SMTP connection error:', error);
+        logger.error('Gmail SMTP connection error:', error);
       } else {
-        logger.info('SMTP server is ready to send emails');
+        logger.info('Gmail SMTP server is ready to send emails');
       }
     });
   }
 
   async sendPasswordResetEmail(email, resetToken) {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    
+
     const mailOptions = {
       from: {
         name: 'Earn Drip',
-        address: process.env.SMTP_USER || 'noreply@earndrip.com'
+        address: process.env.GMAIL_USER // Use Gmail address as sender
       },
       to: email,
       subject: 'Reset Your Password - EARN DRIP',
@@ -55,21 +59,21 @@ class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      logger.info(`Password reset email sent to ${email}`);
+      logger.info(`Password reset email sent to ${email} via Gmail`);
       return true;
     } catch (error) {
-      logger.error('Error sending password reset email:', error);
+      logger.error('Error sending password reset email via Gmail:', error);
       return false;
     }
   }
 
   async sendVerificationEmail(email, verificationToken) {
     const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    
+
     const mailOptions = {
       from: {
         name: 'Earn Drip',
-        address: process.env.SMTP_USER || 'noreply@earndrip.com'
+        address: process.env.GMAIL_USER // Use Gmail address as sender
       },
       to: email,
       subject: 'Verify Your Email - EARN DRIP',
@@ -92,38 +96,30 @@ class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      logger.info(`Verification email sent to ${email}`);
+      logger.info(`Verification email sent to ${email} via Gmail`);
       return true;
     } catch (error) {
-      logger.error('Error sending verification email:', error);
+      logger.error('Error sending verification email via Gmail:', error);
       return false;
     }
   }
 
-
-
   async sendContactFormSubmission(name, email, message) {
-    let recipientEmail;
-    try {
-      const adminConfig = await prisma.adminConfig.findFirst();
-      recipientEmail = adminConfig?.supportEmail;
-      
-    } catch (configError) {
-      logger.error('Error fetching admin config for contact email:', configError);
-    }
+    let recipientEmail=process.env.GMAIL_USER
 
+    // Fallback if supportEmail not in DB or fetching failed
     if (!recipientEmail) {
-      recipientEmail = process.env.CONTACT_EMAIL_RECIPIENT || process.env.SMTP_USER;
-      logger.warn(`Support email not found in AdminConfig. Falling back to ${recipientEmail}`);
+      recipientEmail = process.env.CONTACT_EMAIL_RECIPIENT || process.env.GMAIL_USER; // Use dedicated recipient or fallback to the sender Gmail account
+      logger.warn(`Support email not found in AdminConfig or CONTACT_EMAIL_RECIPIENT env var not set. Falling back to ${recipientEmail}`);
     }
 
     const mailOptions = {
       from: {
-        name: 'Website Contact Form',
-        address: process.env.SMTP_FROM || process.env.SMTP_USER
+        name: 'Website Contact Form', // Or use 'Earn Drip Contact Form'
+        address: process.env.GMAIL_USER // Send from your Gmail account
       },
-      to: recipientEmail,
-      replyTo: email,
+      to: recipientEmail, // Send to your configured support/contact email
+      replyTo: email,    // Set reply-to so you can directly reply to the user
       subject: `New Contact Form Submission from ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; padding: 20px;">
@@ -142,10 +138,10 @@ class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      logger.info(`Contact form submission from ${email} sent successfully to ${recipientEmail}`);
+      logger.info(`Contact form submission from ${email} sent successfully to ${recipientEmail} via Gmail`);
       return true;
     } catch (error) {
-      logger.error('Error sending contact form submission email:', error);
+      logger.error('Error sending contact form submission email via Gmail:', error);
       return false;
     }
   }

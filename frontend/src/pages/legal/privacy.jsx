@@ -6,30 +6,20 @@ import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 export default function PrivacyPage() {
   const { siteName, siteLogoUrl, siteBaseUrl, supportEmail, supportPhone, supportLocation } = useSiteConfig()
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link 
-            to="/login" 
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Back to Login
-          </Link>
-        </div>
-      </div>
+    
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="container mx-auto px-4 py-12 max-w-4xl"
       >
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold text-white mb-8">Privacy Policy</h1>
         
         <div className="prose prose-lg max-w-none">
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Information We Collect</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">1. Information We Collect</h2>
             <div className="text-gray-600 space-y-4">
               <p>We collect the following types of information:</p>
               <ul className="list-disc pl-6 space-y-2">
@@ -50,7 +40,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. How We Use Your Information</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">2. How We Use Your Information</h2>
             <p className="text-gray-600 mb-4">
               We use your information for the following purposes:
             </p>
@@ -64,7 +54,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Information Sharing</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">3. Information Sharing</h2>
             <p className="text-gray-600 mb-4">
               We may share your information with:
             </p>
@@ -76,7 +66,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. Data Security</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">4. Data Security</h2>
             <p className="text-gray-600 mb-4">
               We implement appropriate security measures to protect your information, including:
             </p>
@@ -89,7 +79,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Your Rights</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">5. Your Rights</h2>
             <p className="text-gray-600 mb-4">
               You have the right to:
             </p>
@@ -103,7 +93,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Cookies and Tracking</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">6. Cookies and Tracking</h2>
             <p className="text-gray-600 mb-4">
               We use cookies and similar tracking technologies to:
             </p>
@@ -116,14 +106,14 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Children's Privacy</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">7. Children's Privacy</h2>
             <p className="text-gray-600 mb-4">
               Our services are not intended for users under 18 years of age. We do not knowingly collect information from children.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">8. Contact Us</h2>
             <p className="text-gray-600">
               For privacy-related inquiries, please contact us at:
               <br />

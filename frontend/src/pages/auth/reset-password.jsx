@@ -141,7 +141,7 @@ export default function  ResetPasswordPage() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" isLoading={isLoading}>
+          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-400" isLoading={isLoading}>
             Reset Password
           </Button>
         </form>
@@ -149,7 +149,7 @@ export default function  ResetPasswordPage() {
       <div className="text-center text-sm">
         <Link
           to="/login"
-          className="text-muted-foreground hover:text-primary"
+          className="text-emerald-600 hover:text-emerald-400"
         >
           Back to login
         </Link>
@@ -158,7 +158,7 @@ export default function  ResetPasswordPage() {
   )
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen bg-black text-white items-center justify-center p-4">
       {content}
     </div>
   )

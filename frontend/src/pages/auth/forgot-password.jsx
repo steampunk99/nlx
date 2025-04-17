@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen bg-black text-white items-center justify-center p-4">
       <div className="w-full max-w-[350px] space-y-6">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold">Forgot Password</h1>
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="m@example.com"
+                      placeholder="john@gmail.com"
                       type="email"
                       disabled={isLoading}
                       {...field}
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-md transition duration-200 disabled:opacity-50"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -114,7 +114,7 @@ export default function ForgotPasswordPage() {
           Remember your password?{' '}
           <Link
             to="/login"
-            className="font-medium text-primary hover:underline"
+            className="font-medium text-emerald-600 hover:underline"
           >
             Sign in
           </Link>

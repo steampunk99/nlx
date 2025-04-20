@@ -98,11 +98,11 @@ export default function ActivationPage() {
 
   if (packagesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
+      <div className="flex items-center justify-center min-h-screen bg-[#f7f3eb]">
         <div className="relative">
           <BorderTrail className="h-32 w-32" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-primary animate-pulse" />
+            <Sparkles className="h-10 w-10 text-[#c73e3a] animate-pulse" />
           </div>
         </div>
       </div>
@@ -110,44 +110,93 @@ export default function ActivationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
-      {/* Hero Section with Animated Background */}
+    <div className="min-h-screen bg-[#f7f3eb] text-[#2c2c2c]">
+      {/* Hero Section with Japanese-inspired design */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={fadeIn}
-        className="relative overflow-hidden rounded-b-3xl bg-gradient-to-r from-primary/20 via-purple-500/20 to-primary/20 p-8 md:p-16"
+        className="relative overflow-hidden bg-[#f7f3eb] p-8 md:p-16"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
-
-        <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-primary/20 rounded-full filter blur-3xl opacity-50" />
-        <div className="absolute -top-8 -right-8 w-64 h-64 bg-purple-500/20 rounded-full filter blur-3xl opacity-50" />
-
-        <BorderTrail
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        {/* Japanese wave pattern (Seigaiha) */}
+        <div
+          className="absolute inset-0 opacity-10"
           style={{
-            boxShadow: "0px 0px 60px 30px rgb(255 255 255 / 10%), 0 0 100px 60px rgb(0 0 0 / 10%)",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 25c-13.807 0-25 11.193-25 25s11.193 25 25 25 25-11.193 25-25-11.193-25-25-25zm0 5c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20zm0 5c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 5c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm-50-15c-13.807 0-25 11.193-25 25s11.193 25 25 25 25-11.193 25-25-11.193-25-25-25zm0 5c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20zm0 5c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 5c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm100-15c-13.807 0-25 11.193-25 25s11.193 25 25 25 25-11.193 25-25-11.193-25-25-25zm0 5c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20zm0 5c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 5c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10z' fill='%23c73e3a' fillOpacity='1' fillRule='evenodd'/%3E%3C/svg%3E")`,
+            backgroundSize: "200px 200px",
           }}
-          size={200}
         />
 
-        <div className="relative max-w-4xl mx-auto text-center">
+        {/* Red circle (hinomaru) inspired element */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#c73e3a]/20 rounded-full filter blur-3xl opacity-50" />
+
+        <div className="relative max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
+            className="mb-16"
           >
-            <h1 className="text-4xl sm:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary animate-text-gradient bg-300% mb-6">
-              Unlock Your Potential
+            {/* Japanese-style decorative element */}
+            <div className="flex justify-center mb-8">
+              <div className="w-24 h-1 bg-[#c73e3a]"></div>
+            </div>
+
+            <h1
+              className="text-4xl sm:text-6xl font-bold text-[#2c2c2c] mb-6 text-center tracking-tight"
+              style={{ letterSpacing: "-0.05em" }}
+            >
+              <span className="text-[#c73e3a]">.</span>
+              <span className="block text-2xl sm:text-3xl mt-2 font-normal tracking-wide">Begin Your Journey</span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground/90 max-w-2xl mx-auto leading-relaxed">
+
+            <p
+              className="text-xl md:text-2xl text-[#2c2c2c]/80 max-w-2xl mx-auto leading-relaxed text-center"
+              style={{ letterSpacing: "0.02em" }}
+            >
               Choose a subscription package to activate your account and start earning commissions today.
             </p>
           </motion.div>
 
-        
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="mt-8 flex flex-wrap gap-4 justify-center"
+          >
+            <Button
+              size="lg"
+              className="bg-[#c73e3a] hover:bg-[#a02a27] text-white shadow-md hover:shadow-lg transition-all duration-300"
+              onClick={() => document.getElementById("packages-section").scrollIntoView({ behavior: "smooth" })}
+            >
+              View Packages <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-[#c73e3a] text-[#c73e3a] hover:bg-[#c73e3a]/10 transition-all duration-300"
+            >
+              Learn More
+            </Button>
+          </motion.div>
         </div>
       </motion.div>
+
+      {/* Decorative divider */}
+      <div className="relative h-24 overflow-hidden">
+        <div className="absolute inset-0 flex">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="w-12 h-24 bg-[#c73e3a]/10"
+              style={{
+                clipPath: "polygon(0 0, 100% 0, 50% 100%, 0 0)",
+                marginRight: "1px",
+              }}
+            ></div>
+          ))}
+        </div>
+      </div>
 
       {/* Features Section */}
       <motion.div
@@ -157,8 +206,11 @@ export default function ActivationPage() {
         className="max-w-6xl mx-auto py-16 px-4 sm:px-6"
       >
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Premium Benefits</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Premium Benefits</h2>
+          <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
             All subscription packages include these powerful features to maximize your earning potential.
           </p>
         </div>
@@ -175,7 +227,11 @@ export default function ActivationPage() {
               title: "Multi-Level Commissions",
               description: "Earn from your direct referrals and their network",
             },
-            { icon: Trophy, title: "Unlimited Referrals", description: "No cap on how many people you can refer" },
+            {
+              icon: Trophy,
+              title: "Unlimited Referrals",
+              description: "No cap on how many people you can refer",
+            },
             {
               icon: Sparkles,
               title: "Instant Rewards",
@@ -187,13 +243,21 @@ export default function ActivationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              className="bg-gradient-to-br from-background to-primary/5 border border-primary/10 rounded-xl p-6 hover:shadow-lg transition-all duration-300"
+              className="bg-white border border-[#e0d9ce] rounded-none p-6 hover:shadow-md transition-all duration-300 relative overflow-hidden"
             >
-              <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-primary" />
+              {/* Subtle corner decoration */}
+              <div className="absolute top-0 right-0 w-8 h-8">
+                <div
+                  className="absolute top-0 right-0 w-8 h-8 bg-[#c73e3a]/10"
+                  style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
+                ></div>
               </div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground text-sm">{feature.description}</p>
+
+              <div className="rounded-full bg-[#f7f3eb] w-12 h-12 flex items-center justify-center mb-4">
+                <feature.icon className="h-6 w-6 text-[#c73e3a]" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c]">{feature.title}</h3>
+              <p className="text-[#2c2c2c]/70 text-sm">{feature.description}</p>
             </motion.div>
           ))}
         </div>
@@ -207,8 +271,11 @@ export default function ActivationPage() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-bold mb-4">Choose Your Package</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Choose Your Package</h2>
+          <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
             Select the subscription that best fits your goals and budget.
           </p>
         </motion.div>
@@ -224,11 +291,41 @@ export default function ActivationPage() {
             const isPremium = pkg.level === 4
             const isAlreadyPurchased = userPackage?.package?.id === pkg.id && userPackage.status === "ACTIVE"
 
+            // Japanese-inspired color schemes
+            const colorSchemes = [
+              {
+                bg: "bg-white",
+                border: "border-[#e0d9ce]",
+                accent: "bg-[#2c5f63]", // Indigo
+                icon: "text-[#2c5f63]",
+              },
+              {
+                bg: "bg-white",
+                border: "border-[#e0d9ce]",
+                accent: "bg-[#c73e3a]", // Vermilion
+                icon: "text-[#c73e3a]",
+              },
+              {
+                bg: "bg-white",
+                border: "border-[#e0d9ce]",
+                accent: "bg-[#b35c37]", // Burnt Sienna
+                icon: "text-[#b35c37]",
+              },
+              {
+                bg: "bg-white",
+                border: "border-[#e0d9ce]",
+                accent: "bg-[#927f54]", // Gold
+                icon: "text-[#927f54]",
+              },
+            ]
+
+            const colorScheme = colorSchemes[index % colorSchemes.length]
+
             return (
               <motion.div key={pkg.id} variants={cardVariants} whileHover="hover" className="relative group h-full">
                 {isPremium && (
                   <div className="absolute -top-5 left-0 right-0 z-10 flex justify-center">
-                    <div className="px-4 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-500 via-primary to-purple-500 text-white shadow-lg flex items-center gap-2">
+                    <div className="px-4 py-1 rounded-none text-xs font-semibold bg-[#927f54] text-white shadow-md flex items-center gap-2">
                       <Star className="h-3 w-3" />
                       MOST POPULAR
                       <Star className="h-3 w-3" />
@@ -238,45 +335,42 @@ export default function ActivationPage() {
 
                 <Card
                   className={cn(
-                    "h-full transition-all duration-500 overflow-hidden relative",
-                    isPremium
-                      ? "bg-gradient-to-br from-purple-500/10 via-primary/5 to-purple-500/10 hover:shadow-[0_0_40px_8px_rgba(124,58,237,0.2)] border-purple-500/20"
-                      : "hover:shadow-lg border-primary/20 bg-gradient-to-br from-primary/5 to-background",
+                    "h-full transition-all duration-500 overflow-hidden relative rounded-none",
+                    colorScheme.bg,
+                    colorScheme.border,
+                    "hover:shadow-lg",
                     isAlreadyPurchased && "opacity-50",
                   )}
                 >
-                  {isPremium && (
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-primary to-purple-500" />
-                  )}
+                  {/* Japanese-inspired decorative element */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#c73e3a] to-transparent opacity-80"></div>
 
-                  <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
+                  {/* Subtle pattern background */}
+                  <div
+                    className="absolute inset-0 opacity-5"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23000000' fillOpacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                      backgroundSize: "60px 60px",
+                    }}
+                  />
 
                   <CardHeader className={cn(isPremium && "pt-8")}>
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-2xl font-bold">{pkg.name}</CardTitle>
-                      {isPremium && <Star className="h-6 w-6 text-yellow-500 animate-pulse" />}
+                      <CardTitle className="text-2xl font-bold text-[#2c2c2c]">{pkg.name}</CardTitle>
+                      {isPremium && <Star className="h-6 w-6 text-[#927f54] animate-pulse" />}
                     </div>
-                    <CardDescription className="text-base mt-1">{pkg.description}</CardDescription>
+                    <CardDescription className="text-base mt-1 text-[#2c2c2c]/70">{pkg.description}</CardDescription>
                   </CardHeader>
 
                   <CardContent className="space-y-6">
                     <div>
-                      <div
-                        className={cn(
-                          "text-4xl font-bold",
-                          isPremium
-                            ? "bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-primary to-purple-500"
-                            : "bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70",
-                        )}
-                      >
-                        <div className="flex items-center gap-2">
-                          <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm" />
-                          <span>
-                            {currency.symbol} {formatAmount(pkg.price)}
-                          </span>
-                        </div>
+                      <div className="text-4xl font-bold text-[#2c2c2c] flex items-center gap-2">
+                        <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm" />
+                        <span>
+                          {currency.symbol} {formatAmount(pkg.price)}
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">One-time payment</p>
+                      <p className="text-sm text-[#2c2c2c]/70 mt-1">One-time payment</p>
                     </div>
 
                     <div className="space-y-3">
@@ -284,39 +378,25 @@ export default function ActivationPage() {
                         const Icon = featureIcons[feature] || CheckCircle2
                         return (
                           <div key={i} className="flex items-start gap-3 group/item">
-                            <div
-                              className={cn(
-                                "rounded-full p-1.5 transition-colors",
-                                isPremium
-                                  ? "bg-purple-500/10 group-hover/item:bg-purple-500/20"
-                                  : "bg-primary/10 group-hover/item:bg-primary/20",
-                              )}
-                            >
-                              <Icon className={cn("h-4 w-4", isPremium ? "text-purple-500" : "text-primary")} />
+                            <div className={`rounded-none p-1.5 transition-colors ${colorScheme.accent}/10`}>
+                              <Icon className={`h-4 w-4 ${colorScheme.icon}`} />
                             </div>
-                            <span className="text-sm">{feature}</span>
+                            <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
                           </div>
                         )
                       })}
                     </div>
 
                     {benefits.features?.length > 0 && (
-                      <div className="pt-4 border-t border-primary/10">
-                        <h4 className="font-medium mb-3">Additional Benefits</h4>
+                      <div className="pt-4 border-t border-[#e0d9ce]">
+                        <h4 className="font-medium mb-3 text-[#2c2c2c]">Additional Benefits</h4>
                         <div className="space-y-3">
                           {benefits.features?.map((feature, i) => (
                             <div key={i} className="flex items-start gap-3 group/item">
-                              <div
-                                className={cn(
-                                  "rounded-full p-1 transition-colors",
-                                  isPremium
-                                    ? "bg-purple-500/10 group-hover/item:bg-purple-500/20"
-                                    : "bg-primary/10 group-hover/item:bg-primary/20",
-                                )}
-                              >
-                                <Check className={cn("h-4 w-4", isPremium ? "text-purple-500" : "text-primary")} />
+                              <div className={`rounded-none p-1 transition-colors ${colorScheme.accent}/10`}>
+                                <Check className={`h-4 w-4 ${colorScheme.icon}`} />
                               </div>
-                              <span className="text-sm">{feature}</span>
+                              <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
                             </div>
                           ))}
                         </div>
@@ -327,11 +407,11 @@ export default function ActivationPage() {
                   <CardFooter className="pt-4">
                     <Button
                       className={cn(
-                        "w-full h-12 transition-all font-medium text-white",
+                        "w-full h-12 transition-all font-medium rounded-none",
                         isPremium
-                          ? "bg-gradient-to-r from-purple-500 via-primary to-purple-500 hover:opacity-90"
-                          : "bg-gradient-to-r from-primary to-primary/80 hover:opacity-90",
-                        "shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300",
+                          ? "bg-[#927f54] hover:bg-[#7d6c48] text-white"
+                          : `${colorScheme.accent} hover:opacity-90 text-white`,
+                        "shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300",
                       )}
                       onClick={() => handlePackagePurchase(pkg)}
                       disabled={isAlreadyPurchased}
@@ -354,6 +434,15 @@ export default function ActivationPage() {
         </motion.div>
       </div>
 
+      {/* Japanese-inspired decorative divider */}
+      <div className="flex justify-center my-8">
+        <div className="flex items-center gap-2">
+          <div className="w-16 h-px bg-[#c73e3a]/50"></div>
+          <div className="w-2 h-2 bg-[#c73e3a]/50 transform rotate-45"></div>
+          <div className="w-16 h-px bg-[#c73e3a]/50"></div>
+        </div>
+      </div>
+
       {/* FAQ Section */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -362,8 +451,11 @@ export default function ActivationPage() {
         className="max-w-4xl mx-auto py-16 px-4 sm:px-6"
       >
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-          <p className="text-muted-foreground">Find answers to common questions about our subscription packages.</p>
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Frequently Asked Questions</h2>
+          <p className="text-[#2c2c2c]/70">Find answers to common questions about our subscription packages.</p>
         </div>
 
         <div className="space-y-6">
@@ -392,39 +484,63 @@ export default function ActivationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              className="bg-gradient-to-br from-background to-primary/5 border border-primary/10 rounded-xl p-6"
+              className="bg-white border border-[#e0d9ce] rounded-none p-6 hover:shadow-md transition-all duration-300 relative"
             >
-              <h3 className="text-lg font-semibold mb-2">{faq.question}</h3>
-              <p className="text-muted-foreground">{faq.answer}</p>
+              {/* Decorative corner element */}
+              <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-[#c73e3a]/30"></div>
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#c73e3a]/30"></div>
+
+              <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c]">{faq.question}</h3>
+              <p className="text-[#2c2c2c]/70">{faq.answer}</p>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* CTA Section */}
+      {/* CTA Section with Japanese-inspired design */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.8 }}
-        className="bg-gradient-to-r from-primary/20 via-purple-500/20 to-primary/20 py-16 px-4 sm:px-6 relative overflow-hidden"
+        className="bg-[#c73e3a]/10 py-16 px-4 sm:px-6 relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
+        {/* Japanese-inspired pattern background */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c73e3a' fillOpacity='0.8' fillRule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: "40px 40px",
+          }}
+        />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Your Journey?</h2>
-          <p className="text-xl text-muted-foreground/90 max-w-2xl mx-auto mb-8">
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
+          </div>
+
+          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Ready to Start Your Journey?</h2>
+          <p className="text-xl text-[#2c2c2c]/80 max-w-2xl mx-auto mb-8">
             Join thousands of successful members who are already earning with our platform.
           </p>
 
           <Button
             size="lg"
-            className="bg-gradient-to-r from-primary to-purple-500 hover:opacity-90 shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-[#c73e3a] hover:bg-[#a02a27] text-white rounded-none shadow-md hover:shadow-lg transition-all duration-300"
             onClick={() => document.getElementById("packages-section").scrollIntoView({ behavior: "smooth" })}
           >
             Choose Your Package <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </motion.div>
+
+      {/* Japanese-inspired footer decoration */}
+      <div className="h-8 bg-[#2c2c2c] flex items-center justify-center">
+        <div className="flex space-x-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+          ))}
+        </div>
+      </div>
 
       {/* Add custom styles to the head */}
       <style jsx="true" global="true">{`
@@ -443,12 +559,6 @@ export default function ActivationPage() {
         
         .bg-300\% {
           background-size: 300%;
-        }
-        
-        .bg-grid-white\/10 {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cg fill='%23ffffff' fillOpacity='0.1'%3E%3Cpath d='M0 0h1v1H0zM19 0h1v1h-1zM0 19h1v1H0zM19 19h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
-          background-position: center;
-          background-repeat: repeat;
         }
       `}</style>
     </div>

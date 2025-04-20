@@ -43,8 +43,8 @@ export function Header() {
 
   return (
     <header className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-      isScrolled ? "bg-gray-900/90 backdrop-blur-lg border-b border-gray-800" : "bg-transparent"
+      "fixed top-0 left-0 right-0  z-50 transition-all duration-300",
+      isScrolled ? "bg-transparent" : "bg-transparent"
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -142,7 +142,7 @@ export function Header() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden ">
             <Button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               variant="ghost"
@@ -162,7 +162,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-transparent backdrop-filter backdrop-blur-lg border-t border-gray-800">
+        <div className="md:hidden bg-transparent backdrop-filter backdrop-blur-lg mb-24 border-t border-gray-800">
           <div className="px-4 pt-4 pb-6 space-y-3">
             {navigation.map((item) => (
               <div key={item.name} className="space-y-2">

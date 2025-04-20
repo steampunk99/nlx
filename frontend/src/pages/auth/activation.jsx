@@ -9,7 +9,6 @@ import { motion } from "framer-motion"
 import { useAuth } from "@/hooks/auth/useAuth"
 import { useNavigate } from "react-router-dom"
 import { BorderTrail } from "@/components/ui/border-trail"
-import { cn } from "@/lib/utils"
 import { useCountry } from "@/hooks/config/useCountry"
 import ReactCountryFlag from "react-country-flag"
 
@@ -98,11 +97,11 @@ export default function ActivationPage() {
 
   if (packagesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f7f3eb]">
+      <div className="flex items-center justify-center min-h-screen bg-[#f8f8f5]">
         <div className="relative">
           <BorderTrail className="h-32 w-32" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-[#c73e3a] animate-pulse" />
+            <Sparkles className="h-10 w-10 text-[#2c5f63] animate-pulse" />
           </div>
         </div>
       </div>
@@ -110,95 +109,42 @@ export default function ActivationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f3eb] text-[#2c2c2c]">
-      {/* Hero Section with Japanese-inspired design */}
+    <div className="min-h-screen bg-[#f8f8f5] text-[#2c2c2c]">
+      {/* Clean, minimal hero section */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={fadeIn}
-        className="relative overflow-hidden bg-[#f7f3eb] p-8 md:p-16"
+        className="relative overflow-hidden bg-[#f8f8f5] mt-12 p-8 md:p-16 border-b border-[#2c5f63]/10"
       >
-        {/* Japanese wave pattern (Seigaiha) */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 25c-13.807 0-25 11.193-25 25s11.193 25 25 25 25-11.193 25-25-11.193-25-25-25zm0 5c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20zm0 5c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 5c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm-50-15c-13.807 0-25 11.193-25 25s11.193 25 25 25 25-11.193 25-25-11.193-25-25-25zm0 5c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20zm0 5c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 5c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm100-15c-13.807 0-25 11.193-25 25s11.193 25 25 25 25-11.193 25-25-11.193-25-25-25zm0 5c11.046 0 20 8.954 20 20s-8.954 20-20 20-20-8.954-20-20 8.954-20 20-20zm0 5c-8.284 0-15 6.716-15 15s6.716 15 15 15 15-6.716 15-15-6.716-15-15-15zm0 5c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10z' fill='%23c73e3a' fillOpacity='1' fillRule='evenodd'/%3E%3C/svg%3E")`,
-            backgroundSize: "200px 200px",
-          }}
-        />
-
-        {/* Red circle (hinomaru) inspired element */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#c73e3a]/20 rounded-full filter blur-3xl opacity-50" />
-
         <div className="relative max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="mb-16"
+            className="mb-12"
           >
-            {/* Japanese-style decorative element */}
-            <div className="flex justify-center mb-8">
-              <div className="w-24 h-1 bg-[#c73e3a]"></div>
-            </div>
-
             <h1
               className="text-4xl sm:text-6xl font-bold text-[#2c2c2c] mb-6 text-center tracking-tight"
-              style={{ letterSpacing: "-0.05em" }}
+              style={{ letterSpacing: "-0.02em" }}
             >
-              <span className="text-[#c73e3a]">.</span>
-              <span className="block text-2xl sm:text-3xl mt-2 font-normal tracking-wide">Begin Your Journey</span>
+              <span className="text-[#2c5f63]">Activate</span> Your Account
             </h1>
 
             <p
-              className="text-xl md:text-2xl text-[#2c2c2c]/80 max-w-2xl mx-auto leading-relaxed text-center"
-              style={{ letterSpacing: "0.02em" }}
+              className="text-xl md:text-2xl text-[#2c2c2c]/70 max-w-2xl mx-auto leading-relaxed text-center"
+              style={{ letterSpacing: "0.01em" }}
             >
-              Choose a subscription package to activate your account and start earning commissions today.
+              Choose your subscription package to begin earning commissions today.
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="mt-8 flex flex-wrap gap-4 justify-center"
-          >
-            <Button
-              size="lg"
-              className="bg-[#c73e3a] hover:bg-[#a02a27] text-white shadow-md hover:shadow-lg transition-all duration-300"
-              onClick={() => document.getElementById("packages-section").scrollIntoView({ behavior: "smooth" })}
-            >
-              View Packages <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-[#c73e3a] text-[#c73e3a] hover:bg-[#c73e3a]/10 transition-all duration-300"
-            >
-              Learn More
-            </Button>
-          </motion.div>
+       
+         
         </div>
       </motion.div>
 
-      {/* Decorative divider */}
-      <div className="relative h-24 overflow-hidden">
-        <div className="absolute inset-0 flex">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="w-12 h-24 bg-[#c73e3a]/10"
-              style={{
-                clipPath: "polygon(0 0, 100% 0, 50% 100%, 0 0)",
-                marginRight: "1px",
-              }}
-            ></div>
-          ))}
-        </div>
-      </div>
-
-      {/* Features Section */}
+      {/* Premium Benefits Section - Improved cards */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -206,12 +152,9 @@ export default function ActivationPage() {
         className="max-w-6xl mx-auto py-16 px-4 sm:px-6"
       >
         <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
-          </div>
-          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Premium Benefits</h2>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Premium Benefits</h2>
           <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
-            All subscription packages include these powerful features to maximize your earning potential.
+            Your subscription includes these powerful features to maximize your earning potential.
           </p>
         </div>
 
@@ -243,207 +186,134 @@ export default function ActivationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              className="bg-white border border-[#e0d9ce] rounded-none p-6 hover:shadow-md transition-all duration-300 relative overflow-hidden"
+              className="bg-white rounded-lg p-6 hover:shadow-lg transition-all duration-300 relative group overflow-hidden"
             >
-              {/* Subtle corner decoration */}
-              <div className="absolute top-0 right-0 w-8 h-8">
-                <div
-                  className="absolute top-0 right-0 w-8 h-8 bg-[#c73e3a]/10"
-                  style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
-                ></div>
-              </div>
+              {/* Subtle accent line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-[#2c5f63] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
 
-              <div className="rounded-full bg-[#f7f3eb] w-12 h-12 flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-[#c73e3a]" />
+              {/* Subtle background pattern */}
+              <div className="absolute inset-0 bg-[#2c5f63]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+              <div className="relative z-10">
+                <div className="rounded-full bg-[#2c5f63]/10 w-12 h-12 flex items-center justify-center mb-4">
+                  <feature.icon className="h-6 w-6 text-[#2c5f63]" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c]">{feature.title}</h3>
+                <p className="text-[#2c2c2c]/70 text-sm">{feature.description}</p>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c]">{feature.title}</h3>
-              <p className="text-[#2c2c2c]/70 text-sm">{feature.description}</p>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* Available Packages */}
-      <div id="packages-section" className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+      {/* Available Package - Centered and Enhanced */}
+      <div id="packages-section" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 bg-[#2c5f63]/5">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
-          </div>
-          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Choose Your Package</h2>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Your Subscription Package</h2>
           <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
-            Select the subscription that best fits your goals and budget.
+            Select this package to activate your account and start earning today.
           </p>
         </motion.div>
 
-        <motion.div
-          className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {availablePackages.map((pkg, index) => {
-            const benefits = typeof pkg?.benefits === "string" ? JSON.parse(pkg?.benefits) : pkg?.benefits || {}
-            const isPremium = pkg.level === 4
-            const isAlreadyPurchased = userPackage?.package?.id === pkg.id && userPackage.status === "ACTIVE"
+        <motion.div className="flex justify-center" variants={containerVariants} initial="hidden" animate="visible">
+          {availablePackages.length > 0 && (
+            <motion.div variants={cardVariants} whileHover="hover" className="relative group max-w-lg w-full">
+              {/* Enhanced package card */}
+              <Card className="overflow-hidden relative rounded-lg border-2 border-[#2c5f63]/20 bg-white shadow-lg hover:shadow-xl transition-all duration-500">
+                {/* Decorative elements */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#2c5f63]"></div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#2c5f63]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#2c5f63]/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
 
-            // Japanese-inspired color schemes
-            const colorSchemes = [
-              {
-                bg: "bg-white",
-                border: "border-[#e0d9ce]",
-                accent: "bg-[#2c5f63]", // Indigo
-                icon: "text-[#2c5f63]",
-              },
-              {
-                bg: "bg-white",
-                border: "border-[#e0d9ce]",
-                accent: "bg-[#c73e3a]", // Vermilion
-                icon: "text-[#c73e3a]",
-              },
-              {
-                bg: "bg-white",
-                border: "border-[#e0d9ce]",
-                accent: "bg-[#b35c37]", // Burnt Sienna
-                icon: "text-[#b35c37]",
-              },
-              {
-                bg: "bg-white",
-                border: "border-[#e0d9ce]",
-                accent: "bg-[#927f54]", // Gold
-                icon: "text-[#927f54]",
-              },
-            ]
+                {/* Subtle background pattern */}
+                <div
+                  className="absolute inset-0 opacity-5"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232c5f63' fillOpacity='0.4' fillRule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
+                    backgroundSize: "20px 20px",
+                  }}
+                />
 
-            const colorScheme = colorSchemes[index % colorSchemes.length]
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-3xl font-bold text-[#2c2c2c] flex items-center gap-2">
+                        {availablePackages[0].name}
+                        <div className="inline-flex items-center justify-center px-2 py-1 ml-2 text-xs font-medium rounded-full bg-[#2c5f63]/10 text-[#2c5f63]">
+                          RECOMMENDED
+                        </div>
+                      </CardTitle>
+                      <CardDescription className="text-base mt-1 text-[#2c2c2c]/70">
+                        {availablePackages[0].description}
+                      </CardDescription>
+                    </div>
+                    <Star className="h-6 w-6 text-[#2c5f63]" />
+                  </div>
+                </CardHeader>
 
-            return (
-              <motion.div key={pkg.id} variants={cardVariants} whileHover="hover" className="relative group h-full">
-                {isPremium && (
-                  <div className="absolute -top-5 left-0 right-0 z-10 flex justify-center">
-                    <div className="px-4 py-1 rounded-none text-xs font-semibold bg-[#927f54] text-white shadow-md flex items-center gap-2">
-                      <Star className="h-3 w-3" />
-                      MOST POPULAR
-                      <Star className="h-3 w-3" />
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-center py-4">
+                    <div className="text-5xl font-bold text-[#2c5f63] flex items-center gap-3">
+                      <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm w-8 h-8" />
+                      <span>
+                        {currency.symbol} {formatAmount(availablePackages[0].price)}
+                      </span>
                     </div>
                   </div>
-                )}
 
-                <Card
-                  className={cn(
-                    "h-full transition-all duration-500 overflow-hidden relative rounded-none",
-                    colorScheme.bg,
-                    colorScheme.border,
-                    "hover:shadow-lg",
-                    isAlreadyPurchased && "opacity-50",
-                  )}
-                >
-                  {/* Japanese-inspired decorative element */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#c73e3a] to-transparent opacity-80"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {packageFeatures.map((feature, i) => {
+                      const Icon = featureIcons[feature] || CheckCircle2
+                      return (
+                        <div key={i} className="flex items-start gap-3 group/item">
+                          <div className="rounded-full p-1.5 transition-colors bg-[#2c5f63]/10">
+                            <Icon className="h-4 w-4 text-[#2c5f63]" />
+                          </div>
+                          <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
 
-                  {/* Subtle pattern background */}
-                  <div
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23000000' fillOpacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                      backgroundSize: "60px 60px",
-                    }}
-                  />
-
-                  <CardHeader className={cn(isPremium && "pt-8")}>
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-2xl font-bold text-[#2c2c2c]">{pkg.name}</CardTitle>
-                      {isPremium && <Star className="h-6 w-6 text-[#927f54] animate-pulse" />}
-                    </div>
-                    <CardDescription className="text-base mt-1 text-[#2c2c2c]/70">{pkg.description}</CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="space-y-6">
-                    <div>
-                      <div className="text-4xl font-bold text-[#2c2c2c] flex items-center gap-2">
-                        <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm" />
-                        <span>
-                          {currency.symbol} {formatAmount(pkg.price)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-[#2c2c2c]/70 mt-1">One-time payment</p>
-                    </div>
-
-                    <div className="space-y-3">
-                      {packageFeatures.map((feature, i) => {
-                        const Icon = featureIcons[feature] || CheckCircle2
-                        return (
+                  {availablePackages[0]?.benefits && typeof availablePackages[0]?.benefits === "string" && (
+                    <div className="pt-4 border-t border-[#2c5f63]/10">
+                      <h4 className="font-medium mb-3 text-[#2c2c2c]">Additional Benefits</h4>
+                      <div className="space-y-3">
+                        {JSON.parse(availablePackages[0]?.benefits)?.features?.map((feature, i) => (
                           <div key={i} className="flex items-start gap-3 group/item">
-                            <div className={`rounded-none p-1.5 transition-colors ${colorScheme.accent}/10`}>
-                              <Icon className={`h-4 w-4 ${colorScheme.icon}`} />
+                            <div className="rounded-full p-1 transition-colors bg-[#2c5f63]/10">
+                              <Check className="h-4 w-4 text-[#2c5f63]" />
                             </div>
                             <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
                           </div>
-                        )
-                      })}
-                    </div>
-
-                    {benefits.features?.length > 0 && (
-                      <div className="pt-4 border-t border-[#e0d9ce]">
-                        <h4 className="font-medium mb-3 text-[#2c2c2c]">Additional Benefits</h4>
-                        <div className="space-y-3">
-                          {benefits.features?.map((feature, i) => (
-                            <div key={i} className="flex items-start gap-3 group/item">
-                              <div className={`rounded-none p-1 transition-colors ${colorScheme.accent}/10`}>
-                                <Check className={`h-4 w-4 ${colorScheme.icon}`} />
-                              </div>
-                              <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
+                        ))}
                       </div>
-                    )}
-                  </CardContent>
+                    </div>
+                  )}
+                </CardContent>
 
-                  <CardFooter className="pt-4">
-                    <Button
-                      className={cn(
-                        "w-full h-12 transition-all font-medium rounded-none",
-                        isPremium
-                          ? "bg-[#927f54] hover:bg-[#7d6c48] text-white"
-                          : `${colorScheme.accent} hover:opacity-90 text-white`,
-                        "shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300",
-                      )}
-                      onClick={() => handlePackagePurchase(pkg)}
-                      disabled={isAlreadyPurchased}
-                    >
-                      {isAlreadyPurchased ? (
-                        <span className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4" /> Already Subscribed
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          Get Started <ArrowRight className="h-4 w-4" />
-                        </span>
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            )
-          })}
+                <CardFooter className="pt-4">
+                  <Button
+                    className="w-full h-12 transition-all font-medium bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                    onClick={() => handlePackagePurchase(availablePackages[0])}
+                  >
+                    <span className="flex items-center gap-2">
+                      Activate Your Account <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          )}
         </motion.div>
       </div>
 
-      {/* Japanese-inspired decorative divider */}
-      <div className="flex justify-center my-8">
-        <div className="flex items-center gap-2">
-          <div className="w-16 h-px bg-[#c73e3a]/50"></div>
-          <div className="w-2 h-2 bg-[#c73e3a]/50 transform rotate-45"></div>
-          <div className="w-16 h-px bg-[#c73e3a]/50"></div>
-        </div>
-      </div>
-
-      {/* FAQ Section */}
+      {/* FAQ Section - Cleaner design */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -451,11 +321,8 @@ export default function ActivationPage() {
         className="max-w-4xl mx-auto py-16 px-4 sm:px-6"
       >
         <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
-          </div>
-          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Frequently Asked Questions</h2>
-          <p className="text-[#2c2c2c]/70">Find answers to common questions about our subscription packages.</p>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Frequently Asked Questions</h2>
+          <p className="text-[#2c2c2c]/70">Find answers to common questions about our subscription package.</p>
         </div>
 
         <div className="space-y-6">
@@ -484,83 +351,58 @@ export default function ActivationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              className="bg-white border border-[#e0d9ce] rounded-none p-6 hover:shadow-md transition-all duration-300 relative"
+              className="bg-white rounded-lg p-6 hover:shadow-md transition-all duration-300 relative group border border-[#2c5f63]/10"
             >
-              {/* Decorative corner element */}
-              <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-[#c73e3a]/30"></div>
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#c73e3a]/30"></div>
+              {/* Subtle hover effect */}
+              <div className="absolute left-0 top-0 h-full w-1 bg-[#2c5f63] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom"></div>
 
-              <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c]">{faq.question}</h3>
-              <p className="text-[#2c2c2c]/70">{faq.answer}</p>
+              <div className="pl-4">
+                <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c] group-hover:text-[#2c5f63] transition-colors duration-300">
+                  {faq.question}
+                </h3>
+                <p className="text-[#2c2c2c]/70">{faq.answer}</p>
+              </div>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* CTA Section with Japanese-inspired design */}
+      {/* CTA Section - Clean and minimal */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.8 }}
-        className="bg-[#c73e3a]/10 py-16 px-4 sm:px-6 relative overflow-hidden"
+        className="bg-[#2c5f63] py-16 px-4 sm:px-6 relative overflow-hidden"
       >
-        {/* Japanese-inspired pattern background */}
+        {/* Subtle background pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c73e3a' fillOpacity='0.8' fillRule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: "40px 40px",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fillOpacity='1' fillRule='evenodd'/%3E%3C/svg%3E")`,
+            backgroundSize: "100px 100px",
           }}
         />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-0.5 bg-[#c73e3a]"></div>
-          </div>
-
-          <h2 className="text-3xl font-bold mb-4 text-[#2c2c2c]">Ready to Start Your Journey?</h2>
-          <p className="text-xl text-[#2c2c2c]/80 max-w-2xl mx-auto mb-8">
+          <h2 className="text-3xl font-bold mb-4 text-white">Ready to Start Your Journey?</h2>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
             Join thousands of successful members who are already earning with our platform.
           </p>
 
           <Button
             size="lg"
-            className="bg-[#c73e3a] hover:bg-[#a02a27] text-white rounded-none shadow-md hover:shadow-lg transition-all duration-300"
+            className="bg-white hover:bg-white/90 text-[#2c5f63] shadow-lg hover:shadow-xl transition-all duration-300"
             onClick={() => document.getElementById("packages-section").scrollIntoView({ behavior: "smooth" })}
           >
-            Choose Your Package <ArrowRight className="ml-2 h-4 w-4" />
+            Activate Now <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </motion.div>
 
-      {/* Japanese-inspired footer decoration */}
-      <div className="h-8 bg-[#2c2c2c] flex items-center justify-center">
-        <div className="flex space-x-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
-          ))}
-        </div>
+      {/* Simple footer */}
+      <div className="py-6 bg-[#f8f8f5] border-t border-[#2c5f63]/10 text-center text-[#2c2c2c]/60 text-sm">
+        © {new Date().getFullYear()} • All rights reserved
       </div>
-
-      {/* Add custom styles to the head */}
-      <style jsx="true" global="true">{`
-        @keyframes text-gradient {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        
-        .animate-text-gradient {
-          animation: text-gradient 8s linear infinite;
-        }
-        
-        .bg-300\% {
-          background-size: 300%;
-        }
-      `}</style>
     </div>
   )
 }

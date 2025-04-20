@@ -115,14 +115,14 @@ export default function ActivationPage() {
         initial="hidden"
         animate="visible"
         variants={fadeIn}
-        className="relative overflow-hidden bg-[#f8f8f5] mt-12 p-8 md:p-16 border-b border-[#2c5f63]/10"
+        className="relative overflow-hidden bg-[#f8f8f5] p-8 md:p-16 border-b border-[#2c5f63]/10"
       >
         <div className="relative max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="mb-12"
+            className="mt-12"
           >
             <h1
               className="text-4xl sm:text-6xl font-bold text-[#2c2c2c] mb-6 text-center tracking-tight"
@@ -139,8 +139,7 @@ export default function ActivationPage() {
             </p>
           </motion.div>
 
-       
-         
+     
         </div>
       </motion.div>
 
@@ -224,7 +223,7 @@ export default function ActivationPage() {
           {availablePackages.length > 0 && (
             <motion.div variants={cardVariants} whileHover="hover" className="relative group max-w-lg w-full">
               {/* Enhanced package card */}
-              <Card className="overflow-hidden relative rounded-lg border-2 border-[#2c5f63]/20 bg-white shadow-lg hover:shadow-xl transition-all duration-500">
+              <Card className="overflow-hidden relative rounded-lg border-2 border-[#2c5f63]/20 bg-white shadow-lg hover:shadow-xl">
                 {/* Decorative elements */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-[#2c5f63]"></div>
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#2c5f63]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
@@ -299,8 +298,13 @@ export default function ActivationPage() {
 
                 <CardFooter className="pt-4">
                   <Button
-                    className="w-full h-12 transition-all font-medium bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
-                    onClick={() => handlePackagePurchase(availablePackages[0])}
+                    className="w-full h-12 font-medium bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg hover:shadow-xl relative z-10"
+                    onClick={() => {
+                      console.log("Button clicked", availablePackages[0])
+                      if (availablePackages && availablePackages.length > 0) {
+                        handlePackagePurchase(availablePackages[0])
+                      }
+                    }}
                   >
                     <span className="flex items-center gap-2">
                       Activate Your Account <ArrowRight className="h-4 w-4" />
@@ -331,6 +335,14 @@ export default function ActivationPage() {
               question: "How do commissions work?",
               answer:
                 "You earn commissions on multiple levels. 40% on direct referrals, 10% on level 2, 5% on level 3, and 2% on levels 4-6.",
+            },
+            {
+              question: "How do I pay for a package?",
+              answer: "Our platform currently supports MTN & Airtel mobile money payments for Ugandan & foreign users.",
+            },
+            {
+              question: "Is crypto supported as a payment method?",
+              answer: "We support USDT for package purchase and commission withdrawals for all countries",
             },
             {
               question: "Is this a one-time payment?",

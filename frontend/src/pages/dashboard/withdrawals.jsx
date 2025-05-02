@@ -1,214 +1,375 @@
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
-import { Button } from "../../components/ui/button"
-import { Input } from "../../components/ui/input"
-import { useForm } from "react-hook-form"
-import { api } from "../../lib/axios"
-import toast from "react-hot-toast"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
-import { useAuth } from "../../hooks/auth/useAuth"
-import { useCommissions } from "../../hooks/dashboard/useCommissions"
-import { useCountry } from "@/hooks/config/useCountry"
+import { useState } from "react"; // Keep for potential future use
+import { useForm } from "react-hook-form";
+import { api } from "../../lib/axios"; // Assuming axios instance is configured
+import toast from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../hooks/auth/useAuth"; // Assuming needed for context
+import { useCommissions } from "../../hooks/dashboard/useCommissions";
+import { useCountry } from "@/hooks/config/useCountry"; // Ensure this hook provides { currency, formatAmount }
+import { motion } from "framer-motion";
+import {
+  Wallet,
+  ArrowDown,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Zap, // Using Zap for loading indicator
+  DatabaseZap, // Icon for history
+  Send, // Icon for request form
+  Loader2 // Added for history loading state
+} from "lucide-react";
+
+// Animation variants for staggering children
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export default function WithdrawalsPage() {
-  const { user } = useAuth()
-  const { commissions, commissionStats } = useCommissions()
-  const [isLoading, setIsLoading] = useState(false)
-  const queryClient = useQueryClient()
-  const { register, handleSubmit, reset, formState: { errors } } = useForm()
-  const {currency, formatAmount} = useCountry()
+  // Hooks
+  const { user } = useAuth(); // Keep if needed elsewhere or for future use
+  const { commissionStats } = useCommissions();
+  const queryClient = useQueryClient();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+  const { currency, formatAmount } = useCountry(); // Assuming provides { symbol: 'UGX', name: 'Ugandan Shilling' }, formatAmount function
 
-  //format currency to UGX
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-UG', {
-      style: 'currency',
-      currency: 'UGX',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount)
-  }
+  // --- State and Data Fetching ---
 
-  // Calculate available balance
-  const availableBalance = commissionStats?.totalCommissions || 0
+  // Calculate available balance (using optional chaining and nullish coalescing)
+  const availableBalance = commissionStats?.totalCommissions ?? 0;
 
-  // Fetch withdrawal history
-  const { data: withdrawalsData } = useQuery({
-    queryKey: ['withdrawals'],
+  // Fetch withdrawal history using React Query
+  // **MODIFICATION 1: Fetch the container object, not the array directly**
+  const { data: withdrawalsApiResponse, isLoading: isLoadingHistory } = useQuery({
+    queryKey: ["withdrawals"],
     queryFn: async () => {
-      const response = await api.get('/withdrawals')
-      return response.data.data
-    }
-  })
+      try {
+        const response = await api.get("/withdrawals");
+        // Log for debugging (optional)
+        console.log("API Response Data for /withdrawals:", JSON.stringify(response.data, null, 2));
 
-  // Withdrawal mutation
+        // Return the object containing withdrawals, matching the old working code's expectation.
+        // Use nullish coalescing for a safe default if response.data or response.data.data is missing.
+        return response.data?.data ?? null; // Return null if the expected object isn't there
+
+      } catch (error) {
+        console.error("Failed to fetch withdrawal history:", error);
+        toast.error("Could not load withdrawal history.");
+        return null; // Return null on error, handled by optional chaining later
+      }
+    },
+     staleTime: 1000 * 60 * 2, // Optional: Cache data for 2 minutes
+     refetchOnWindowFocus: true, // Optional: Refetch when window regains focus
+  });
+
+  // Withdrawal mutation using React Query
   const withdrawalMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await api.post('/withdrawals', data)
-      return response.data
+      const payload = {
+        ...data,
+        amount: parseFloat(data.amount)
+      };
+      const response = await api.post("/withdrawals", payload);
+      return response.data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'Withdrawal request submitted successfully')
-      queryClient.invalidateQueries(['withdrawals'])
-      reset()
+      toast.success(data?.message || "Withdrawal request submitted!");
+      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
+      queryClient.invalidateQueries({ queryKey: ["commissions"] });
+      reset();
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to process withdrawal')
-    }
-  })
+      let errorMessage = "Failed to process withdrawal. Please try again.";
+      if (error.isAxiosError && error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+      console.error("Withdrawal error:", error);
+    },
+  });
 
-  const onSubmit = async (data) => {
-    withdrawalMutation.mutate({
-      amount: parseFloat(data.amount),
-      phone: data.phone
-    })
-  }
+  // --- Data Processing ---
 
-  const withdrawalHistory = withdrawalsData?.withdrawals?.map((withdrawal) => ({
-    id: withdrawal.id,
-    amount: withdrawal.amount,
-    phone: withdrawal.details?.phone,
-    status: withdrawal.status,
-    createdAt: withdrawal.createdAt
-  })) || []
+  // **MODIFICATION 2: Access the '.withdrawals' array *within* the fetched object**
+  const withdrawalHistory = withdrawalsApiResponse?.withdrawals?.map((withdrawal) => ({
+     id: withdrawal.id,
+     amount: withdrawal.amount,
+     status: withdrawal.status?.toUpperCase() || 'UNKNOWN', // Normalize status
+     createdAt: withdrawal.createdAt
+  })) || []; // Default to empty array if withdrawalsApiResponse or .withdrawals is missing/null
 
-  // Calculate total withdrawn amount
-  const totalWithdrawn = withdrawalHistory.reduce((total, withdrawal) => 
-    total + (withdrawal.status === 'SUCCESSFUL' ? Number(withdrawal.amount) : 0)
-  , 0)
+  // Calculate total withdrawn amount (only successful ones)
+  const totalWithdrawn = withdrawalHistory.reduce(
+    (total, withdrawal) =>
+      total + (withdrawal.status === "SUCCESSFUL" ? Number(withdrawal.amount) : 0),
+    0
+  );
 
-  const getStatusColor = (status) => {
+  // --- UI Configuration ---
+
+  const getStatusConfig = (status) => {
     switch (status) {
-      case 'SUCCESSFUL':
-        return 'text-green-600 bg-green-100'
-      case 'PENDING' || 'PROCESSING':
-        return 'text-yellow-600 bg-yellow-100'
-      case 'FAILED':
-        return 'text-red-600 bg-red-100'
+      case "SUCCESSFUL":
+        return { icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-900/30", border: "border-emerald-500/30", glow: "shadow-emerald-500/20", text: "Successful" };
+      case "PENDING":
+      case "PROCESSING":
+        return { icon: Clock, color: "text-amber-400", bg: "bg-amber-900/30", border: "border-amber-500/30", glow: "shadow-amber-500/20", text: "Pending" };
+      case "FAILED":
+        return { icon: XCircle, color: "text-rose-400", bg: "bg-rose-900/30", border: "border-rose-500/30", glow: "shadow-rose-500/20", text: "Failed" };
       default:
-        return 'text-gray-600 bg-gray-100'
+        return { icon: AlertCircle, color: "text-gray-400", bg: "bg-gray-800/30", border: "border-gray-600/30", glow: "shadow-gray-500/10", text: status || "Unknown" };
     }
-  }
+  };
+
+  // --- Event Handlers ---
+
+  const onSubmit = (data) => {
+    withdrawalMutation.mutate(data);
+  };
+
+  // --- Render ---
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Available Balance</CardTitle>
-            <CardDescription>Amount available for withdrawal</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{currency.symbol} {formatAmount(availableBalance)}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Withdrawn</CardTitle>
-            <CardDescription>Lifetime withdrawals</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {currency.symbol} {formatAmount(totalWithdrawn)}
-            </p>
-          </CardContent>
-        </Card>
+    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-gray-900 via-purple-950 to-indigo-950 text-gray-100 overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_50%,black,transparent)] opacity-50"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-600/10 rounded-full filter blur-3xl opacity-50 animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full filter blur-3xl opacity-50 animate-pulse animation-delay-2000"></div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Request Withdrawal</CardTitle>
-          <CardDescription>
-            Withdraw your earnings to your mobile money account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <label>Amount {currency.symbol}</label>
-              <Input
-                type="number"
-                {...register('amount', {
-                  required: 'Amount is required',
-                  min: { value: 1000, message: `Minimum withdrawal is ${currency.symbol} 1,000` },
-                  max: { value: availableBalance, message: `Amount exceeds available balance` }
-                })}
-                placeholder="Enter amount"
-              />
-              {errors.amount && (
-                <span className="text-sm text-red-500">{errors.amount.message}</span>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label>Phone Number</label>
-              <Input
-                type="tel"
-                {...register('phone', {
-                  required: 'Phone number is required',
-                  pattern: {
-                    value: /^07\d{8}$/,
-                    message: 'Please enter a valid Ugandan phone number (e.g., 0701234567)'
-                  }
-                })}
-                placeholder="Enter phone number (e.g., 0701234567)"
-              />
-              {errors.phone && (
-                <span className="text-sm text-red-500">{errors.phone.message}</span>
-              )}
-            </div>
-
-            <Button 
-              type="submit" 
-              disabled={withdrawalMutation.isPending || availableBalance < 1000}
-              className="w-full bg-gradient-to-r from-yellow-500 to-purple-500 hover:bg-gradient-to-r hover:from-yellow-600 hover:to-purple-600"
-            >
-              {withdrawalMutation.isPending ? (
-                <>
-                <span className="flex items-center gap-2">
-                <span className="animate-spin">⏳</span> Processing...
-              </span>
-                </>
-              ) : (
-                'Request Withdrawal'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Withdrawal History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {withdrawalHistory.length > 0 ? (
-              withdrawalHistory.map((withdrawal) => (
-                <div
-                  key={withdrawal.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{formatCurrency(withdrawal.amount)}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(withdrawal.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(withdrawal.status)}`}>
-                      {withdrawal.status}
-                    </span>
-                  </div>
+      {/* Content Area */}
+      <motion.div
+        className="relative z-10 space-y-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Stats Section */}
+        <motion.section variants={itemVariants} className="grid gap-4 sm:gap-6 md:grid-cols-2">
+          {/* Available Balance Card */}
+           <div className="relative bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/10 group transition-all hover:border-cyan-500/60">
+             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+             <div className="relative p-5 sm:p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-cyan-600/30 to-blue-600/30 border border-cyan-500/40 shadow-inner">
+                  <Wallet className="w-6 h-6 text-cyan-300" />
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500">No withdrawal history</p>
-            )}
+                <div>
+                  <p className="text-sm font-medium text-cyan-300/80">Available Balance</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-cyan-100 tracking-tight">
+                    {currency.symbol} {formatAmount(availableBalance)}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Total Withdrawn Card */}
+           <div className="relative bg-black/40 backdrop-blur-md border border-purple-500/30 rounded-xl overflow-hidden shadow-lg shadow-purple-500/10 group transition-all hover:border-purple-500/60">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative p-5 sm:p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/40 shadow-inner">
+                  <ArrowDown className="w-6 h-6 text-purple-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-purple-300/80">Total Withdrawn</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-purple-100 tracking-tight">
+                    {currency.symbol} {formatAmount(totalWithdrawn)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Withdrawal Form Section */}
+        <motion.section variants={itemVariants}>
+           <div className="relative bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-xl shadow-cyan-500/10 p-5 sm:p-6 lg:p-8 group transition-all hover:border-cyan-500/60">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+             <div className="relative">
+              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-5 flex items-center gap-3">
+                <Send className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                Request Withdrawal
+              </h2>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {/* Amount Input */}
+                <div className="space-y-2">
+                  <label htmlFor="amount" className="text-sm font-medium text-cyan-300/80 flex items-center gap-1">
+                    Amount <span className="text-cyan-500">({currency.symbol})</span>
+                  </label>
+                  <div className="relative">
+                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-cyan-400/50">
+                        {currency.symbol}
+                     </div>
+                     <input
+                        id="amount"
+                        type="number"
+                        step="any"
+                        {...register("amount", {
+                          required: "Amount is required",
+                          valueAsNumber: true,
+                          min: { value: 1000, message: `Minimum withdrawal is ${currency.symbol} 1,000` },
+                          max: { value: availableBalance, message: `Insufficient balance (Available: ${formatAmount(availableBalance)})` },
+                          validate: value => value <= availableBalance || `Amount exceeds available balance`
+                        })}
+                        className="w-full pl-8 pr-4 py-2.5 bg-black/50 border border-cyan-500/40 rounded-lg text-cyan-100 placeholder-cyan-300/40 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/50 transition duration-200"
+                        placeholder="Enter amount"
+                     />
+                  </div>
+                  {errors.amount && (
+                    <p className="text-sm text-rose-400 flex items-center gap-1">
+                      <AlertCircle size={14} /> {errors.amount?.message?.toString() || 'Invalid amount'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Phone Input */}
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="text-sm font-medium text-cyan-300/80">
+                    Mobile Money Number (Uganda)
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    {...register("phone", {
+                      required: "Phone number is required",
+                      pattern: {
+                        value: /^07\d{8}$/, // Ugandan format (07XXXXXXXX)
+                        message: "Enter a valid Ugandan number (e.g., 0701234567)",
+                      },
+                    })}
+                    className="w-full px-4 py-2.5 bg-black/50 border border-cyan-500/40 rounded-lg text-cyan-100 placeholder-cyan-300/40 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/50 transition duration-200"
+                    placeholder="e.g., 0701234567"
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-rose-400 flex items-center gap-1">
+                      <AlertCircle size={14} /> {errors.phone?.message?.toString() || 'Invalid phone number'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={withdrawalMutation.isPending || availableBalance < 1000}
+                  className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-cyan-400
+                    ${withdrawalMutation.isPending || availableBalance < 1000
+                      ? 'bg-gray-600 cursor-not-allowed opacity-70'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg hover:shadow-cyan-500/40 transform hover:-translate-y-0.5'
+                    }`}
+                >
+                  {withdrawalMutation.isPending ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Zap className="w-5 h-5" />
+                      </motion.div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Request Withdrawal
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Withdrawal History Section */}
+        <motion.section variants={itemVariants}>
+           <div className="relative bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/10 p-5 sm:p-6 lg:p-8 group transition-all hover:border-cyan-500/60">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-5 flex items-center gap-3">
+                <DatabaseZap className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+                Transaction History
+              </h2>
+
+              {isLoadingHistory ? (
+                 <div className="text-center py-10 text-cyan-300/70 flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" /> Loading History...
+                 </div>
+              ) : withdrawalHistory.length > 0 ? (
+                <motion.ul
+                    className="space-y-3"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                 >
+                  {withdrawalHistory.map((withdrawal) => {
+                    const statusConfig = getStatusConfig(withdrawal.status);
+                    const StatusIcon = statusConfig.icon;
+                    return (
+                      <motion.li
+                        key={withdrawal.id}
+                        variants={itemVariants}
+                        className={`flex items-center justify-between gap-4 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-gray-800/40`}
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden"> {/* Added overflow-hidden */}
+                          <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${statusConfig.bg} border ${statusConfig.border}`}>
+                            <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                          </div>
+                          <div className="flex-1 min-w-0"> {/* Added flex-1 min-w-0 */}
+                            <p className="font-semibold text-gray-100 truncate"> {/* Added truncate */}
+                              {currency.symbol} {formatAmount(withdrawal.amount)}
+                            </p>
+                            <p className="text-xs text-gray-400 truncate"> {/* Added truncate */}
+                              {/* Using current location Kampala for default locale formatting - adjust 'en-UG' if needed */}
+                              {new Date(withdrawal.createdAt).toLocaleDateString('en-UG', {
+                                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                          {statusConfig.text}
+                        </span>
+                      </motion.li>
+                    );
+                  })}
+                </motion.ul>
+              ) : (
+                <p className="text-center py-10 text-cyan-300/70">
+                  No withdrawal history yet.
+                </p>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      </motion.div>
     </div>
-  )
+  );
 }
+
+// Add this to your global CSS if you don't have a utility for it:
+/*
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+*/

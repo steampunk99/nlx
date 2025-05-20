@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Check, Star, CheckCircle2, Sparkles, ArrowRight, Shield, Zap, Trophy } from "lucide-react"
 import { usePackages } from "@/hooks/payments/usePackages"
@@ -52,366 +51,240 @@ const fadeIn = {
   },
 }
 
-const packageFeatures = [
-  "Lifetime access",
-  "40% Direct Referral Commission",
-  "10% Level 2 Commission",
-  "5% Level 3 Commission",
-  "2% Level 4 Commission",
-  "2% Level 5 Commission",
-  "2% Level 6 Commission",
-  "Unlimited referrals",
-]
-
-// Feature icons mapping
-const featureIcons = {
-  "Lifetime access": Shield,
-  "40% Direct Referral Commission": Zap,
-  "10% Level 2 Commission": CheckCircle2,
-  "5% Level 3 Commission": CheckCircle2,
-  "2% Level 4 Commission": CheckCircle2,
-  "2% Level 5 Commission": CheckCircle2,
-  "2% Level 6 Commission": CheckCircle2,
-  "Unlimited referrals": Trophy,
-}
-
 export default function ActivationPage() {
-  const navigate = useNavigate()
-  const [selectedPackage, setSelectedPackage] = useState(null)
-  const { country, currency, formatAmount } = useCountry()
-  const { user } = useAuth()
-
-  const { availablePackages, userPackage, packagesLoading, purchasePackage } = usePackages()
+  const navigate = useNavigate();
+  const { country, currency, formatAmount } = useCountry();
+  const { user } = useAuth();
+  const { availablePackages, packagesLoading } = usePackages();
 
   const handlePackagePurchase = (pkg) => {
     if (user.country === "UG") {
       setTimeout(() => {
-        navigate("/activate/payment", { state: { selectedPackage: pkg } })
-      }, 1000)
+        navigate("/activate/payment", { state: { selectedPackage: pkg } });
+      }, 1000);
     } else {
       setTimeout(() => {
-        navigate("/manual-payment", { state: { selectedPackage: pkg } })
-      }, 1000)
+        navigate("/manual-payment", { state: { selectedPackage: pkg } });
+      }, 1000);
     }
-  }
+  };
 
-  if (packagesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f8f8f5]">
-        <div className="relative">
-          <BorderTrail className="h-32 w-32" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-[#2c5f63] animate-pulse" />
-          </div>
+  // --- FARMING IMAGERY & TYPOGRAPHY ---
+  const farmBg =
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80';
+  const cocoaPodImg =
+    'https://static.vecteezy.com/system/resources/previews/042/125/124/non_2x/cacao-beans-with-leaves-isolated-on-transparent-background-with-clipping-path-3d-render-free-png.png';
+  const farmerImg =
+    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80';
+  const bentoColors = [
+    'from-[#f8e7c1] to-[#e6f2ef]',
+    'from-[#e6f2ef] to-[#f8f8f5]',
+    'from-[#f8f8f5] to-[#b6d7b0]',
+    'from-[#b6d7b0] to-[#f8e7c1]',
+  ];
+
+  // --- PAGE ---
+  return (
+    <div className="min-h-screen w-full bg-[#f8f8f5] relative overflow-x-hidden font-sans">
+      {/* Hero Section with More Elaborate Farm Illustration, pushed down for nav */}
+      <div className="relative w-full pt-8 md:pt-16 h-[420px] md:h-[520px] flex items-center justify-center bg-[#e6f2ef] overflow-hidden">
+        {/* SVG Farm Background Illustration - More elaborate, responsive */}
+        <svg className="absolute inset-0 w-full h-full object-cover" viewBox="0 0 1440 520" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex:1}} preserveAspectRatio="none">
+          <rect width="1440" height="520" fill="#e6f2ef"/>
+          <ellipse cx="200" cy="480" rx="180" ry="60" fill="#b6d7b0"/>
+          <ellipse cx="1240" cy="500" rx="200" ry="70" fill="#f8e7c1"/>
+          <ellipse cx="720" cy="510" rx="400" ry="80" fill="#b6d7b0"/>
+          {/* Sun with rays */}
+          <g>
+            <circle cx="180" cy="100" r="60" fill="#ffe066">
+              <animate attributeName="cy" values="100;90;100" dur="4s" repeatCount="indefinite"/>
+            </circle>
+            {[...Array(12)].map((_,i) => (
+              <rect key={i} x={180+Math.cos((i/12)*2*Math.PI)*80-2} y={100+Math.sin((i/12)*2*Math.PI)*80-12} width="4" height="24" rx="2" fill="#ffe066" opacity="0.5" transform={`rotate(${i*30} 180 100)`}/>
+            ))}
+          </g>
+          {/* Multiple cocoa trees and pods */}
+          {[320, 1120, 600, 900].map((x, i) => (
+            <g key={x}>
+              <rect x={x} y={350} width="16" height="60" rx="7" fill="#8d6748"/>
+              <ellipse cx={x+8} cy={350} rx="28" ry="18" fill="#4e7c3a"/>
+              <ellipse cx={x+8} cy={350} rx="14" ry="9" fill="#7bb661"/>
+              <ellipse cx={x+18} cy={370} rx="5" ry="10" fill="#c97c3a"/>
+            </g>
+          ))}
+          {/* Animated clouds */}
+          <ellipse cx="600" cy="90" rx="60" ry="20" fill="#fff" opacity="0.7">
+            <animate attributeName="cx" values="600;900;600" dur="12s" repeatCount="indefinite"/>
+          </ellipse>
+          <ellipse cx="900" cy="60" rx="40" ry="14" fill="#fff" opacity="0.5">
+            <animate attributeName="cx" values="900;600;900" dur="14s" repeatCount="indefinite"/>
+          </ellipse>
+          {/* Decorative hills */}
+          <ellipse cx="400" cy="500" rx="120" ry="40" fill="#b6d7b0"/>
+          <ellipse cx="1040" cy="520" rx="140" ry="50" fill="#e6f2ef"/>
+        </svg>
+        <div className="relative z-10 flex flex-col items-center justify-center w-full">
+          <h1 className="font-cursive text-5xl md:text-7xl text-[#4e3b1f] drop-shadow-lg mb-4 tracking-tight text-center" style={{fontFamily:'Pacifico, cursive'}}>Grow Your Cocoa Dream</h1>
+          <p className="text-xl md:text-2xl text-[#2c2c2c]/80 font-medium max-w-2xl text-center mb-6 drop-shadow-sm">
+            Choose a cocoa opportunity and start your journey to a fruitful harvest.
+          </p>
+          <img src={cocoaPodImg} alt="Cocoa Pod" className="w-24 h-24 rounded-full border-4 border-[#fffbe6] shadow-xl animate-bounce-slow" />
         </div>
       </div>
-    )
-  }
 
-  return (
-    <div className="min-h-screen bg-[#f8f8f5] text-[#2c2c2c]">
-      {/* Clean, minimal hero section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
-        className="relative overflow-hidden bg-[#f8f8f5] p-8 md:p-16 border-b border-[#2c5f63]/10"
-      >
-        <div className="relative max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="mt-12"
-          >
-            <h1
-              className="text-4xl sm:text-6xl font-bold text-[#2c2c2c] mb-6 text-center tracking-tight"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              <span className="text-[#2c5f63]">Activate</span> Your Account
-            </h1>
-
-            <p
-              className="text-xl md:text-2xl text-[#2c2c2c]/70 max-w-2xl mx-auto leading-relaxed text-center"
-              style={{ letterSpacing: "0.01em" }}
-            >
-              Choose your subscription package to begin earning commissions today.
-            </p>
-          </motion.div>
-
-     
-        </div>
-      </motion.div>
-
-      {/* Premium Benefits Section - Improved cards */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6, duration: 0.8 }}
-        className="max-w-6xl mx-auto py-16 px-4 sm:px-6"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Premium Benefits</h2>
-          <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
-            Your subscription includes these powerful features to maximize your earning potential.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Step-by-step Visual Guide */}
+      <div className="w-full flex flex-col items-center py-8 bg-[#f8f8f5]">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8">
           {[
-            {
-              icon: Shield,
-              title: "Lifetime Access",
-              description: "One-time payment for permanent access to our platform",
-            },
-            {
-              icon: Zap,
-              title: "Multi-Level Commissions",
-              description: "Earn from your direct referrals and their network",
-            },
-            {
-              icon: Trophy,
-              title: "Unlimited Referrals",
-              description: "No cap on how many people you can refer",
-            },
-            {
-              icon: Sparkles,
-              title: "Instant Rewards",
-              description: "Commissions are credited to your account immediately",
-            },
-          ].map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              className="bg-white rounded-lg p-6 hover:shadow-lg transition-all duration-300 relative group overflow-hidden"
-            >
-              {/* Subtle accent line */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-[#2c5f63] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-
-              {/* Subtle background pattern */}
-              <div className="absolute inset-0 bg-[#2c5f63]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-              <div className="relative z-10">
-                <div className="rounded-full bg-[#2c5f63]/10 w-12 h-12 flex items-center justify-center mb-4">
-                  <feature.icon className="h-6 w-6 text-[#2c5f63]" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c]">{feature.title}</h3>
-                <p className="text-[#2c2c2c]/70 text-sm">{feature.description}</p>
-              </div>
-            </motion.div>
+            { icon: '🌱', label: 'Pick a Plot' },
+            { icon: '🌰', label: 'Plant Cocoa' },
+            { icon: '🌿', label: 'Watch it Grow' },
+            { icon: '🍫', label: 'Harvest Rewards' },
+          ].map((step, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div className="text-4xl md:text-5xl mb-2 animate-bounce-slow" style={{animationDelay: `${idx * 0.2}s`}}>{step.icon}</div>
+              <span className="text-lg font-bold text-[#4e3b1f] font-cursive" style={{fontFamily:'Pacifico, cursive'}}>{step.label}</span>
+              {idx < 3 && <span className="hidden md:inline-block mx-4 text-2xl text-[#b6d7b0]">→</span>}
+            </div>
           ))}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Available Packages - Show all packages */}
-      <div id="packages-section" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 bg-[#2c5f63]/5">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Your Subscription Packages</h2>
-          <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
-            Select a package to activate your account and start earning today.
-          </p>
-        </motion.div>
+      {/* Redesigned Bento Grid Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 bento-grid">
+        {/* Left: Farmer Visual & Story */}
+        <div className="col-span-12 md:col-span-4 flex flex-col items-center justify-center bg-gradient-to-br from-[#f8e7c1] to-[#e6f2ef] rounded-3xl shadow-lg p-8 relative overflow-hidden min-h-[340px]">
+          <img src={farmerImg} alt="Happy Farmer" className="w-28 h-28 rounded-full border-4 border-[#fffbe6] shadow-lg mb-4 object-cover" />
+          <h2 className="font-cursive text-2xl md:text-3xl text-[#4e3b1f] mb-2 text-center" style={{fontFamily:'Pacifico, cursive'}}>Meet Amina</h2>
+          <p className="text-[#4e3b1f]/80 text-base md:text-lg text-center mb-2">Amina started with just one cocoa pod. Today, her farm is thriving and her family is prospering. You can start your own journey too!</p>
+          <span className="inline-block mt-4 px-4 py-2 bg-[#b6d7b0]/40 text-[#2c5f63] rounded-full font-semibold text-xs md:text-sm">Your story begins here</span>
+        </div>
 
-        <motion.div className="flex flex-wrap justify-center gap-8" variants={containerVariants} initial="hidden" animate="visible">
-          {availablePackages.length > 0 && availablePackages.map((pkg, idx) => (
-            <motion.div key={pkg.id || idx} variants={cardVariants} whileHover="hover" className="relative group max-w-lg w-full">
-              {/* Enhanced package card */}
-              <Card className="overflow-hidden relative rounded-lg border-2 border-[#2c5f63]/20 bg-white shadow-lg hover:shadow-xl">
-                {/* Decorative elements */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#2c5f63]"></div>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#2c5f63]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#2c5f63]/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
-
-                {/* Subtle background pattern */}
-                <div
-                  className="absolute inset-0 opacity-5"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232c5f63' fillOpacity='0.4' fillRule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundSize: "20px 20px",
-                  }}
-                />
-
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle className="text-3xl font-bold text-[#2c2c2c] flex items-center gap-2">
-                        {pkg.name}
-                        {idx === 0 && (
-                          <div className="inline-flex items-center justify-center px-2 py-1 ml-2 text-xs font-medium rounded-full bg-[#2c5f63]/10 text-[#2c5f63]">
-                            RECOMMENDED
-                          </div>
-                        )}
-                      </CardTitle>
-                      <CardDescription className="text-base mt-1 text-[#2c2c2c]/70">
-                        {pkg.description}
-                      </CardDescription>
-                    </div>
-                    <Star className="h-6 w-6 text-[#2c5f63]" />
+        {/* Center: Cocoa Opportunities (Cards) */}
+        <div className="col-span-12 md:col-span-4 flex flex-col gap-8 items-center">
+          <h3 className="font-cursive text-xl md:text-2xl text-[#4e3b1f] mb-4 text-center" style={{fontFamily:'Pacifico, cursive'}}>Pick Your Cocoa Plot</h3>
+          <div className="flex flex-col gap-8 w-full">
+            {availablePackages.length > 0 ? availablePackages.map((pkg, idx) => {
+              let features = Array.isArray(pkg.features) ? pkg.features : [];
+              let extraPerks = Array.isArray(pkg.extraPerks) ? pkg.extraPerks : [];
+              const maxFeatures = 4;
+              const maxPerks = 2;
+              const visibleFeatures = features.slice(0, maxFeatures);
+              const hasMoreFeatures = features.length > maxFeatures;
+              const visiblePerks = extraPerks.slice(0, maxPerks);
+              const hasMorePerks = extraPerks.length > maxPerks;
+              const colorIdx = idx % bentoColors.length;
+              return (
+                <div key={pkg.id || idx} className={`relative rounded-3xl shadow-xl border-2 border-[#2c5f63]/20 bg-gradient-to-br ${bentoColors[colorIdx]} overflow-hidden flex flex-col items-center px-6 py-8 transition-transform duration-300 hover:scale-105 min-h-[320px]`}> 
+                  {/* Animated cocoa pod */}
+                  <img src={cocoaPodImg} alt="Cocoa Pod" className="w-14 h-14 rounded-full border-4 border-white shadow-lg absolute -top-8 left-1/2 -translate-x-1/2 bg-[#fffbe6] animate-bounce-slow" />
+                  <div className="pt-10 pb-2 flex flex-col items-center w-full">
+                    <span className="text-base md:text-lg font-bold text-[#2c5f63] tracking-wide uppercase mb-1">{pkg.name}</span>
+                    <span className="text-xl md:text-2xl font-extrabold text-[#4e3b1f] mb-2 flex items-center gap-2">
+                      <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm w-6 h-6" />
+                      {currency.symbol} {formatAmount(pkg.price)}
+                    </span>
+                    <span className="text-[#2c2c2c]/70 text-center text-sm md:text-base mb-2">{pkg.description}</span>
                   </div>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-center py-4">
-                    <div className="text-5xl font-bold text-[#2c5f63] flex items-center gap-3">
-                      <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm w-8 h-8" />
-                      <span>
-                        {currency.symbol} {formatAmount(pkg.price)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {packageFeatures.map((feature, i) => {
-                      const Icon = featureIcons[feature] || CheckCircle2
-                      return (
-                        <div key={i} className="flex items-start gap-3 group/item">
-                          <div className="rounded-full p-1.5 transition-colors bg-[#2c5f63]/10">
-                            <Icon className="h-4 w-4 text-[#2c5f63]" />
-                          </div>
-                          <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  {pkg?.benefits && typeof pkg?.benefits === "string" && (
-                    <div className="pt-4 border-t border-[#2c5f63]/10">
-                      <h4 className="font-medium mb-3 text-[#2c2c2c]">Additional Benefits</h4>
-                      <div className="space-y-3">
-                        {JSON.parse(pkg?.benefits)?.features?.map((feature, i) => (
-                          <div key={i} className="flex items-start gap-3 group/item">
-                            <div className="rounded-full p-1 transition-colors bg-[#2c5f63]/10">
-                              <Check className="h-4 w-4 text-[#2c5f63]" />
-                            </div>
-                            <span className="text-sm text-[#2c2c2c]/80">{feature}</span>
-                          </div>
+                  {/* Features */}
+                  <ul className="flex flex-col gap-2 w-full mb-2">
+                    {visibleFeatures.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2 text-[#2c5f63]">
+                        <span className="inline-block w-4 h-4 bg-[#b6d7b0] rounded-full mr-1" />
+                        <span className="text-xs md:text-sm text-[#2c2c2c]/90">{feature}</span>
+                      </li>
+                    ))}
+                    {hasMoreFeatures && (
+                      <li className="text-[#2c5f63] text-xs md:text-sm font-semibold">...and more</li>
+                    )}
+                  </ul>
+                  {/* Extra perks */}
+                  {visiblePerks.length > 0 && (
+                    <div className="w-full mb-2">
+                      <span className="font-semibold text-[#4e3b1f] text-xs md:text-sm">Extra Perks:</span>
+                      <ul className="flex flex-col gap-1 mt-1">
+                        {visiblePerks.map((perk, i) => (
+                          <li key={i} className="flex items-center gap-2 text-[#2c5f63]">
+                            <span className="inline-block w-3 h-3 bg-[#ffe066] rounded-full mr-1" />
+                            <span className="text-xs md:text-sm text-[#2c2c2c]/80">{perk}</span>
+                          </li>
                         ))}
-                      </div>
+                        {hasMorePerks && (
+                          <li className="text-[#2c5f63] text-xs font-semibold">...and more</li>
+                        )}
+                      </ul>
                     </div>
                   )}
-                </CardContent>
-
-                <CardFooter className="pt-4">
                   <Button
-                    className="w-full h-12 font-medium bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg hover:shadow-xl relative z-10"
+                    className="mt-4 w-full h-11 md:h-12 font-bold bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg text-base md:text-lg rounded-xl transition-all duration-300"
                     onClick={() => handlePackagePurchase(pkg)}
                   >
                     <span className="flex items-center gap-2">
-                      Activate Your Account <ArrowRight className="h-4 w-4" />
+                      Plant My Cocoa <ArrowRight className="h-4 w-4" />
                     </span>
                   </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* FAQ Section - Cleaner design */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.8 }}
-        className="max-w-4xl mx-auto py-16 px-4 sm:px-6"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Frequently Asked Questions</h2>
-          <p className="text-[#2c2c2c]/70">Find answers to common questions about our subscription package.</p>
+                </div>
+              );
+            }) : (
+              <div className="text-center text-[#2c2c2c]/60 italic">No cocoa opportunities available at the moment.</div>
+            )}
+          </div>
         </div>
 
+        {/* Right: Fun Cocoa Facts & Visuals */}
+        <div className="col-span-12 md:col-span-4 flex flex-col items-center justify-center bg-gradient-to-br from-[#b6d7b0] to-[#f8e7c1] rounded-3xl shadow-lg p-8 relative overflow-hidden min-h-[340px]">
+          <h2 className="font-cursive text-2xl md:text-3xl text-[#4e3b1f] mb-2 text-center" style={{fontFamily:'Pacifico, cursive'}}>Did You Know?</h2>
+          <ul className="text-[#4e3b1f]/80 text-base md:text-lg list-disc pl-6 space-y-2 mb-4">
+            <li>Cocoa trees can live up to 100 years, but produce marketable pods for only 25 years.</li>
+            <li>Each cocoa pod contains 20-50 beans—enough to make several chocolate bars!</li>
+            <li>West Africa produces about 70% of the world's cocoa.</li>
+          </ul>
+          <img src={cocoaPodImg} alt="Cocoa Beans" className="w-24 h-24 rounded-2xl border-4 border-[#fffbe6] shadow-lg object-cover" />
+        </div>
+      </div>
+
+      {/* Call to Action Section */}
+      <div className="w-full py-12 flex flex-col items-center justify-center bg-gradient-to-br from-[#b6d7b0]/40 to-[#f8e7c1]/40">
+        <h2 className="font-cursive text-3xl md:text-4xl text-[#4e3b1f] mb-4 text-center" style={{fontFamily:'Pacifico, cursive'}}>Ready to Plant Your Future?</h2>
+        <p className="text-lg md:text-xl text-[#2c2c2c]/80 max-w-2xl text-center mb-8">Join a thriving community of cocoa growers and start your journey to a bountiful harvest today.</p>
+        <Button
+          size="lg"
+          className="bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg text-lg md:text-xl font-bold rounded-2xl px-8 py-4"
+          onClick={() => document.querySelector('.bento-grid').scrollIntoView({ behavior: 'smooth' })}
+        >
+          Explore Cocoa Opportunities <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* FAQ Section - Minimalist, Polished */}
+      <section className="max-w-3xl mx-auto py-12 px-4">
+        <h2 className="font-cursive text-2xl md:text-3xl text-[#2c5f63] mb-6 text-center" style={{fontFamily:'Pacifico, cursive'}}>Frequently Asked Questions</h2>
         <div className="space-y-6">
           {[
             {
-              question: "How do commissions work?",
-              answer:
-                "You earn commissions on multiple levels. 40% on direct referrals, 10% on level 2, 5% on level 3, and 2% on levels 4-6.",
+              question: "How do I join a cocoa opportunity?",
+              answer: "Simply select your preferred cocoa plot above and follow the steps to activate your account."
             },
             {
-              question: "How do I pay for a package?",
-              answer: "Our platform currently supports MTN & Airtel mobile money payments for Ugandan & foreign users.",
-            },
-            {
-              question: "Is crypto supported as a payment method?",
-              answer: "We support USDT for package purchase and commission withdrawals for all countries",
+              question: "How do I earn rewards?",
+              answer: "You earn as your cocoa plot grows and as you refer others to join the journey."
             },
             {
               question: "Is this a one-time payment?",
-              answer: "Yes, all our packages are one-time payments that give you lifetime access to our platform.",
+              answer: "Yes, all cocoa opportunities are a one-time payment for lifetime access."
             },
             {
               question: "How do I get paid?",
-              answer:
-                "Commissions are automatically credited to your account and can be withdrawn through our supported payment methods.",
+              answer: "Rewards are credited to your account and can be withdrawn through supported payment methods."
             },
-            {
-              question: "Can I upgrade my package later?",
-              answer: "Yes, you can upgrade to a higher package at any time by paying the difference in price.",
-            },
-          ].map((faq, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + index * 0.1, duration: 0.5 }}
-              className="bg-white rounded-lg p-6 hover:shadow-md transition-all duration-300 relative group border border-[#2c5f63]/10"
-            >
-              {/* Subtle hover effect */}
-              <div className="absolute left-0 top-0 h-full w-1 bg-[#2c5f63] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-bottom"></div>
-
-              <div className="pl-4">
-                <h3 className="text-lg font-semibold mb-2 text-[#2c2c2c] group-hover:text-[#2c5f63] transition-colors duration-300">
-                  {faq.question}
-                </h3>
-                <p className="text-[#2c2c2c]/70">{faq.answer}</p>
-              </div>
-            </motion.div>
+          ].map((faq, idx) => (
+            <div key={idx} className="bg-white rounded-xl shadow-md p-6 border border-[#e6f2ef]">
+              <h3 className="text-lg md:text-xl font-semibold text-[#2c5f63] mb-2 font-cursive" style={{fontFamily:'Pacifico, cursive'}}>{faq.question}</h3>
+              <p className="text-[#2c2c2c]/80 text-base md:text-lg">{faq.answer}</p>
+            </div>
           ))}
         </div>
-      </motion.div>
-
-      {/* CTA Section - Clean and minimal */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        className="bg-[#2c5f63] py-16 px-4 sm:px-6 relative overflow-hidden"
-      >
-        {/* Subtle background pattern */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fillOpacity='1' fillRule='evenodd'/%3E%3C/svg%3E")`,
-            backgroundSize: "100px 100px",
-          }}
-        />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl font-bold mb-4 text-white">Ready to Start Your Journey?</h2>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
-            Join thousands of successful members who are already earning with our platform.
-          </p>
-
-          <Button
-            size="lg"
-            className="bg-white hover:bg-white/90 text-[#2c5f63] shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => document.getElementById("packages-section").scrollIntoView({ behavior: "smooth" })}
-          >
-            Activate Now <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </motion.div>
-
-      {/* Simple footer */}
-      <div className="py-6 bg-[#f8f8f5] border-t border-[#2c5f63]/10 text-center text-[#2c2c2c]/60 text-sm">
-        © {new Date().getFullYear()} • All rights reserved
-      </div>
+      </section>
     </div>
-  )
+  );
 }

@@ -75,7 +75,7 @@ export default function ActivationPage() {
   const cocoaPodImg =
     'https://static.vecteezy.com/system/resources/previews/042/125/124/non_2x/cacao-beans-with-leaves-isolated-on-transparent-background-with-clipping-path-3d-render-free-png.png';
   const farmerImg =
-    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80';
+    'https://st.depositphotos.com/51000486/55220/i/450/depositphotos_552200716-stock-photo-african-female-farmer-holds-her.jpg';
   const bentoColors = [
     'from-[#f8e7c1] to-[#e6f2ef]',
     'from-[#e6f2ef] to-[#f8f8f5]',
@@ -177,7 +177,7 @@ export default function ActivationPage() {
               return (
                 <div key={pkg.id || idx} className={`relative rounded-3xl shadow-xl border-2 border-[#2c5f63]/20 bg-gradient-to-br ${bentoColors[colorIdx]} overflow-hidden flex flex-col items-center px-6 py-8 transition-transform duration-300 hover:scale-105 min-h-[320px]`}> 
                   {/* Animated cocoa pod */}
-                  <img src={cocoaPodImg} alt="Cocoa Pod" className="w-14 h-14 rounded-full border-4 border-white shadow-lg absolute -top-8 left-1/2 -translate-x-1/2 bg-[#fffbe6] animate-bounce-slow" />
+                  <img src={cocoaPodImg} alt="Cocoa Pod" className="w-16 h-16 rounded-full border-4 border-white shadow-lg absolute -top-8 mt-8 left-1/2 -translate-x-1/2 bg-[#fffbe6] animate-bounce-slow" />
                   <div className="pt-10 pb-2 flex flex-col items-center w-full">
                     <span className="text-base md:text-lg font-bold text-[#2c5f63] tracking-wide uppercase mb-1">{pkg.name}</span>
                     <span className="text-xl md:text-2xl font-extrabold text-[#4e3b1f] mb-2 flex items-center gap-2">

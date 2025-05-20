@@ -141,7 +141,7 @@ export function Header() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full shadow-lg">
+          <div className="md:hidden bg-black rounded-full shadow-lg">
             <Button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               variant="ghost"
@@ -161,7 +161,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white/90 backdrop-blur-lg border-t border-emerald-100 shadow-2xl rounded-b-3xl">
+        <div className="md:hidden bg-black backdrop-blur-lg border-t border-black shadow-2xl rounded-b-3xl">
           <div className="px-4 pt-4 pb-6 space-y-3">
             {navigation.map((item) => (
               <div key={item.name} className="space-y-2">
@@ -173,7 +173,7 @@ export function Header() {
                           {item.name}
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
-                          <ul className="w-full p-2 bg-white rounded-2xl border border-emerald-100">
+                          <ul className="w-full p-2 bg-white rounded-2xl border border-black">
                             {item.submenu.map((subItem) => (
                               <li key={subItem.name}>
                                 <NavigationMenuLink asChild>

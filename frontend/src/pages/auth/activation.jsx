@@ -205,7 +205,7 @@ export default function ActivationPage() {
         </div>
       </motion.div>
 
-      {/* Available Package - Centered and Enhanced */}
+      {/* Available Packages - Show all packages */}
       <div id="packages-section" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 bg-[#2c5f63]/5">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -213,15 +213,15 @@ export default function ActivationPage() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Your Subscription Package</h2>
+          <h2 className="text-3xl font-bold mb-4 text-[#2c5f63]">Your Subscription Packages</h2>
           <p className="text-[#2c2c2c]/70 max-w-2xl mx-auto">
-            Select this package to activate your account and start earning today.
+            Select a package to activate your account and start earning today.
           </p>
         </motion.div>
 
-        <motion.div className="flex justify-center" variants={containerVariants} initial="hidden" animate="visible">
-          {availablePackages.length > 0 && (
-            <motion.div variants={cardVariants} whileHover="hover" className="relative group max-w-lg w-full">
+        <motion.div className="flex flex-wrap justify-center gap-8" variants={containerVariants} initial="hidden" animate="visible">
+          {availablePackages.length > 0 && availablePackages.map((pkg, idx) => (
+            <motion.div key={pkg.id || idx} variants={cardVariants} whileHover="hover" className="relative group max-w-lg w-full">
               {/* Enhanced package card */}
               <Card className="overflow-hidden relative rounded-lg border-2 border-[#2c5f63]/20 bg-white shadow-lg hover:shadow-xl">
                 {/* Decorative elements */}
@@ -242,13 +242,15 @@ export default function ActivationPage() {
                   <div className="flex justify-between items-center">
                     <div>
                       <CardTitle className="text-3xl font-bold text-[#2c2c2c] flex items-center gap-2">
-                        {availablePackages[0].name}
-                        <div className="inline-flex items-center justify-center px-2 py-1 ml-2 text-xs font-medium rounded-full bg-[#2c5f63]/10 text-[#2c5f63]">
-                          RECOMMENDED
-                        </div>
+                        {pkg.name}
+                        {idx === 0 && (
+                          <div className="inline-flex items-center justify-center px-2 py-1 ml-2 text-xs font-medium rounded-full bg-[#2c5f63]/10 text-[#2c5f63]">
+                            RECOMMENDED
+                          </div>
+                        )}
                       </CardTitle>
                       <CardDescription className="text-base mt-1 text-[#2c2c2c]/70">
-                        {availablePackages[0].description}
+                        {pkg.description}
                       </CardDescription>
                     </div>
                     <Star className="h-6 w-6 text-[#2c5f63]" />
@@ -260,7 +262,7 @@ export default function ActivationPage() {
                     <div className="text-5xl font-bold text-[#2c5f63] flex items-center gap-3">
                       <ReactCountryFlag countryCode={country} svg className="rounded shadow-sm w-8 h-8" />
                       <span>
-                        {currency.symbol} {formatAmount(availablePackages[0].price)}
+                        {currency.symbol} {formatAmount(pkg.price)}
                       </span>
                     </div>
                   </div>
@@ -279,11 +281,11 @@ export default function ActivationPage() {
                     })}
                   </div>
 
-                  {availablePackages[0]?.benefits && typeof availablePackages[0]?.benefits === "string" && (
+                  {pkg?.benefits && typeof pkg?.benefits === "string" && (
                     <div className="pt-4 border-t border-[#2c5f63]/10">
                       <h4 className="font-medium mb-3 text-[#2c2c2c]">Additional Benefits</h4>
                       <div className="space-y-3">
-                        {JSON.parse(availablePackages[0]?.benefits)?.features?.map((feature, i) => (
+                        {JSON.parse(pkg?.benefits)?.features?.map((feature, i) => (
                           <div key={i} className="flex items-start gap-3 group/item">
                             <div className="rounded-full p-1 transition-colors bg-[#2c5f63]/10">
                               <Check className="h-4 w-4 text-[#2c5f63]" />
@@ -299,12 +301,7 @@ export default function ActivationPage() {
                 <CardFooter className="pt-4">
                   <Button
                     className="w-full h-12 font-medium bg-[#2c5f63] hover:bg-[#1e4245] text-white shadow-lg hover:shadow-xl relative z-10"
-                    onClick={() => {
-                      console.log("Button clicked", availablePackages[0])
-                      if (availablePackages && availablePackages.length > 0) {
-                        handlePackagePurchase(availablePackages[0])
-                      }
-                    }}
+                    onClick={() => handlePackagePurchase(pkg)}
                   >
                     <span className="flex items-center gap-2">
                       Activate Your Account <ArrowRight className="h-4 w-4" />
@@ -313,7 +310,7 @@ export default function ActivationPage() {
                 </CardFooter>
               </Card>
             </motion.div>
-          )}
+          ))}
         </motion.div>
       </div>
 

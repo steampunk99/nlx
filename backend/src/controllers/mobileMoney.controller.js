@@ -120,16 +120,7 @@ class MobileMoneyCallbackController {
             trans_id,
             package_id: nodePackage.id
           });
-          
-             // Calculate and create commissions
-             const commissions = await calculateCommissions(payment.nodeId, payment.amount, tx);
-             await Promise.all(commissions.map(commission =>
-               commissionService.create({
-                 ...commission,
-                 packageId: payment.packageId,
-                 status: 'PROCESSED'
-               }, tx)
-             ));
+          // Commission calculation is handled inside processSuccessfulPayment
         });
 
         return res.status(200).json({

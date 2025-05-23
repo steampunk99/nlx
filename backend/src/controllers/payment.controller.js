@@ -539,10 +539,10 @@ class PaymentController {
             type: 'PACKAGE_PURCHASE'
         }, tx);
 
-        // Alert admins of payment processing error
+        // Alert admins of payment processing
         await adminNotificationUtils.systemAlert(
             'Payment Processing Successful',
-            `Payment ${req.body.trans_id} processed successfully`
+            `Payment ID ${payment.id} processed successfully`
         );
 
         logger.info('Payment processed successfully:', {
@@ -551,9 +551,7 @@ class PaymentController {
             status: payment.status
         });
 
-        // Calculate commissions
-        await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
-
+      
         return payment;
     }
 

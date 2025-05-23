@@ -3,7 +3,7 @@ const logger = require('../services/logger.service');
 const nodePaymentService = require('../services/nodePayment.service');
 const nodePackageService = require('../services/nodePackage.service');
 const commissionService = require('../services/commission.service');
-const { calculateCommissions } = require('../utils/commission.utils');
+const commissionUtil = require('../utils/commission.utils');
 const paymentController = require('./payment.controller');
 const nodeStatementService = require('../services/nodeStatement.service');
 
@@ -120,7 +120,9 @@ class MobileMoneyCallbackController {
             trans_id,
             package_id: nodePackage.id
           });
-          // Commission calculation is handled inside processSuccessfulPayment
+          
+             // Calculate and create commissions
+             await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
         });
 
         return res.status(200).json({

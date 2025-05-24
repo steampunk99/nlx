@@ -5,7 +5,8 @@ import toast from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../hooks/auth/useAuth"; // Assuming needed for context
 import { useCommissions } from "../../hooks/dashboard/useCommissions";
-import { useCountry } from "@/hooks/config/useCountry"; // Ensure this hook provides { currency, formatAmount }
+import { useCountry } from "@/hooks/config/useCountry"; 
+import { useEarnings } from "@/hooks/dashboard/useDashboard";
 import { motion } from "framer-motion";
 import {
   Wallet,
@@ -40,6 +41,7 @@ export default function WithdrawalsPage() {
   // Hooks
   const { user } = useAuth(); // Keep if needed elsewhere or for future use
   const { commissionStats } = useCommissions();
+  const { data:earnings } = useEarnings()
   const queryClient = useQueryClient();
   const {
     register,
@@ -52,7 +54,7 @@ export default function WithdrawalsPage() {
   // --- State and Data Fetching ---
 
   // Calculate available balance (using optional chaining and nullish coalescing)
-  const availableBalance = commissionStats?.totalCommissions ?? 0;
+ const availableBalance = earnings?.availableBalance
 
   // Fetch withdrawal history using React Query
   // **MODIFICATION 1: Fetch the container object, not the array directly**
@@ -148,15 +150,16 @@ export default function WithdrawalsPage() {
   // --- Render ---
 
   return (
-    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-gray-900 via-purple-950 to-indigo-950 text-gray-100 overflow-hidden">
-      {/* Background Effects */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_100%_100%_at_50%_50%,black,transparent)] opacity-50"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-600/10 rounded-full filter blur-3xl opacity-50 animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full filter blur-3xl opacity-50 animate-pulse animation-delay-2000"></div>
+    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#4e3b1f] overflow-hidden font-sans">
+      {/* Immersive Cocoa Farm World Background */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <svg className="absolute left-0 top-0 w-40 h-40 opacity-10" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A"/><ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748"/><ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066"/><path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5"/><path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5"/></svg>
+        <svg className="absolute right-0 bottom-0 w-48 h-48 opacity-10" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="12" rx="2" fill="#FFE066" stroke="#C97C3A" strokeWidth="2"/><rect x="13" y="20" width="6" height="6" rx="1" fill="#B6D7B0"/><path d="M4 16L16 6l12 10" stroke="#B6D7B0" strokeWidth="2"/></svg>
+        <svg className="absolute left-1/2 -translate-x-1/2 bottom-10 w-32 h-32 opacity-5" viewBox="0 0 32 32"><ellipse cx="16" cy="20" rx="10" ry="5" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2"/><ellipse cx="16" cy="20" rx="5" ry="2.5" fill="#FFE066" stroke="#8D6748" strokeWidth="1.5"/><rect x="14" y="8" width="4" height="10" rx="2" fill="#C97C3A"/></svg>
+        {/* Animated clouds */}
+        <svg className="absolute top-10 left-1/4 w-32 h-12 animate-cloud-move" viewBox="0 0 100 40"><ellipse cx="30" cy="20" rx="30" ry="12" fill="#fffbe6"/><ellipse cx="60" cy="20" rx="20" ry="10" fill="#e6f2ef"/></svg>
+        <svg className="absolute top-20 right-1/4 w-40 h-16 animate-cloud-move2" viewBox="0 0 120 50"><ellipse cx="50" cy="25" rx="40" ry="15" fill="#fffbe6"/><ellipse cx="90" cy="25" rx="25" ry="12" fill="#e6f2ef"/></svg>
       </div>
-
-      {/* Content Area */}
       <motion.div
         className="relative z-10 space-y-8"
         variants={containerVariants}
@@ -164,78 +167,70 @@ export default function WithdrawalsPage() {
         animate="visible"
       >
         {/* Stats Section */}
-        <motion.section variants={itemVariants} className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <motion.section variants={itemVariants} className="grid gap-6 md:grid-cols-2">
           {/* Available Balance Card */}
-           <div className="relative bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/10 group transition-all hover:border-cyan-500/60">
-             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-             <div className="relative p-5 sm:p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-cyan-600/30 to-blue-600/30 border border-cyan-500/40 shadow-inner">
-                  <Wallet className="w-6 h-6 text-cyan-300" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-cyan-300/80">Available Balance</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-cyan-100 tracking-tight">
-                    {currency.symbol} {formatAmount(availableBalance)}
-                  </p>
-                </div>
+          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-2xl overflow-visible shadow-2xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-transform">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                <Wallet className="w-8 h-8 text-[#8D6748]" />
               </div>
             </div>
+            <div className="text-center">
+              <p className="text-base font-cursive text-[#A67C52]">Available Balance</p>
+              <p className="text-2xl font-extrabold text-[#4e3b1f] mt-1">{formatAmount(availableBalance)}</p>
+            </div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#8d6748] rounded-b-xl shadow-inner border-t-4 border-[#b6d7b0]/30" />
           </div>
-
           {/* Total Withdrawn Card */}
-           <div className="relative bg-black/40 backdrop-blur-md border border-purple-500/30 rounded-xl overflow-hidden shadow-lg shadow-purple-500/10 group transition-all hover:border-purple-500/60">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative p-5 sm:p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/40 shadow-inner">
-                  <ArrowDown className="w-6 h-6 text-purple-300" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-purple-300/80">Total Withdrawn</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-purple-100 tracking-tight">
-                    {currency.symbol} {formatAmount(totalWithdrawn)}
-                  </p>
-                </div>
+          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#ffe066]/80 border-2 border-[#ffe066]/40 rounded-2xl overflow-visible shadow-2xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-transform">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                <ArrowDown className="w-8 h-8 text-[#C97C3A]" />
               </div>
             </div>
+            <div className="text-center">
+              <p className="text-base font-cursive text-[#A67C52]">Total Withdrawn</p>
+              <p className="text-2xl font-extrabold text-[#4e3b1f] mt-1">{formatAmount(totalWithdrawn)}</p>
+            </div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#8d6748] rounded-b-xl shadow-inner border-t-4 border-[#b6d7b0]/30" />
           </div>
         </motion.section>
-
         {/* Withdrawal Form Section */}
         <motion.section variants={itemVariants}>
-           <div className="relative bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-xl shadow-cyan-500/10 p-5 sm:p-6 lg:p-8 group transition-all hover:border-cyan-500/60">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-             <div className="relative">
-              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-5 flex items-center gap-3">
-                <Send className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                <Send className="w-8 h-8 text-[#8D6748]" />
+              </div>
+            </div>
+            <div className="mt-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
                 Request Withdrawal
               </h2>
-
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* Amount Input */}
                 <div className="space-y-2">
-                  <label htmlFor="amount" className="text-sm font-medium text-cyan-300/80 flex items-center gap-1">
-                    Amount <span className="text-cyan-500">({currency.symbol})</span>
+                  <label htmlFor="amount" className="text-sm font-medium text-[#A67C52] flex items-center gap-1">
+                    Amount <span className="text-[#C97C3A]">({currency.symbol.replace('US', '')})</span>
                   </label>
                   <div className="relative">
-                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-cyan-400/50">
-                        {currency.symbol}
-                     </div>
-                     <input
-                        id="amount"
-                        type="number"
-                        step="any"
-                        {...register("amount", {
-                          required: "Amount is required",
-                          valueAsNumber: true,
-                          min: { value: 1000, message: `Minimum withdrawal is ${currency.symbol} 1,000` },
-                          max: { value: availableBalance, message: `Insufficient balance (Available: ${formatAmount(availableBalance)})` },
-                          validate: value => value <= availableBalance || `Amount exceeds available balance`
-                        })}
-                        className="w-full pl-8 pr-4 py-2.5 bg-black/50 border border-cyan-500/40 rounded-lg text-cyan-100 placeholder-cyan-300/40 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/50 transition duration-200"
-                        placeholder="Enter amount"
-                     />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C97C3A]/50">
+                      {currency.symbol.replace('US', '')}
+                    </div>
+                    <input
+                      id="amount"
+                      type="number"
+                      step="any"
+                      {...register("amount", {
+                        required: "Amount is required",
+                        valueAsNumber: true,
+                        min: { value: 1000, message: `Minimum withdrawal is ${currency.symbol.replace('US', '')} 1,000` },
+                        max: { value: availableBalance, message: `Insufficient balance (Available: ${formatAmount(availableBalance)})` },
+                        validate: value => value <= availableBalance || `Amount exceeds available balance`
+                      })}
+                      className="w-full pl-8 pr-4 py-2.5 bg-white/60 border border-[#b6d7b0]/40 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/40 focus:outline-none focus:border-[#b6d7b0]/80 focus:ring-1 focus:ring-[#b6d7b0]/50 transition duration-200"
+                      placeholder="Enter amount"
+                    />
                   </div>
                   {errors.amount && (
                     <p className="text-sm text-rose-400 flex items-center gap-1">
@@ -243,10 +238,9 @@ export default function WithdrawalsPage() {
                     </p>
                   )}
                 </div>
-
                 {/* Phone Input */}
                 <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium text-cyan-300/80">
+                  <label htmlFor="phone" className="text-sm font-medium text-[#A67C52]">
                     Mobile Money Number (Uganda)
                   </label>
                   <input
@@ -255,11 +249,11 @@ export default function WithdrawalsPage() {
                     {...register("phone", {
                       required: "Phone number is required",
                       pattern: {
-                        value: /^07\d{8}$/, // Ugandan format (07XXXXXXXX)
+                        value: /^07\d{8}$/,
                         message: "Enter a valid Ugandan number (e.g., 0701234567)",
                       },
                     })}
-                    className="w-full px-4 py-2.5 bg-black/50 border border-cyan-500/40 rounded-lg text-cyan-100 placeholder-cyan-300/40 focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/50 transition duration-200"
+                    className="w-full px-4 py-2.5 bg-white/60 border border-[#b6d7b0]/40 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/40 focus:outline-none focus:border-[#b6d7b0]/80 focus:ring-1 focus:ring-[#b6d7b0]/50 transition duration-200"
                     placeholder="e.g., 0701234567"
                   />
                   {errors.phone && (
@@ -268,15 +262,14 @@ export default function WithdrawalsPage() {
                     </p>
                   )}
                 </div>
-
                 {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={withdrawalMutation.isPending || availableBalance < 1000}
-                  className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-cyan-400
+                  className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#b6d7b0]/50 focus:ring-[#C97C3A]
                     ${withdrawalMutation.isPending || availableBalance < 1000
                       ? 'bg-gray-600 cursor-not-allowed opacity-70'
-                      : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg hover:shadow-cyan-500/40 transform hover:-translate-y-0.5'
+                      : 'bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 shadow-lg hover:shadow-[#b6d7b0]/40 transform hover:-translate-y-0.5'
                     }`}
                 >
                   {withdrawalMutation.isPending ? (
@@ -300,28 +293,29 @@ export default function WithdrawalsPage() {
             </div>
           </div>
         </motion.section>
-
         {/* Withdrawal History Section */}
         <motion.section variants={itemVariants}>
-           <div className="relative bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/10 p-5 sm:p-6 lg:p-8 group transition-all hover:border-cyan-500/60">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative">
-              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-5 flex items-center gap-3">
-                <DatabaseZap className="w-6 h-6 text-cyan-400 flex-shrink-0" />
+          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                <DatabaseZap className="w-8 h-8 text-[#8D6748]" />
+              </div>
+            </div>
+            <div className="mt-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
                 Transaction History
               </h2>
-
               {isLoadingHistory ? (
-                 <div className="text-center py-10 text-cyan-300/70 flex items-center justify-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" /> Loading History...
-                 </div>
+                <div className="text-center py-10 text-[#A67C52]/70 flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" /> Loading History...
+                </div>
               ) : withdrawalHistory.length > 0 ? (
                 <motion.ul
-                    className="space-y-3"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                 >
+                  className="space-y-3"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
                   {withdrawalHistory.map((withdrawal) => {
                     const statusConfig = getStatusConfig(withdrawal.status);
                     const StatusIcon = statusConfig.icon;
@@ -329,18 +323,17 @@ export default function WithdrawalsPage() {
                       <motion.li
                         key={withdrawal.id}
                         variants={itemVariants}
-                        className={`flex items-center justify-between gap-4 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-gray-800/40`}
+                        className={`flex items-center justify-between gap-4 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-[#e6f2ef]/40`}
                       >
-                        <div className="flex items-center gap-3 overflow-hidden"> {/* Added overflow-hidden */}
+                        <div className="flex items-center gap-3 overflow-hidden">
                           <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${statusConfig.bg} border ${statusConfig.border}`}>
                             <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
                           </div>
-                          <div className="flex-1 min-w-0"> {/* Added flex-1 min-w-0 */}
-                            <p className="font-semibold text-gray-100 truncate"> {/* Added truncate */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-[#4e3b1f] truncate">
                               {currency.symbol} {formatAmount(withdrawal.amount)}
                             </p>
-                            <p className="text-xs text-gray-400 truncate"> {/* Added truncate */}
-                              {/* Using current location Kampala for default locale formatting - adjust 'en-UG' if needed */}
+                            <p className="text-xs text-[#A67C52] truncate">
                               {new Date(withdrawal.createdAt).toLocaleDateString('en-UG', {
                                 year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                               })}
@@ -355,7 +348,7 @@ export default function WithdrawalsPage() {
                   })}
                 </motion.ul>
               ) : (
-                <p className="text-center py-10 text-cyan-300/70">
+                <p className="text-center py-10 text-[#A67C52]/70">
                   No withdrawal history yet.
                 </p>
               )}
@@ -363,6 +356,13 @@ export default function WithdrawalsPage() {
           </div>
         </motion.section>
       </motion.div>
+      {/* Animations CSS */}
+      <style>{`
+        @keyframes cloud-move { 0%{transform:translateX(0);} 100%{transform:translateX(60vw);} }
+        @keyframes cloud-move2 { 0%{transform:translateX(0);} 100%{transform:translateX(40vw);} }
+        .animate-cloud-move { animation: cloud-move 60s linear infinite; }
+        .animate-cloud-move2 { animation: cloud-move2 80s linear infinite; }
+      `}</style>
     </div>
   );
 }

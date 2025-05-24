@@ -2,34 +2,46 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-  Sword,
-  Shield,
-  Trophy,
-  Users,
-  DollarSign,
-  ArrowUp,
-  Star,
-  Package,
-  Activity,
-  Coins,
-  Heart,
-  Zap,
-  ChevronRight,
-  TrendingUp,
-} from "lucide-react"
 import { cn } from "../../lib/utils"
 import { Button } from "../../components/ui/button"
 import { Skeleton } from "../../components/ui/skeleton"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/auth/useAuth"
-import { useDashboardStats, useEarnings, useRecentActivities } from "../../hooks/dashboard/useDashboard"
+import { useDashboardStats,useRewards, useEarnings, useRecentActivities } from "../../hooks/dashboard/useDashboard"
 import { usePackages } from "../../hooks/payments/usePackages"
 import { useCountry } from "../../hooks/config/useCountry"
 import { useSiteConfig } from "../../hooks/config/useSiteConfig"
 import { useCommissions } from "../../hooks/dashboard/useCommissions"
+
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../lib/axios"
+
+// --- Inline SVG React Components ---
+function CocoaPod(props) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" {...props}><ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A"/><ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748"/><ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066"/><path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5"/><path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5"/></svg>
+  );
+}
+function Barn(props) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" {...props}><rect x="6" y="14" width="20" height="12" rx="2" fill="#FFE066" stroke="#C97C3A" strokeWidth="2"/><rect x="13" y="20" width="6" height="6" rx="1" fill="#B6D7B0"/><path d="M4 16L16 6l12 10" stroke="#B6D7B0" strokeWidth="2"/></svg>
+  );
+}
+function Farmer(props) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" {...props}><circle cx="11" cy="13" r="5" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2"/><rect x="6" y="18" width="10" height="8" rx="3" fill="#FFE066" stroke="#B6D7B0" strokeWidth="2"/><rect x="18" y="18" width="8" height="8" rx="3" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2"/><circle cx="23" cy="13" r="4" fill="#FFE066" stroke="#8D6748" strokeWidth="2"/></svg>
+  );
+}
+function Harvest(props) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" {...props}><ellipse cx="16" cy="20" rx="10" ry="5" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2"/><ellipse cx="16" cy="20" rx="5" ry="2.5" fill="#FFE066" stroke="#8D6748" strokeWidth="1.5"/><rect x="14" y="8" width="4" height="10" rx="2" fill="#C97C3A"/></svg>
+  );
+}
+function Farmhouse(props) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" {...props}><rect x="8" y="14" width="16" height="10" rx="2" fill="#FFE066" stroke="#8D6748" strokeWidth="2"/><rect x="13" y="19" width="6" height="5" rx="1" fill="#B6D7B0"/><path d="M6 16L16 8l10 8" stroke="#B6D7B0" strokeWidth="2"/></svg>
+  );
+}
 
 function DashboardOverview() {
   const navigate = useNavigate()
@@ -39,9 +51,12 @@ function DashboardOverview() {
   const { data: earnings, isLoading: isLoadingEarnings } = useEarnings()
   const { country, currency, formatAmount } = useCountry()
   const { commissions, commissionStats } = useCommissions()
+  const { data: rewards } = useRewards()
   const { siteLogoUrl, promoImageUrl } = useSiteConfig()
   const { userPackage } = usePackages()
   const [activeQuest, setActiveQuest] = useState(null)
+  const [expandedActivity, setExpandedActivity] = useState(null);
+  const [showOfferModal, setShowOfferModal] = useState(false);
 
   // Fetch withdrawal history
   const { data: withdrawalsData } = useQuery({
@@ -67,7 +82,10 @@ function DashboardOverview() {
     0,
   )
 
-  const availableBalance = commissionStats?.totalCommissions || 0
+  const availableBalance = earnings?.availableBalance
+  // Parse dailyReward as a float to ensure correct numeric value
+  const dailyReward = rewards?.todayReward ? parseFloat(rewards.todayReward) : 0;
+  console.log('Parsed dailyReward:', dailyReward, typeof dailyReward);
 
   if (isLoadingStats || isLoadingActivities) {
     return (
@@ -86,129 +104,94 @@ function DashboardOverview() {
     )
   }
 
-  // Updated stats with neon colors
+  // --- Farm/Cocoa Themed Stat Icons ---
+  const StatIcons = [Farmhouse, Harvest, Farmer, Barn];
+  const statColors = [
+    { color: '#8D6748', bg: 'from-[#e6f2ef]/80 to-[#ffe066]/60', iconBg: 'bg-[#ffe066]/60' },
+    { color: '#B6D7B0', bg: 'from-[#b6d7b0]/40 to-[#ffe066]/30', iconBg: 'bg-[#b6d7b0]/60' },
+    { color: '#A67C52', bg: 'from-[#ffe066]/40 to-[#b6d7b0]/30', iconBg: 'bg-[#ffe066]/60' },
+    { color: '#C97C3A', bg: 'from-[#ffe066]/40 to-[#c97c3a]/20', iconBg: 'bg-[#c97c3a]/30' },
+  ];
+
+  // --- Farm/Cocoa Themed Stats (redesigned as 3D crates/signs, more playful, responsive) ---
   const stats = [
     {
-      title: "Available Balance",
+      title: 'Farm Balance',
       value: `${currency.symbol} ${formatAmount(availableBalance || 0)}`,
-      description: "Your available balance",
-      icon: DollarSign,
-      color: "#36f9f6", // Neon cyan
-      bgColor: "from-cyan-500/20 to-cyan-600/10",
-      iconBg: "bg-cyan-900/30",
+      description: 'Your available cocoa earnings',
+      icon: Farmhouse,
+      color: '#8D6748',
+      bg: 'from-[#e6f2ef]/80 to-[#ffe066]/60',
+      iconBg: 'bg-[#ffe066]/60',
       secondaryValue: `${currency.symbol} ${formatAmount(availableBalance || 0)}`,
-      secondaryLabel: "This month",
+      secondaryLabel: 'This month',
     },
     {
-      title: "Daily Reward",
-      value: `${currency.symbol} ${formatAmount(totalWithdrawn || 0)}`,
-      description: "Your daily earnings",
-      icon: Wallet,
-      color: "#fe53bb", // Neon pink
-      bgColor: "from-pink-500/20 to-pink-600/10",
-      iconBg: "bg-pink-900/30",
-      secondaryValue: `${currency.symbol} ${formatAmount(totalWithdrawn || 0)}`,
-      secondaryLabel: "24h Change",
+      title: 'Harvested Today',
+      value: `${currency.symbol} ${formatAmount(dailyReward)}`,
+      description: 'Cocoa harvested today',
+      icon: Harvest,
+      color: '#B6D7B0',
+      bg: 'from-[#b6d7b0]/40 to-[#ffe066]/30',
+      iconBg: 'bg-[#b6d7b0]/60',
+      secondaryValue: `${currency.symbol} ${formatAmount(dailyReward)}`,
+      secondaryLabel: '24h Change',
     },
     {
-      title: "Network Size",
-      value: dashboardStats?.networkSize || "0",
-      description: "Active members in your network",
-      icon: Users,
-      color: "#7b61ff", // Neon purple
-      bgColor: "from-purple-500/20 to-purple-600/10",
-      iconBg: "bg-purple-900/30",
-      secondaryValue: dashboardStats?.networkSize || "0",
-      secondaryLabel: "Total Members",
+      title: 'Farmers in Network',
+      value: dashboardStats?.networkSize || '0',
+      description: 'Active farmers in your network',
+      icon: Farmer,
+      color: '#A67C52',
+      bg: 'from-[#ffe066]/40 to-[#b6d7b0]/30',
+      iconBg: 'bg-[#ffe066]/60',
+      secondaryValue: dashboardStats?.networkSize || '0',
+      secondaryLabel: 'Total Farmers',
     },
     {
-      title: "Active Package",
-      value: userPackage ? "ACTIVE" : "NONE",
-      description: "Current investment package",
-      icon: Package,
-      color: "#ffd32a", // Neon yellow
-      bgColor: "from-yellow-500/20 to-yellow-600/10",
-      iconBg: "bg-yellow-900/30",
+      title: 'Cocoa Investment',
+      value: userPackage ? 'ACTIVE' : 'NONE',
+      description: 'Current cocoa investment',
+      icon: Barn,
+      color: '#C97C3A',
+      bg: 'from-[#ffe066]/40 to-[#c97c3a]/20',
+      iconBg: 'bg-[#c97c3a]/30',
       secondaryValue: `${currency.symbol} ${formatAmount(userPackage?.package?.price || 0)}`,
-      secondaryLabel: "Package Value",
+      secondaryLabel: 'Package Value',
     },
-  ]
+  ];
 
-  // Define quests based on user data
-  const quests = [
-    {
-      title: "Recruit 3 Team Members",
-      description: "Grow your network by recruiting 3 new members",
-      reward: `${currency.symbol} 5,000 + 100 XP`,
-      progress: Math.min(Math.round(((dashboardStats?.networkSize || 0) / 3) * 100), 100),
-      icon: Users,
-      color: "#60a5fa", // Blue - matches Network nav item
-      bgColor: "from-blue-500/20 to-blue-600/10",
-    },
-    {
-      title: "Upgrade Package",
-      description: "Upgrade to a premium package to unlock more rewards",
-      reward: `${currency.symbol} 10,000 + 200 XP`,
-      progress: userPackage ? 100 : 0,
-      icon: Star,
-      color: "#c084fc", // Purple - matches Packages nav item
-      bgColor: "from-purple-500/20 to-purple-600/10",
-    },
-    {
-      title: "Complete Profile",
-      description: "Fill in all your profile information",
-      reward: `${currency.symbol} 1,000 + 50 XP`,
-      progress: 75, // This would ideally be calculated based on profile completion
-      icon: Shield,
-      color: "#94a3b8", // Gray - matches Settings nav item
-      bgColor: "from-gray-500/20 to-gray-600/10",
-    },
-  ]
-
+  // --- Farm/Cocoa Themed Activity Feed ---
   const getActivityIcon = (type) => {
     switch (type) {
-      case "commission":
-        return Coins
-      case "network":
-        return Users
+      case 'commission':
+        return Harvest;
+      case 'referral':
+        return Farmer;
       default:
-        return Activity
+        return CocoaPod;
     }
-  }
-
+  };
   const getActivityColor = (type) => {
     switch (type) {
-      case "commission":
-        return {
-          bg: "bg-green-900/30",
-          text: "text-green-400",
-          ring: "ring-green-400/20",
-        }
-      case "network":
-        return {
-          bg: "bg-blue-900/30",
-          text: "text-blue-400",
-          ring: "ring-blue-400/20",
-        }
+      case 'commission':
+        return { bg: 'bg-[#b6d7b0]/40', text: 'text-[#8D6748]', ring: 'ring-[#b6d7b0]/20' };
+      case 'referral':
+        return { bg: 'bg-[#ffe066]/40', text: 'text-[#A67C52]', ring: 'ring-[#ffe066]/20' };
       default:
-        return {
-          bg: "bg-yellow-900/30",
-          text: "text-yellow-400",
-          ring: "ring-yellow-400/20",
-        }
+        return { bg: 'bg-[#c97c3a]/40', text: 'text-[#C97C3A]', ring: 'ring-[#c97c3a]/20' };
     }
-  }
-
+  };
   const getActivityEmoji = (type) => {
     switch (type) {
-      case "commission":
-        return "💰"
-      case "network":
-        return "🤝"
+      case 'commission':
+        return '🌱';
+      case 'referral':
+        return '👩‍🌾';
       default:
-        return "🎉"
+        return '🍫';
     }
-  }
+  };
 
   // Format date to display like "Jan 1, 2023"
   const formatDate = (date) => {
@@ -219,401 +202,296 @@ function DashboardOverview() {
     })
   }
 
-  // Calculate player level based on network size and commissions
-  const calculatePlayerLevel = () => {
-    const networkSize = dashboardStats?.networkSize || 0
-    const totalCommissions = commissionStats?.totalCommissions || 0
+ 
 
-    // Simple algorithm: 1 level for every 3 referrals + 1 level for every $1000 in commissions
-    const networkLevel = Math.floor(networkSize / 3)
-    const commissionLevel = Math.floor(totalCommissions / 1000)
-
-    return Math.max(1, networkLevel + commissionLevel)
-  }
-
-  const playerLevel = calculatePlayerLevel()
-  const playerXP = 450 // This would ideally be calculated based on user activity
-  const playerHealth = 85 // This could be tied to account activity or login streak
-  const playerMana = 70 // This could be tied to available actions or resources
-
-  const achievements = [
-    {
-      title: "First Referral",
-      description: "Recruit your first team member",
-      icon: Users,
-      color: "#60a5fa",
-      completed: dashboardStats?.networkSize > 0,
-    },
-    {
-      title: "Package Activated",
-      description: "Activate your first investment package",
-      icon: Package,
-      color: "#c084fc",
-      completed: !!userPackage,
-    },
-    {
-      title: "Withdrawal Made",
-      description: "Make your first withdrawal",
-      icon: DollarSign,
-      color: "#4ade80",
-      completed: totalWithdrawn > 0,
-    },
-  ]
+  // --- Special Offer Description (simulate backend) ---
+  const specialOfferDescription = "This season, boost your cocoa farm with our exclusive Elite Barn Package! Enjoy higher yields, faster harvests, and special farm tools. Upgrade now and watch your virtual world flourish.";
 
   return (
-    <div className="relative space-y-6 p-6 bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950">
-      {/* Cyberpunk Grid Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_-30%,#1a103b,transparent)]"></div>
-        
-        {/* Animated glow spots */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="relative space-y-6 p-0 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] min-h-screen overflow-x-hidden">
+      {/* Immersive Cocoa Farm World Background */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <CocoaPod className="absolute left-0 top-0 w-40 h-40 opacity-10" />
+        <Barn className="absolute right-0 bottom-0 w-48 h-48 opacity-10" />
+        <Harvest className="absolute left-1/2 -translate-x-1/2 bottom-10 w-32 h-32 opacity-5" />
+        {/* Animated clouds */}
+        <svg className="absolute top-10 left-1/4 w-32 h-12 animate-cloud-move" viewBox="0 0 100 40"><ellipse cx="30" cy="20" rx="30" ry="12" fill="#fffbe6"/><ellipse cx="60" cy="20" rx="20" ry="10" fill="#e6f2ef"/></svg>
+        <svg className="absolute top-20 right-1/4 w-40 h-16 animate-cloud-move2" viewBox="0 0 120 50"><ellipse cx="50" cy="25" rx="40" ry="15" fill="#fffbe6"/><ellipse cx="90" cy="25" rx="25" ry="12" fill="#e6f2ef"/></svg>
+        {/* Animated birds */}
+        <svg className="absolute top-32 left-1/3 w-16 h-8 animate-bird-fly" viewBox="0 0 40 20"><path d="M2 10 Q10 2 20 10 Q30 18 38 10" stroke="#8d6748" strokeWidth="2" fill="none"/></svg>
       </div>
-
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
-              Welcome back, {user?.firstName || "サイバーパンク"}!
-            </h1>
-            <p className="text-cyan-300/80">Your digital empire awaits.</p>
+      {/* Main Content (z-10) */}
+      <div className="relative z-10 px-0 md:px-8 lg:px-16 pt-10 pb-8">
+        {/* Farm Welcome Banner */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+          <div className="flex items-center gap-4">
+            <Farmhouse className="w-16 h-16 md:w-24 md:h-24 drop-shadow-lg" />
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#8D6748] font-cursive drop-shadow-sm">
+                Welcome to Your Cocoa Farm, {user?.firstName || 'Farmer'}!
+              </h1>
+              <p className="text-[#A67C52]/80 font-medium text-lg md:text-xl mt-2">Grow, harvest, and earn in your own virtual cocoa world.</p>
+            </div>
           </div>
-          <Button
-            onClick={() => navigate("/dashboard/network")}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg shadow-cyan-500/20 border border-cyan-700/50"
-          >
-            <Users className="mr-2 h-5 w-5" />
-            Network Matrix
-          </Button>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              className="relative bg-black/30 backdrop-blur-sm border border-cyan-500/20 rounded-lg overflow-hidden group"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
+          <div className="flex flex-col items-end gap-2">
+            <Button
+              onClick={() => navigate('/dashboard/network')}
+              className="bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 text-[#4e3b1f] font-bold shadow-lg border border-[#b6d7b0]/40 text-lg px-6 py-3 rounded-2xl"
             >
-              {/* Glowing border effect */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 animate-pulse" />
+              <Farmer className="mr-2 h-6 w-6" />
+              Invite others
+            </Button>
+          </div>
+        </div>
+        {/* Redesigned Farm Statistics Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {/* Credit Card/Vault Style Component for Farm Balance and Harvested Today */}
+          <motion.div 
+            className="md:col-span-2 bg-gradient-to-br from-[#fffbe6] to-[#e6f2ef] rounded-xl shadow-xl overflow-hidden relative"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="p-4 md:p-6 relative bg-gradient-to-br from-[#ffe066]/40 to-[#b6d7b0]/20 h-full">
+              {/* Farmhouse decoration in top right */}
+              <div className="absolute top-5 right-5 opacity-70">
+                <Farmhouse className="w-10 h-10 md:w-12 md:h-12" />
               </div>
               
-              <div className="relative p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", stat.iconBg)}>
-                    <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-cyan-300/80">{stat.title}</p>
-                    <p className="text-xl font-bold truncate" style={{ color: stat.color }}>
-                      {stat.value}
-                    </p>
+              {/* Left border accent */}
+              <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#b6d7b0] to-[#ffe066]" />
+              
+              {/* Card Content */}
+              <div className="flex flex-col h-full justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#8D6748] mb-1 ml-3 font-cursive">Farm Wallet</h3>
+                  <div className="flex items-center gap-2 ml-3">
+                    <Wallet className="w-5 h-5 text-[#C97C3A]" />
+                    <span className="text-xs text-[#A67C52]/70">User: {user?.firstName} {user?.lastName}</span>
                   </div>
                 </div>
                 
-                <div className="mt-3 flex items-center justify-between text-xs">
-                  <span className="text-cyan-300/60">{stat.secondaryLabel}</span>
-                  <div className="flex items-center gap-1">
-                    {stat.title === "Available Balance" && availableBalance > 0 && (
-                      <ArrowUp className="w-3 h-3 text-cyan-400" />
-                    )}
-                    <span style={{ color: stat.color }} className="font-medium">
-                      {stat.secondaryValue}
-                    </span>
+                <div className="my-6 md:my-8 ml-3 space-y-2">
+                  <div className="text-3xl md:text-4xl font-bold tracking-wide text-[#4e3b1f]">
+                    {currency.symbol} {formatAmount(availableBalance || 0)}
+                  </div>
+                  <p className="text-sm text-[#8D6748]/80">Available Balance</p>
+                </div>
+                
+                {/* Chip decoration */}
+               
+                {/* Bottom stats */}
+                <div className="flex justify-between items-end">
+                  <div className="ml-3">
+                    <p className="text-xs text-[#A67C52]/60">Harvested Today</p>
+                    <p className="text-lg font-semibold text-[#C97C3A]">{currency.symbol} {formatAmount(dailyReward || 0)}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Harvest className="w-12 h-12" />
+                    {/* <p className="text-xs font-mono text-[#A67C52]/80">05/25</p> */}
                   </div>
                 </div>
-
-                {/* Accent line */}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r" style={{
-                  backgroundImage: `linear-gradient(to right, ${stat.color}50, ${stat.color}, ${stat.color}50)`
-                }} />
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Network Display */}
+          <div className="grid grid-cols-1 gap-6">
+            {/* Farmers in Network Card */}
+            <motion.div
+              className="bg-gradient-to-br from-[#fffbe6] to-[#e6f2ef] rounded-xl shadow-lg overflow-hidden relative hover:shadow-xl transition-shadow"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="absolute left-0 top-0 h-full w-2 bg-[#ffe066]" />
+              <div className="p-4 flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#A67C52] mb-1">Farmers in Network</h3>
+                  <div className="text-2xl font-bold text-[#4e3b1f]">{dashboardStats?.networkSize || '0'}</div>
+                  <p className="text-xs text-[#8D6748]/70 mt-1">Active farmers in your network</p>
+                </div>
+                <div className="bg-[#ffe066]/30 p-3 rounded-full">
+                  <Farmer className="w-12 h-12" />
+                </div>
               </div>
             </motion.div>
-          ))}
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Active Quests */}
-          <motion.div
-            className="relative bg-black/40 backdrop-blur-sm border border-cyan-500/20 rounded-lg overflow-hidden group"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
-            <div className="p-6 relative">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center mb-4">
-                <Sword className="w-5 h-5 mr-2 text-cyan-400" />
-                My Quests
-              </h2>
-
-              <div className="space-y-3">
-                {quests.map((quest, index) => (
-                  <motion.div
-                    key={quest.title}
-                    className="relative bg-black/30 border border-cyan-500/20 rounded-lg p-4 hover:border-cyan-400/40 transition-colors cursor-pointer group/quest"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 + 0.3 }}
-                    onClick={() => setActiveQuest(activeQuest === quest.title ? null : quest.title)}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-0 group-hover/quest:opacity-100 transition-opacity"></div>
-                    
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30">
-                        <quest.icon className="w-5 h-5 text-cyan-400" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-cyan-100">{quest.title}</h3>
-                        <p className="text-sm text-cyan-300/60">{quest.description}</p>
-
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs text-cyan-400/80 mb-1.5">
-                            <span>My progress</span>
-                            <span>{quest.progress}%</span>
-                          </div>
-                          <div className="h-1.5 bg-cyan-950 rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full bg-gradient-to-r from-cyan-400 to-blue-400"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${quest.progress}%` }}
-                              transition={{ duration: 0.5, delay: 0.2 }}
-                            />
-                          </div>
-                        </div>
-
-                        <AnimatePresence>
-                          {activeQuest === quest.title && (
-                            <motion.div
-                              className="mt-3 flex justify-between items-center"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                            >
-                              <div className="flex items-center text-yellow-400 text-sm">
-                                <Trophy className="w-4 h-4 mr-1" />
-                                <span>{quest.reward}</span>
-                              </div>
-                              <button
-                                className="px-4 py-1.5 rounded text-sm text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 transition-colors shadow-lg shadow-cyan-500/20"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  if (quest.title === "Recruit 3 Team Members") {
-                                    navigate("/dashboard/network")
-                                  } else if (quest.title === "Upgrade Package") {
-                                    navigate("/dashboard/packages")
-                                  } else if (quest.title === "Complete Profile") {
-                                    navigate("/dashboard/profile")
-                                  }
-                                }}
-                              >
-                                start
-                              </button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
+            
+            {/* Barn Package Card */}
+            <motion.div
+              className="bg-gradient-to-br from-[#fffbe6] to-[#e6f2ef] rounded-xl shadow-lg overflow-hidden relative hover:shadow-xl transition-shadow"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="absolute left-0 top-0 h-full w-2 bg-[#C97C3A]" />
+              <div className="p-4 flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#C97C3A] mb-1">Cocoa Investment</h3>
+                  <div className="flex items-center gap-2">
+                    <div className={`text-lg font-bold ${userPackage ? 'text-green-600' : 'text-[#4e3b1f]'}`}>
+                      {userPackage ? 'ACTIVE' : 'NONE'}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Recent Activity Feed */}
-          <motion.div
-            className="relative bg-black/40 backdrop-blur-sm border border-purple-500/20 rounded-lg overflow-hidden"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
-            <div className="p-6 relative">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center mb-4">
-                <Activity className="w-5 h-5 mr-2 text-purple-400" />
-                My Activity
-              </h2>
-
-              <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-                {recentActivities?.map((activity, index) => {
-                  const ActivityIcon = getActivityIcon(activity.type)
-                  const colors = getActivityColor(activity.type)
-                  const emoji = getActivityEmoji(activity.type)
-                  const isNew = index === 0
-
-                  return (
-                    <motion.div
-                      key={index}
-                      className="relative bg-black/20 border border-purple-500/20 rounded-lg p-4 group/activity"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 + 0.4 }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover/activity:opacity-100 transition-opacity"></div>
-                      
-                      {isNew && (
-                        <span className="absolute right-4 top-4 flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-                        </span>
-                      )}
-                      
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center">
-                          <span className="text-xl" role="img" aria-label="activity icon">{emoji}</span>
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-medium text-purple-100 truncate">{activity.description}</p>
-                            {activity?.amount && (
-                              <p className="flex-shrink-0 text-purple-400">
-                                {currency.symbol} {formatAmount(activity?.amount)}
-                              </p>
-                            )}
-                          </div>
-                          
-                          <div className="mt-1 flex items-center justify-between text-xs">
-                            <p className="text-purple-300/60">{formatDate(activity?.date)}</p>
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                              <ActivityIcon className="h-3 w-3" />
-                              {activity.type}
-                            </span>
-                          </div>
-                        </div>
+                    {userPackage && (
+                      <div className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                        {userPackage.package?.name || 'Standard'}
                       </div>
-                    </motion.div>
-                  )
-                })}
+                    )}
+                  </div>
+                  <p className="text-xs text-[#8D6748]/70 mt-1">Current cocoa investment</p>
+                </div>
+                <div className="bg-[#C97C3A]/20 p-3 rounded-full">
+                  <Barn className="w-12 h-12" />
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
-
-        {/* Special Offer / Promo Image */}
+        {/* Activity Feed as Farm Notice Board with Expandable Cards on Mobile */}
+        <div className="max-w-4xl bg-[#fffbe6]/80 border-2 border-[#ffe066]/40 rounded-3xl shadow-2xl p-8 relative overflow-hidden mx-auto">
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <CocoaPod className="w-10 h-10" />
+            <span className="text-2xl min-w-full font-cursive text-[#C97C3A] drop-shadow">Farm Activities</span>
+          </div>
+          <div className="mt-10 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+            {recentActivities?.length === 0 && (
+              <div className="text-center text-[#8D6748]/70 py-10">No recent farm activity yet. Start growing your cocoa world!</div>
+            )}
+            {recentActivities?.map((activity, index) => {
+              const ActivityIcon = getActivityIcon(activity.type);
+              const colors = getActivityColor(activity.type);
+              const emoji = getActivityEmoji(activity.type);
+              const isNew = index === 0;
+              const isExpanded = expandedActivity === index;
+              return (
+                <motion.div
+                  key={index}
+                  className={
+                    "relative bg-[#e6f2ef]/80 border border-[#b6d7b0]/30 rounded-xl flex items-center gap-4 group hover:scale-[1.02] transition-transform cursor-pointer " +
+                    (isExpanded ? "z-20 shadow-2xl scale-105" : "")
+                  }
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 + 0.4 }}
+                  onClick={() => setExpandedActivity(isExpanded ? null : index)}
+                >
+                  <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gradient-to-br from-[#ffe066]/40 to-[#b6d7b0]/30 border-2 border-[#ffe066]/30 flex items-center justify-center text-2xl">
+                    {emoji}
+                  </div>
+                  <div className={
+                    "flex-1 min-w-0 transition-all duration-300 " +
+                    (isExpanded ? "py-6" : "py-3")
+                  }>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className={
+                        "font-medium text-[#8D6748] truncate text-lg transition-all duration-300 " +
+                        (isExpanded ? "whitespace-normal break-words text-base md:text-lg" : "")
+                      }>
+                        {activity.description}
+                      </p>
+                      {activity?.amount && (
+                        <p className="flex-shrink-0 text-[#C97C3A] font-bold text-lg">
+                          {currency.symbol} {formatAmount(activity?.amount)}
+                        </p>
+                      )}
+                    </div>
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-2"
+                        >
+                          <div className="text-sm text-[#A67C52] whitespace-pre-line">
+                            {activity.details || 'No additional details.'}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <div className="mt-1 flex items-center justify-between text-xs">
+                      <p className="text-[#A67C52]/60">{formatDate(activity?.date)}</p>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[#ffe066]/20 text-[#A67C52] border border-[#ffe066]/30">
+                        <ActivityIcon className="h-4 w-4" />
+                        {activity.type}
+                      </span>
+                    </div>
+                  </div>
+                  {isNew && (
+                    <span className="absolute right-4 top-4 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c97c3a] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#c97c3a]"></span>
+                    </span>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+        {/* Special Offer / Promo Image with Modal and Description */}
         <motion.div
-          className="bg-gradient-to-br from-indigo-900/70 to-purple-900/70 border border-indigo-700/50 rounded-xl overflow-hidden relative"
+          className="bg-gradient-to-br from-[#b6d7b0]/70 to-[#ffe066]/70 border border-[#b6d7b0]/40 rounded-xl overflow-hidden relative mt-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
-
-          <div className="p-6 relative">
-            <div className="flex items-center gap-2 mb-4">
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-              >
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
-                </span>
-              </motion.div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Special Offers
-              </h2>
+          <div className="p-6 relative flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-4">
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.7 }}
+                >
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c97c3a] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#c97c3a]"></span>
+                  </span>
+                </motion.div>
+                <h2 className="text-xl font-bold text-[#C97C3A] font-cursive">Special Farm Offer</h2>
+              </div>
+              <p className="text-[#8D6748] text-lg mb-4 whitespace-pre-line">{specialOfferDescription}</p>
             </div>
-
-            {promoImageUrl ? (
-              <motion.div
-                className="h-[300px] rounded-xl overflow-hidden group relative"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {promoImageUrl && (
+              <div className="flex-shrink-0 cursor-pointer" onClick={() => setShowOfferModal(true)}>
                 <motion.img
                   src={promoImageUrl}
                   alt="Promotional Offer"
-                  className="w-full h-full object-contain rounded-lg"
+                  className="w-100 h-56 object-cover rounded-lg shadow-xl border-2 border-[#ffe066]/40 hover:scale-105 transition-transform"
                   initial={{ scale: 1.1, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  onError={(e) => {
-                    e.target.onerror = null
-                    e.target.src = siteLogoUrl || "/placeholder-promo.jpg"
+                  onError={e => {
+                    const target = e.target;
+                    if (target instanceof HTMLImageElement) {
+                      target.onerror = null;
+                      target.src = '/placeholder-promo.jpg';
+                    }
                   }}
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <motion.div
-                    className="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <p className="text-white font-medium mb-2">🎉 Limited Time Offer!</p>
-                  </motion.div>
-                </div>
-              </motion.div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <motion.div
-                  className="bg-black/30 border border-indigo-700/30 rounded-lg p-4 cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-500 flex items-center justify-center">
-                      <Coins className="w-5 h-5 text-black" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white">Gold Rush</h3>
-                      <p className="text-xs text-gray-300">Refer 3 new members this week</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex justify-between items-center">
-                    <div className="text-xs text-yellow-500">Reward: 5,000 Gold</div>
-                    <button
-                      className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded"
-                      onClick={() => navigate("/dashboard/network")}
-                    >
-                      Accept
-                    </button>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  className="bg-black/30 border border-indigo-700/30 rounded-lg p-4 cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-black" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white">Elite Package</h3>
-                      <p className="text-xs text-gray-300">Upgrade to Premium tier</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex justify-between items-center">
-                    <div className="text-xs text-yellow-500">Reward: Legendary Item</div>
-                    <button
-                      className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded"
-                      onClick={() => navigate("/dashboard/packages")}
-                    >
-                      Accept
-                    </button>
-                  </div>
-                </motion.div>
+                <div className="text-xs text-center text-[#A67C52] mt-2">Tap to view</div>
               </div>
             )}
           </div>
+          {/* Modal for viewing offer image */}
+          {showOfferModal && promoImageUrl && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setShowOfferModal(false)}>
+              <div className="relative max-w-2xl w-full p-4" onClick={e => e.stopPropagation()}>
+                <img src={promoImageUrl} alt="Special Offer Full" className="w-full h-auto rounded-xl shadow-2xl border-4 border-[#ffe066]/60" />
+                <button
+                  className="absolute top-2 right-2 bg-[#ffe066] text-[#8d6748] rounded-full px-3 py-1 font-bold shadow hover:bg-[#b6d7b0] transition"
+                  onClick={() => setShowOfferModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
 
 // Wallet component for the icon

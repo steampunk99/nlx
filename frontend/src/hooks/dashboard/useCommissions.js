@@ -15,6 +15,13 @@ export function useCommissions(options = {}) {
     isAdmin = false 
   } = options;
 
+
+//get user total earnings from "/dashboard/earnings"
+
+
+//get user's daily reward from "/dashboard/reward"
+
+
   // Transform filters to match backend expectations
   const transformedType = type === 'All' ? null : type;
   const transformedStatus = status === 'All' ? null : status;

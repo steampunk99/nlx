@@ -157,9 +157,15 @@ const handleCopyToClipboard = () => {
                 id="phone"
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  // Automatically trim +256 if present
+                  if (value.startsWith('+256')) {
+                    value = '0' + value.slice(4);
+                  }
+                  setPhone(value);
+                }}
                 placeholder="Enter your mobile money number"
-                
                 className="w-full focus:outline-none focus:ring-indigo-500 "
                 required
                 disabled={isSubmitting}

@@ -54,7 +54,7 @@ router.post('/status/callback/usdt', paymentController.processUsdtCallback);
 router.get('/status', auth, paymentController.checkPaymentStatus);
 
 
-// MANUAL PAYMENT
+// MANUAL PAYMENT - NOT UG
 router.post('/manual-payment', auth, [
     body('amount').isNumeric().withMessage('Amount is required and must be a number'),
     body('packageId').notEmpty().withMessage('Package ID is required'),

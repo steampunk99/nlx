@@ -535,7 +535,7 @@ class PaymentController {
         await notificationService.create({
             userId: payment.node.userId,
             title: 'Package Purchase Successful',
-            message: `Your payment of ${formatCurrency(payment.amount)} for ${payment.package.name} package has been confirmed.`,
+            message: `Your payment of (payment.amount)} for ${payment.package.name} package has been confirmed.`,
             type: 'PACKAGE_PURCHASE'
         }, tx);
 

@@ -300,7 +300,7 @@ class NodePackageService {
                 nodeId: payment.nodeId,
                 packageId: payment.packageId,
                 status: 'ACTIVE',
-                expiresAt: addDays(new Date(), 30),
+                expiresAt: addDays(new Date(), 366),
                 activatedAt: new Date(),
             }, tx),
             tx.node.update({

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 import { UserNotificationBell } from "@/components/UserNotificationBell"
+import { Button } from "@/components/ui/button"
 
 // Custom utility function for conditionally joining classes
 const classNames = (...classes) => classes.filter(Boolean).join(' ')
@@ -61,15 +62,16 @@ export function DashboardLayout() {
 
   // Logout handling
   const handleLogout = async () => {
-    setNavAnimation(true)
+    setNavAnimation(true);
     setTimeout(async () => {
       try {
-        await logout()   
+        await logout();
+     
       } catch (error) {
-        toast.error(error.message)
+        toast.error(error.message);
       }
-      setNavAnimation(false)
-    }, 800)
+      setNavAnimation(false);
+    }, 800);
   }
 
   // Nav animation on route change
@@ -83,55 +85,75 @@ export function DashboardLayout() {
     }, 500)
   }
 
-  // Navigation menu items
+  // --- Farm/Cocoa SVG Icons ---
+  const FarmhouseIcon = (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M3 12L12 4l9 8" stroke="#4e3b1f" strokeWidth="2"/><rect x="6" y="12" width="12" height="8" rx="2" fill="#ffe066" stroke="#b6d7b0" strokeWidth="2"/><rect x="10" y="15" width="4" height="5" rx="1" fill="#b6d7b0"/></svg>
+  );
+  const FarmersIcon = (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="8" cy="8" r="4" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><circle cx="16" cy="8" r="4" fill="#ffe066" stroke="#4e3b1f" strokeWidth="2"/><rect x="2" y="16" width="20" height="6" rx="3" fill="#e6f2ef" stroke="#b6d7b0" strokeWidth="2"/></svg>
+  );
+  const HarvestIcon = (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><ellipse cx="12" cy="12" rx="8" ry="5" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><ellipse cx="12" cy="12" rx="4" ry="2.5" fill="#ffe066" stroke="#4e3b1f" strokeWidth="1.5"/></svg>
+  );
+  const BarnIcon = (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><rect x="4" y="10" width="16" height="10" rx="2" fill="#ffe066" stroke="#4e3b1f" strokeWidth="2"/><rect x="9" y="15" width="6" height="5" rx="1" fill="#b6d7b0"/><path d="M2 12L12 4l10 8" stroke="#b6d7b0" strokeWidth="2"/></svg>
+  );
+  const SettingsIcon = (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="12" cy="12" r="3" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="#4e3b1f" strokeWidth="1.5"/></svg>
+  );
+  const LogoutIcon = (props) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M16 17l5-5-5-5M21 12H9" stroke="#c97c3a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="3" y="4" width="8" height="16" rx="2" fill="#e6f2ef" stroke="#4e3b1f" strokeWidth="2"/></svg>
+  );
+
+  // Navigation menu items (renamed, new icons)
   const menuItems = [
-    { 
-      to: '/dashboard', 
-      icon: LayoutDashboard, 
-      label: 'Home',
-      color: 'from-blue-500 to-cyan-400',
-      bgColor: 'from-blue-600/20 to-cyan-500/20',
-      hoverColor: 'from-blue-600 to-cyan-500'
+    {
+      to: '/dashboard',
+      icon: FarmhouseIcon,
+      label: 'Farmhouse',
+      color: 'from-green-600 to-lime-400',
+      bgColor: 'from-green-700/20 to-lime-400/20',
+      hoverColor: 'from-green-700 to-lime-400',
     },
-    { 
-      to: '/dashboard/network', 
-      icon: Network, 
-      label: 'Network',
-      color: 'from-purple-500 to-indigo-400',
-      bgColor: 'from-purple-600/20 to-indigo-500/20',
-      hoverColor: 'from-purple-600 to-indigo-500'
+    {
+      to: '/dashboard/network',
+      icon: FarmersIcon,
+      label: 'Farmers',
+      color: 'from-amber-600 to-yellow-400',
+      bgColor: 'from-amber-700/20 to-yellow-400/20',
+      hoverColor: 'from-amber-700 to-yellow-400',
     },
-    { 
-      to: '/dashboard/commissions', 
-      icon: DollarSign, 
+    {
+      to: '/dashboard/commissions',
+      icon: HarvestIcon,
       label: 'Commissions',
-      color: 'from-green-500 to-emerald-400',
-      bgColor: 'from-green-600/20 to-emerald-500/20',
-      hoverColor: 'from-green-600 to-emerald-500'
+      color: 'from-orange-600 to-yellow-400',
+      bgColor: 'from-orange-700/20 to-yellow-400/20',
+      hoverColor: 'from-orange-700 to-yellow-400',
     },
-    { 
-      to: '/dashboard/packages', 
-      icon: Package, 
-      label: 'Packages',
-      color: 'from-amber-500 to-yellow-400',
-      bgColor: 'from-amber-600/20 to-yellow-500/20',
-      hoverColor: 'from-amber-600 to-yellow-500'
+    // {
+    //   to: '/dashboard/packages',
+    //   icon: BarnIcon,
+    //   label: 'Upgrade',
+    //   color: 'from-yellow-600 to-amber-400',
+    //   bgColor: 'from-yellow-700/20 to-amber-400/20',
+    //   hoverColor: 'from-yellow-700 to-amber-400',
+    // },
+    {
+      to: '/dashboard/withdrawals',
+      icon: HarvestIcon,
+      label: 'Withdraw',
+      color: 'from-lime-600 to-green-400',
+      bgColor: 'from-lime-700/20 to-green-400/20',
+      hoverColor: 'from-lime-700 to-green-400',
     },
-    { 
-      to: '/dashboard/withdrawals', 
-      icon: Wallet, 
-      label: 'Withdrawals',
-      color: 'from-red-500 to-rose-400',
-      bgColor: 'from-red-600/20 to-rose-500/20',
-      hoverColor: 'from-red-600 to-rose-500'
-    },
-    { 
-      to: '/dashboard/profile', 
-      icon: Settings, 
+    {
+      to: '/dashboard/profile',
+      icon: SettingsIcon,
       label: 'Settings',
       color: 'from-gray-500 to-slate-400',
       bgColor: 'from-gray-600/20 to-slate-500/20',
-      hoverColor: 'from-gray-600 to-slate-500'
+      hoverColor: 'from-gray-600 to-slate-500',
     },
   ]
 
@@ -437,131 +459,140 @@ export function DashboardLayout() {
     </button>
   )
 
+  // --- Redesigned Responsive Cocoa-Themed Dashboard Layout with Enhanced Top Bar and Creative Mobile Nav ---
   return (
-    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Desktop Navigation */}
-      {!isMobile && (
-        <aside 
-          ref={navRef}
-          className={classNames(
-            "fixed inset-y-0 left-0 z-30 bg-gray-950/70 backdrop-blur-xl",
-            "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-            "border-r border-white/10",
-            isCollapsed ? "w-20" : "w-72"
-          )}
-        >
-          <NavigationContent />
-        </aside>
-      )}
-
-      {/* Mobile Navigation - Slide up panel */}
-      {isMobile && (
-        <>
-          <MobileNavTrigger />
-          
-          <div 
-            className={classNames(
-              "fixed inset-0 bg-black/60 z-40 transition-opacity duration-500",
-              isMobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            )}
-            onClick={() => setIsMobileOpen(false)}
-          />
-          
-          <aside 
-            className={classNames(
-              "fixed bottom-0 left-0 right-0 z-50 bg-gray-950/95 backdrop-blur-xl",
-              "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] border-t border-white/10 rounded-t-2xl",
-              "flex flex-col",
-              isMobileOpen ? "h-[85vh]" : "h-0"
-            )}
-          >
-            {isMobileOpen && <NavigationContent isMobileView />}
-          </aside>
-        </>
-      )}
-
-      {/* Main Content */}
-      <main 
+    <div className="min-h-screen bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#2c2c2c] relative overflow-x-hidden font-sans">
+      {/* Responsive Sidebar Navigation (hidden on mobile) */}
+      <aside
         className={classNames(
-          "min-h-screen transition-all duration-500",
-          !isMobile && (isCollapsed ? "pl-20" : "pl-72")
+          "hidden md:flex fixed top-0 left-0 z-30 h-full flex-col items-center py-8 px-2 bg-gradient-to-b from-[#e6f2ef] to-[#b6d7b0] shadow-xl border-r border-[#b6d7b0]/30 transition-all duration-500",
+          "w-20 lg:w-28 xl:w-40"
         )}
       >
-        <div className="bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 min-h-screen">
-          {/* Top Bar */}
-          <header className="h-16 border-b border-white/10 flex items-center justify-between px-6">
-           
-            
-            <div className="flex items-center space-x-4">
-              <button className="relative h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-white hover:bg-white/10 transition-colors">
-                <Bell size={18} />
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 border border-gray-900 text-xs flex items-center justify-center">
-                  3
-                </span>
-              </button>
+        {/* Cocoa Pod Logo */}
+        <Link to="/dashboard" className="mb-8 flex flex-col items-center group">
+          <img src="https://static.vecteezy.com/system/resources/previews/042/125/124/non_2x/cacao-beans-with-leaves-isolated-on-transparent-background-with-clipping-path-3d-render-free-png.png" alt="Cocoa Pod" className="w-12 h-12 lg:w-16 lg:h-16 rounded-full border-4 border-[#fffbe6] shadow-lg group-hover:scale-110 transition-transform duration-200" />
+          <span className="mt-2 text-base lg:text-lg font-cursive text-[#4e3b1f] tracking-tight" style={{fontFamily:'Pacifico, cursive'}}>My Farm</span>
+        </Link>
+        {/* Navigation - farm plot style */}
+        <nav className="flex-1 flex flex-col gap-4 items-center w-full mt-4">
+          {menuItems.map((item, idx) => (
+            <button
+              key={item.to}
+              onClick={() => handleNavClick(item.to)}
+              className={classNames(
+                "group flex flex-col items-center w-full py-2 rounded-2xl transition-all duration-300 hover:bg-[#fffbe6]/60 hover:shadow-lg",
+                location.pathname === item.to ? "bg-[#fffbe6] shadow-lg" : "bg-transparent"
+              )}
+            >
+              <span className="flex items-center justify-center w-9 h-9 lg:w-11 lg:h-11 rounded-full bg-gradient-to-br from-[#b6d7b0] to-[#e6f2ef] mb-1 group-hover:scale-110 transition-transform">
+                <item.icon className={classNames("h-5 w-5 lg:h-6 lg:w-6", location.pathname === item.to ? "text-[#4e3b1f]" : "text-[#2c5f63]")} />
+              </span>
+              <span className="text-[10px] lg:text-xs font-semibold text-[#4e3b1f] group-hover:text-[#2c5f63] transition-colors text-center">
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
+        {/* Plant Cocoa CTA */}
+        <Button
+          onClick={() => handleLogout()}
+          className="mt-8 w-11/12 bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] text-[#4e3b1f] font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform text-xs lg:text-base py-2 lg:py-3"
+        >
+          <span className="flex items-center gap-2 justify-center">
+            <span className="text-lg">🌱</span> Logout
+          </span>
+        </Button>
+      </aside>
+
+      {/* Creative Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden justify-between items-end px-0 pb-2 pt-0 bg-gradient-to-t from-[#ffe066]/90 via-[#b6d7b0]/90 to-[#e6f2ef]/90 shadow-2xl rounded-t-3xl border-t-2 border-[#ffe066]/40">
+        {/* Floating cocoa pod centerpiece */}
+        {/* <div className="absolute left-1/2 -top-8 -translate-x-1/2 z-10 flex flex-col items-center">
+          <button
+            onClick={() => handleNavClick('/dashboard/packages')}
+            className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] shadow-lg rounded-full w-16 h-16 flex items-center justify-center border-4 border-white hover:scale-110 transition-transform"
+            style={{ boxShadow: '0 4px 24px 0 #ffe06655' }}
+          >
+            <img src="https://static.vecteezy.com/system/resources/previews/042/125/124/non_2x/cacao-beans-with-leaves-isolated-on-transparent-background-with-clipping-path-3d-render-free-png.png" alt="Plant Cocoa" className="w-10 h-10" />
+          </button>
+        </div> */}
+        {/* Nav items, spaced around centerpiece (omit 'Barn' on mobile) */}
+        <div className="flex flex-1 justify-evenly items-end gap-1">
+          {menuItems.slice(0, 3).map((item, idx) => (
+            <button
+              key={item.to}
+              onClick={() => handleNavClick(item.to)}
+              className={classNames(
+                "flex flex-col items-center px-2 py-2 rounded-xl transition-all duration-200",
+                location.pathname === item.to ? "bg-[#fffbe6]/80 shadow" : "bg-transparent"
+              )}
+            >
+              <item.icon className={classNames("h-6 w-6", location.pathname === item.to ? "text-[#4e3b1f]" : "text-[#2c5f63]")} />
+              <span className="text-[11px] font-semibold mt-1 text-[#4e3b1f]">{item.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-1 justify-evenly items-end gap-1">
+          {/* Only show menuItems 4 and 5 (skip 'Barn' which is index 3) */}
+          {menuItems.slice(4).map((item, idx) => (
+            <button
+              key={item.to}
+              onClick={() => handleNavClick(item.to)}
+              className={classNames(
+                "flex flex-col items-center px-2 py-2 rounded-xl transition-all duration-200",
+                location.pathname === item.to ? "bg-[#fffbe6]/80 shadow" : "bg-transparent"
+              )}
+            >
+              <item.icon className={classNames("h-6 w-6", location.pathname === item.to ? "text-[#4e3b1f]" : "text-[#2c5f63]")} />
+              <span className="text-[11px] font-semibold mt-1 text-[#4e3b1f]">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Main Content Area with farm illustration */}
+      <main className={classNames(
+        "min-h-screen transition-all duration-500 md:pl-20 lg:pl-28 xl:pl-40 pb-24 md:pb-0",
+      )}>
+        {/* Enhanced Top Bar - farm sky, more visual, more info */}
+        <header className="h-20 z-100 flex items-center justify-between px-4 md:px-8 bg-gradient-to-r from-[#ffe066]/60 via-[#b6d7b0]/60 to-[#e6f2ef]/60 border-b-2 border-[#ffe066]/30 shadow-md relative rounded-b-3xl">
+          <div className="flex items-center gap-3 md:gap-6">
+            {/* <img src="/assets/cocoa-default.jpg" alt="Cocoa Pod" className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-[#fffbe6] shadow" /> */}
+            <div className="flex flex-col">
+              <span className="font-cursive text-lg md:text-2xl text-[#4e3b1f] leading-tight" style={{fontFamily:'Pacifico, cursive'}}>Welcome, {user?.firstName}</span>
+              {/* <span className="text-xs md:text-sm text-[#2c5f63]/80 font-medium">{siteName} Cocoa Dashboard</span> */}
             </div>
-          </header>
-          
-          {/* Main Content Area */}
-          <div className="p-6">
+          </div>
+          <div className="flex items-center gap-2 md:gap-4">
+            <UserNotificationBell />
+            <button onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-red-100/60 rounded-xl px-3 md:px-4 text-xs md:text-base">
+              <LogOut className="h-5 w-5 mr-1" /> Logout
+            </button>
+          </div>
+        </header>
+
+        {/* Farm field illustration background */}
+        <div className="relative min-h-[calc(100vh-5rem)]">
+          <svg className="absolute inset-0 w-full h-full object-cover pointer-events-none" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <ellipse cx="720" cy="320" rx="720" ry="80" fill="#b6d7b0" />
+            <ellipse cx="200" cy="300" rx="180" ry="60" fill="#e6f2ef" />
+            <ellipse cx="1240" cy="310" rx="200" ry="70" fill="#ffe066" />
+            {/* Cocoa trees */}
+            {[320, 1120, 600, 900].map((x, i) => (
+              <g key={x}>
+                <rect x={x} y={220} width="16" height="60" rx="7" fill="#8d6748"/>
+                <ellipse cx={x+8} cy={220} rx="28" ry="18" fill="#4e7c3a"/>
+                <ellipse cx={x+8} cy={220} rx="14" ry="9" fill="#7bb661"/>
+                <ellipse cx={x+18} cy={240} rx="5" ry="10" fill="#c97c3a"/>
+              </g>
+            ))}
+          </svg>
+          <div className="relative z-10 p-3 md:p-6 lg:p-10">
             <Outlet />
           </div>
-          
-          <DashboardFooter />
         </div>
       </main>
-      
-      {/* Background animated elements */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        {/* Gradient circles */}
-        <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl"></div>
-        <div className="absolute top-1/4 -left-20 h-60 w-60 rounded-full bg-indigo-600/10 blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-blue-600/10 blur-3xl"></div>
-        
-        {/* Grid overlay */}
-        <div 
-          className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"
-        ></div>
-      </div>
-      
-      {/* Global CSS */}
-      <style>{`
-        @keyframes float {
-          0% {
-            transform: translateY(0) translateX(0);
-          }
-          50% {
-            transform: translateY(-10px) translateX(5px);
-          }
-          100% {
-            transform: translateY(0) translateX(0);
-          }
-        }
-        
-        @keyframes pulse {
-          0% {
-            opacity: 0.2;
-          }
-          100% {
-            opacity: 0.8;
-          }
-        }
-        
-        @keyframes animate-in {
-          from {
-            opacity: 0;
-            transform: scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        
-        .animate-in {
-          animation: animate-in 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   )
 }

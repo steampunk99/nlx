@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserPlus, ArrowUpRight, Copy, Check, Share2, Shield, Trophy, Zap, Coins, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +19,35 @@ import { useNetworkStats, useNetworkLevels, useRecentReferrals, useGenealogyTree
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
 import toast from "react-hot-toast";
+
+// --- Inline SVGs for farm/cocoa theme ---
+const CocoaPod = (props) => (
+  <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="16" cy="16" rx="12" ry="16" fill="#8B5C2A" stroke="#5C3310" strokeWidth="2" />
+    <ellipse cx="16" cy="16" rx="8" ry="12" fill="#D2A86A" stroke="#8B5C2A" strokeWidth="1.5" />
+    <ellipse cx="16" cy="16" rx="4" ry="8" fill="#F7E1B5" stroke="#D2A86A" strokeWidth="1" />
+  </svg>
+);
+const FarmUser = (props) => (
+  <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="16" cy="12" r="6" fill="#A7F3D0" stroke="#059669" strokeWidth="2" />
+    <ellipse cx="16" cy="24" rx="10" ry="6" fill="#FBBF24" stroke="#B45309" strokeWidth="2" />
+  </svg>
+);
+const FarmTree = (props) => (
+  <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="16" cy="24" rx="10" ry="6" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2" />
+    <rect x="14" y="12" width="4" height="12" rx="2" fill="#C97C3A" />
+    <ellipse cx="16" cy="12" rx="8" ry="8" fill="#A7F3D0" stroke="#059669" strokeWidth="2" />
+  </svg>
+);
+const FarmCoin = (props) => (
+  <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="16" cy="16" r="14" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
+    <ellipse cx="16" cy="16" rx="8" ry="8" fill="#FFF8DC" stroke="#FFD700" strokeWidth="1.5" />
+    <path d="M12 16h8M16 12v8" stroke="#B8860B" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
 
 export default function NetworkPage() {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
@@ -119,119 +147,122 @@ export default function NetworkPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-8 animate-pulse p-6">
-        <div className="h-12 w-3/4 bg-gray-800 rounded-lg"></div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="relative min-h-screen p-6 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] animate-pulse">
+        <div className="h-12 w-3/4 bg-[#e6f2ef] rounded-lg mb-6"></div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-40 bg-gray-800 rounded-xl"></div>
+            <div key={i} className="h-40 bg-[#e6f2ef] rounded-xl"></div>
           ))}
         </div>
-        <div className="h-[400px] bg-gray-800 rounded-xl"></div>
+        <div className="h-[400px] bg-[#e6f2ef] rounded-xl mb-6"></div>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="h-[400px] bg-gray-800 rounded-xl"></div>
-          <div className="h-[400px] bg-gray-800 rounded-xl"></div>
+          <div className="h-[400px] bg-[#e6f2ef] rounded-xl"></div>
+          <div className="h-[400px] bg-[#e6f2ef] rounded-xl"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="space-y-8 p-6 bg-gray-900 min-h-screen">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#4e3b1f] overflow-hidden font-sans">
+      {/* Immersive Cocoa Farm World Background */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <svg className="absolute left-0 top-0 w-40 h-40 opacity-10" viewBox="0 0 32 32">
+          <ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A" />
+          <ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748" />
+          <ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066" />
+          <path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5" />
+          <path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5" />
+        </svg>
+        <svg className="absolute right-0 bottom-0 w-48 h-48 opacity-10" viewBox="0 0 32 32">
+          <rect x="6" y="14" width="20" height="12" rx="2" fill="#FFE066" stroke="#C97C3A" strokeWidth="2" />
+          <rect x="13" y="20" width="6" height="6" rx="1" fill="#B6D7B0" />
+          <path d="M4 16L16 6l12 10" stroke="#B6D7B0" strokeWidth="2" />
+        </svg>
+        <svg className="absolute left-1/2 -translate-x-1/2 bottom-10 w-32 h-32 opacity-5" viewBox="0 0 32 32">
+          <ellipse cx="16" cy="20" rx="10" ry="5" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2" />
+          <ellipse cx="16" cy="20" rx="5" ry="2.5" fill="#FFE066" stroke="#8D6748" strokeWidth="1.5" />
+          <rect x="14" y="8" width="4" height="10" rx="2" fill="#C97C3A" />
+        </svg>
+        {/* Animated clouds */}
+        <svg className="absolute top-10 left-1/4 w-32 h-12 animate-cloud-move" viewBox="0 0 100 40">
+          <ellipse cx="30" cy="20" rx="30" ry="12" fill="#fffbe6" />
+          <ellipse cx="60" cy="20" rx="20" ry="10" fill="#e6f2ef" />
+        </svg>
+        <svg className="absolute top-20 right-1/4 w-40 h-16 animate-cloud-move2" viewBox="0 0 120 50">
+          <ellipse cx="50" cy="25" rx="40" ry="15" fill="#fffbe6" />
+          <ellipse cx="90" cy="25" rx="25" ry="12" fill="#e6f2ef" />
+        </svg>
+      </div>
+      <motion.div className="relative z-10 space-y-8" initial="hidden" animate="visible">
+        {/* Header / Hero Section */}
+        <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Network Quest</h1>
-            <p className="text-gray-400">Build and expand your alliance of adventurers</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-[#8B5C2A] font-cursive flex items-center gap-2">
+              <FarmTree className="w-8 h-8" />
+              Cocoa Farm Network
+            </h1>
+            <p className="text-[#A67C52] mt-1 max-w-xl">
+              Grow your cocoa farm by recruiting new farmers and nurturing your network. Each new member is a seedling—help them thrive and watch your farm flourish!
+            </p>
           </div>
-          <Button
+          <button
             onClick={() => setIsReferralModalOpen(true)}
-            size="lg"
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
+            className="bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 text-[#4e3b1f] font-bold rounded-xl px-6 py-3 shadow-lg border-2 border-[#b6d7b0]/40 flex items-center gap-2 transition-transform hover:scale-105"
           >
-            <UserPlus className="mr-2 h-5 w-5" />
-            Recruit New Allies
-          </Button>
-        </div>
-
-        {/* Network Stats */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <FarmUser className="w-6 h-6" />
+            Recruit a Farmer
+          </button>
+        </section>
+        {/* Network Stats Section */}
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {networkStats.map((stat, index) => (
             <motion.div
               key={index}
-              className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300"
+              className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-2xl overflow-visible shadow-2xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.04 }}
             >
-              <div className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center", stat.bgColor)}>
-                    {stat.icon === "UserPlus" ? (
-                      <UserPlus className={`h-6 w-6 ${stat.iconColor}`} />
-                    ) : (
-                      <Users className={`h-6 w-6 ${stat.iconColor}`} />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">{stat.title}</p>
-                    <p className="text-2xl font-bold text-white">{stat.value}</p>
-                    <div className="flex items-center mt-1">
-                      <ArrowUpRight className={`w-3 h-3 mr-1 ${stat.color}`} />
-                      <span className={`text-xs ${stat.color}`}>{stat.trend}</span>
-                    </div>
-                  </div>
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+                <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                  {stat.icon === "UserPlus" ? <FarmUser className="w-8 h-8" /> : <CocoaPod className="w-8 h-8" />}
                 </div>
               </div>
-              <div
-                className="h-1 w-full bg-gradient-to-r"
-                style={{
-                  backgroundImage: `linear-gradient(to right, ${stat.color.replace("text-", "rgb(")}, ${stat.color.replace("text-", "rgba(").replace(")", ", 0.5)")})`,
-                }}
-              />
+              <div className="text-center">
+                <p className="text-base font-cursive text-[#A67C52]">{stat.title}</p>
+                <p className="text-2xl font-extrabold text-[#4e3b1f] mt-1">{stat.value}</p>
+              </div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#8d6748] rounded-b-xl shadow-inner border-t-4 border-[#b6d7b0]/30" />
             </motion.div>
           ))}
-        </div>
-
+        </section>
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-700 mb-6">
+        <section className="flex border-b border-[#b6d7b0]/40 mb-6">
           <button
             className={cn(
               "px-4 py-2 font-medium text-sm transition-colors",
               activeTab === "3d-tree"
-                ? "text-indigo-400 border-b-2 border-indigo-400"
-                : "text-gray-400 hover:text-gray-300",
+                ? "text-[#8B5C2A] border-b-2 border-[#8B5C2A]"
+                : "text-[#A67C52] hover:text-[#8B5C2A]",
             )}
             onClick={() => setActiveTab("3d-tree")}
           >
-            3D Network Map
-          </button>
-      
-          <button
-            className={cn(
-              "px-4 py-2 font-medium text-sm transition-colors",
-              activeTab === "levels"
-                ? "text-indigo-400 border-b-2 border-indigo-400"
-                : "text-gray-400 hover:text-gray-300",
-            )}
-            onClick={() => setActiveTab("levels")}
-          >
-            Network Levels
+            Farm Network Map
           </button>
           <button
             className={cn(
               "px-4 py-2 font-medium text-sm transition-colors",
               activeTab === "referrals"
-                ? "text-indigo-400 border-b-2 border-indigo-400"
-                : "text-gray-400 hover:text-gray-300",
+                ? "text-[#8B5C2A] border-b-2 border-[#8B5C2A]"
+                : "text-[#A67C52] hover:text-[#8B5C2A]",
             )}
             onClick={() => setActiveTab("referrals")}
           >
-            Recent Recruits
+            Recent Referrals
           </button>
-        </div>
-
+        </section>
         {/* Tab Content */}
         <AnimatePresence mode="wait">
           {activeTab === "3d-tree" && (
@@ -242,114 +273,30 @@ export default function NetworkPage() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* 3D Network Visualization */}
-              <Card className="overflow-hidden border-none bg-gradient-to-br from-gray-900 to-gray-800">
-                <CardHeader className="border-b border-gray-700">
-                  <CardTitle className="text-xl text-white">3D Alliance Map</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Interactive 3D view of your network structure
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
+              {/* Farm Network Visualization */}
+              <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+                  <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                    <FarmTree className="w-8 h-8" />
+                  </div>
+                </div>
+                <div className="mt-8">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
+                    Network
+                  </h2>
                   <div className="h-[700px] w-full">
                     {genealogyTree ? (
                       <NetworkTree networkData={genealogyTree} />
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <p className="text-gray-400">No network data available</p>
+                        <p className="text-[#A67C52]">No network data available</p>
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           )}
-
-          {activeTab === "tree" && (
-            <motion.div
-              key="tree"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* 2D Network Visualization - Using same NetworkTree component */}
-          
-            </motion.div>
-          )}
-
-          {activeTab === "levels" && (
-            <motion.div
-              key="levels"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Network Levels */}
-              <Card className="bg-gray-800/60 border border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Network Levels</CardTitle>
-                  <CardDescription className="text-gray-400">Breakdown of your network by levels</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {networkLevels?.length > 0 ? (
-                    <div className="relative overflow-x-auto rounded-lg border border-gray-700">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-700 bg-gray-900/50">
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
-                              Level
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
-                              Members
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
-                              Active
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
-                              Progress
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-700">
-                          {networkLevels.map((level) => (
-                            <tr key={level.level} className="bg-gray-800 hover:bg-gray-700 transition-colors">
-                              <td className="px-6 py-4 font-medium text-white">
-                                <div className="flex items-center">
-                                  <Shield className="w-4 h-4 mr-2 text-indigo-400" />
-                                  Level {level.level}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 text-gray-300">{level.members}</td>
-                              <td className="px-6 py-4 text-gray-300">{level.active}</td>
-                              <td className="px-6 py-4">
-                                <div className="w-full bg-gray-700 rounded-full h-2.5">
-                                  <div
-                                    className="bg-indigo-600 h-2.5 rounded-full"
-                                    style={{ width: `${(level.active / level.members) * 100}%` }}
-                                  ></div>
-                                </div>
-                                <span className="text-xs text-gray-400 mt-1">
-                                  {Math.round((level.active / level.members) * 100)}% active
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="flex h-40 items-center justify-center">
-                      <p className="text-gray-400">No network levels data available</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-            </motion.div>
-          )}
-
           {activeTab === "referrals" && (
             <motion.div
               key="referrals"
@@ -359,12 +306,16 @@ export default function NetworkPage() {
               transition={{ duration: 0.3 }}
             >
               {/* Recent Referrals */}
-              <Card className="bg-gray-800/60 border border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Recent Recruits</CardTitle>
-                  <CardDescription className="text-gray-400">Latest members who joined your network</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+                  <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
+                    <FarmUser className="w-8 h-8" />
+                  </div>
+                </div>
+                <div className="mt-8">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
+                    Recent Referrals
+                  </h2>
                   {recentReferrals?.length > 0 ? (
                     <div className="space-y-6">
                       {recentReferrals.map((referral, index) => (
@@ -373,25 +324,25 @@ export default function NetworkPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="flex items-center justify-between border-b border-gray-700 last:border-0 pb-4 last:pb-0"
+                          className="flex items-center justify-between border-b border-[#b6d7b0]/30 last:border-0 pb-4 last:pb-0"
                         >
                           <div className="flex items-center space-x-4">
-                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-900/50 to-purple-900/50 ring-1 ring-white/10 flex items-center justify-center">
-                              <Users className="h-6 w-6 text-indigo-400" />
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#b6d7b0]/50 to-[#ffe066]/50 ring-1 ring-[#b6d7b0]/20 flex items-center justify-center">
+                              <FarmUser className="h-6 w-6" />
                             </div>
                             <div>
-                              <p className="font-medium text-white">{referral.name}</p>
-                              <p className="text-sm text-gray-400">{referral.date}</p>
+                              <p className="font-medium text-[#4e3b1f]">{referral.name}</p>
+                              <p className="text-sm text-[#A67C52]">{referral.date}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-indigo-400">{referral.package}</p>
+                            <p className="font-medium text-[#C97C3A]">{referral.package}</p>
                             <span
                               className={cn(
                                 "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
                                 referral.status === "active"
-                                  ? "bg-green-900/30 text-green-400"
-                                  : "bg-yellow-900/30 text-yellow-400",
+                                  ? "bg-green-900/30 text-green-700"
+                                  : "bg-yellow-900/30 text-yellow-700",
                               )}
                             >
                               {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
@@ -402,70 +353,68 @@ export default function NetworkPage() {
                     </div>
                   ) : (
                     <div className="flex h-40 items-center justify-center">
-                      <p className="text-gray-400">No recent referrals</p>
+                      <p className="text-[#A67C52]">No recent referrals</p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
+      </motion.div>
       {/* Referral Link Dialog */}
       <Dialog open={isReferralModalOpen} onOpenChange={setIsReferralModalOpen}>
-        <DialogContent className="sm:max-w-md bg-gray-800 border border-gray-700 text-white">
+        <DialogContent className="sm:max-w-md bg-[#fffbe6] border border-[#b6d7b0] text-[#4e3b1f]">
           <DialogHeader>
-            <DialogTitle className="text-white">Recruit New Allies</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Share your referral link to grow your network and earn rewards
+            <DialogTitle className="text-[#8B5C2A]">Recruit a Farmer</DialogTitle>
+            <DialogDescription className="text-[#A67C52]">
+              Share your farm's referral link to grow your cocoa network and earn rewards
             </DialogDescription>
           </DialogHeader>
-
           <div className="flex flex-col gap-4">
             <div className="flex items-center space-x-2">
               <Input
                 readOnly
                 value={referralLinkData?.referralLink || "Your referral link"}
-                className="font-mono text-sm bg-gray-900 border-gray-700 text-gray-300"
+                className="font-mono text-sm bg-[#e6f2ef] border-[#b6d7b0] text-[#4e3b1f]"
               />
-              <Button
-                size="icon"
-                variant="outline"
+              <button
+                type="button"
                 onClick={handleCopyLink}
-                className="shrink-0 border-gray-700 bg-gray-900 hover:bg-gray-800 text-gray-300"
+                className="shrink-0 border-2 border-[#b6d7b0] bg-[#fffbe6] hover:bg-[#e6f2ef] text-[#4e3b1f] rounded-lg p-2 transition"
               >
-                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                {copied ? <span className="text-green-600 font-bold">✓</span> : <span className="font-bold">Copy</span>}
                 <span className="sr-only">Copy link</span>
-              </Button>
+              </button>
             </div>
-
-            <div className="bg-indigo-900/30 border border-indigo-700/50 rounded-lg p-4 text-sm">
-              <p className="text-indigo-300 flex items-center">
-                <Zap className="h-4 w-4 mr-2 text-indigo-400" />
+            <div className="bg-[#b6d7b0]/30 border border-[#b6d7b0]/50 rounded-lg p-4 text-sm">
+              <p className="text-[#059669] flex items-center gap-2">
+                <FarmCoin className="h-4 w-4" />
                 Recruitment Bonus
               </p>
-              <p className="mt-1 text-gray-300">
-                For each new ally that joins with your link, you'll earn 40% commission on their package purchase.
+              <p className="mt-1 text-[#4e3b1f]">
+                For each new farmer that joins with your link, you'll earn 40% commission on their package purchase.
               </p>
             </div>
           </div>
-
           <DialogFooter className="sm:justify-start">
-            <Button
+            <button
               type="button"
-              variant="default"
-              size="lg"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+              className="w-full bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 text-[#4e3b1f] font-bold rounded-xl px-6 py-3 shadow-lg border-2 border-[#b6d7b0]/40 flex items-center gap-2 justify-center transition-transform hover:scale-105"
               onClick={handleShare}
             >
-              <Share2 className="mr-2 h-5 w-5" />
+              <FarmUser className="mr-2 h-5 w-5" />
               Share Link
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+      <style>{`
+        @keyframes cloud-move { 0%{transform:translateX(0);} 100%{transform:translateX(60vw);} }
+        @keyframes cloud-move2 { 0%{transform:translateX(0);} 100%{transform:translateX(40vw);} }
+        .animate-cloud-move { animation: cloud-move 60s linear infinite; }
+        .animate-cloud-move2 { animation: cloud-move2 80s linear infinite; }
+      `}</style>
+    </div>
   );
 }

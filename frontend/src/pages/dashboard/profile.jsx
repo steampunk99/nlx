@@ -1,11 +1,4 @@
 import { useAuth } from '../../hooks/auth/useAuth'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -15,323 +8,397 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import { User, Lock, Mail, Phone, Camera, Shield, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { User, Lock, Mail, Phone, Camera, Shield, Briefcase, CalendarDays, Edit3, Save, Loader2, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { cn } from "@/lib/utils"
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
+import { usePackages } from '../../hooks/payments/usePackages'
+import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
-function ProfilePage() {
-  const { user, updateProfile } = useAuth()
+const classNames = (...classes) => classes.filter(Boolean).join(' ')
+
+function CocoaPodIcon(props) {
+  return <svg viewBox="0 0 32 32" fill="none" {...props}><ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A"/><ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748"/><ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066"/><path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5"/><path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5"/></svg>;
+}
+
+function FarmhouseIcon(props) {
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M3 12L12 4l9 8" stroke="#4e3b1f" strokeWidth="2"/><rect x="6" y="12" width="12" height="8" rx="2" fill="#ffe066" stroke="#b6d7b0" strokeWidth="2"/><rect x="10" y="15" width="4" height="5" rx="1" fill="#b6d7b0"/></svg>;
+}
+
+export default function ProfilePage() {
+  const { user, profile, updateProfile, changePassword, isLoading: authLoading } = useAuth()
+  const { userPackage, isLoading: packageLoading } = usePackages()
+  const { siteName } = useSiteConfig()
   const [isUploading, setIsUploading] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const { register: registerProfile, handleSubmit: handleSubmitProfile, formState: { errors: profileErrors }, setValue: setProfileValue } = useForm({
     defaultValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      phone: user?.phone || '',
+      firstName: '',
+      lastName: '',
+      phone: '',
     }
   })
 
-  const handleAvatarUpload = () => {
+  const { register: registerPassword, handleSubmit: handleSubmitPassword, formState: { errors: passwordErrors }, watch: watchPassword, reset: resetPasswordForm } = useForm()
+
+  useEffect(() => {
+    if (profile) {
+      setProfileValue('firstName', profile.firstName || '')
+      setProfileValue('lastName', profile.lastName || '')
+      setProfileValue('phone', profile.phone || '')
+    }
+  }, [profile, setProfileValue])
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File is too large. Max 2MB allowed.")
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      toast.error("Invalid file type. Only JPG, PNG, GIF allowed.")
+      return;
+    }
+
     setIsUploading(true)
-    // TODO: Implement avatar upload
-    setTimeout(() => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.success('Profile picture updated successfully (simulated)')
+    } catch (error) {
+      const err = error
+      toast.error(err.response?.data?.message || 'Failed to upload avatar')
+    } finally {
       setIsUploading(false)
-      toast.success('Profile picture updated successfully')
-    }, 2000)
+    }
   }
 
   const onUpdateProfile = async (data) => {
-    try {
-      setIsUpdating(true)
-      // TODO: Implement profile update
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Profile updated successfully')
-    } catch (error) {
-      toast.error(error.message || 'Failed to update profile')
-    } finally {
-      setIsUpdating(false)
-    }
+    await updateProfile(data)
   }
 
   const onChangePassword = async (data) => {
-    try {
-      setIsUpdating(true)
-      // TODO: Implement password change
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Password changed successfully')
-    } catch (error) {
-      toast.error(error.message || 'Failed to change password')
-    } finally {
-      setIsUpdating(false)
-    }
+      if (data.newPassword !== data.confirmPassword) {
+        toast.error('New passwords do not match')
+        return
+      }
+      await changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
+      })
+    resetPasswordForm()
   }
 
+  const newPasswordValue = watchPassword("newPassword", "");
+
+  if (!profile && authLoading) {
+    return (
+      <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center p-6 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0]">
+        <Loader2 className="w-12 h-12 text-[#4e3b1f] animate-spin" />
+      </div>
+    )
+  }
+
+  const getInitials = (firstName, lastName) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || 'U'
+  }
+  
+  const formatDate = (createdAt) => {
+    if (!createdAt) return 'N/A';
+    const date = new Date(createdAt);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   return (
-    <div className="relative space-y-6 p-6 bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950">
-      {/* Cyberpunk Grid Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_-30%,#1a103b,transparent)]"></div>
-        
-        {/* Animated glow spots */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#4e3b1f] overflow-hidden font-sans">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <CocoaPodIcon className="absolute left-0 top-0 w-40 h-40 opacity-10" />
+        <FarmhouseIcon className="absolute right-0 bottom-0 w-48 h-48 opacity-10" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10">
+      <motion.div
+        className="relative z-10 space-y-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-2"
+          transition={{ delay: 0.1 }}
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8"
         >
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Profile Settings
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#4e3b1f] font-cursive">
+              My Profile Settings
           </h1>
-          <p className="text-cyan-300/60">
-            Manage your account settings and preferences
+            <p className="text-[#A67C52]/80 font-medium text-base md:text-lg mt-1">
+              Manage your farm account and security.
           </p>
+          </div>
         </motion.div>
 
-        <div className="flex flex-col gap-6 md:flex-row mt-6">
-          {/* Profile Overview Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="md:w-1/3"
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-1 space-y-6"
           >
-            <Card className="relative bg-black/30 backdrop-blur-sm border border-cyan-500/20 overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              
-              <CardHeader>
-                <CardTitle className="text-cyan-100">Profile Overview</CardTitle>
-                <CardDescription className="text-cyan-300/60">Your public profile information</CardDescription>
-              </CardHeader>
-
-              <CardContent className="flex flex-col items-center space-y-4">
+            <div className="relative bg-gradient-to-br from-[#fffbe6]/90 to-[#e6f2ef]/90 border-2 border-[#b6d7b0]/50 rounded-3xl shadow-xl p-6 text-center group">
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2">
                 <div className="relative">
-                  <Avatar className="h-24 w-24 ring-2 ring-cyan-500/20">
-                    <AvatarImage src={user?.avatar} />
-                    <AvatarFallback className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-xl text-cyan-100 border border-cyan-500/30">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  <Avatar className="h-24 w-24 md:h-28 md:w-28 ring-4 ring-[#ffe066] shadow-lg border-2 border-white bg-gradient-to-br from-[#b6d7b0] to-[#ffe066]">
+                    <AvatarImage src={profile?.avatarUrl || user?.avatarUrl} alt={`${profile?.firstName} ${profile?.lastName}`} />
+                    <AvatarFallback className="text-3xl md:text-4xl font-semibold text-[#4e3b1f]">
+                      {getInitials(profile?.firstName, profile?.lastName)}
                     </AvatarFallback>
                   </Avatar>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-black/50 border border-cyan-500/30 hover:bg-cyan-950/50 hover:border-cyan-500/50 shadow-lg shadow-cyan-500/20"
-                    onClick={handleAvatarUpload}
-                    disabled={isUploading}
+                  <Label
+                    htmlFor="avatarUpload"
+                    className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-[#4e3b1f] text-white flex items-center justify-center cursor-pointer hover:bg-[#8D6748] transition-colors shadow-md border-2 border-[#fffbe6]"
                   >
-                    <Camera className="h-4 w-4 text-cyan-400" />
-                  </Button>
+                    {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                    <input id="avatarUpload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploading} />
+                  </Label>
+                </div>
+              </div>
+
+              <div className="mt-20">
+                <h2 className="text-2xl font-bold text-[#4e3b1f] font-cursive">
+                  {profile?.firstName} {profile?.lastName}  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${profile?.isActive ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                    <span className={`h-2 w-2 rounded-full ${profile?.isActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  </span>
+                </h2>
+                <p className="text-[#A67C52]/90 text-sm">{profile?.email}</p>
+                {profile?.username && <p className="text-xs text-[#A67C52]/70 mt-0.5">@{profile.username}</p>}
                 </div>
 
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold text-cyan-100">{user?.firstName} {user?.lastName}</h3>
-                  <p className="text-sm text-cyan-300/60">{user?.email}</p>
+              <div className="mt-6 space-y-3 text-left text-sm">
+                <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
+                  <span className="flex items-center text-[#8D6748]"><User size={16} className="mr-2 text-[#C97C3A]" /> Username:</span>
+                  <span className="font-medium text-[#4e3b1f]">{profile?.username || 'N/A'}</span>
                 </div>
-
-                <div className="w-full space-y-2 rounded-lg bg-black/20 border border-cyan-500/20 p-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-cyan-300/60">Member since</span>
-                    <span className="font-medium text-cyan-100">Jan 2024</span>
+                <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
+                  <span className="flex items-center text-[#8D6748]"><Phone size={16} className="mr-2 text-[#C97C3A]" /> Phone:</span>
+                  <span className="font-medium text-[#4e3b1f]">{profile?.phone || 'Not set'}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
+                  <span className="flex items-center text-[#8D6748]"><CalendarDays size={16} className="mr-2 text-[#C97C3A]" /> Member Since:</span>
+                  <span className="font-medium text-[#4e3b1f]">{formatDate(profile?.createdAt)}</span>
+                </div>
+                {userPackage && !packageLoading && (
+                  <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
+                    <span className="flex items-center text-[#8D6748]"><Briefcase size={16} className="mr-2 text-[#C97C3A]" /> Farm Name:</span>
+                    <span className="font-medium text-[#4e3b1f]">{userPackage?.package?.name || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-cyan-300/60">Status</span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs font-medium text-green-400 border border-green-500/30">
-                      <span className="h-1.5 w-1.5 rounded-full bg-green-400"></span>
-                      Active
-                    </span>
+                )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
           </motion.div>
 
-          {/* Settings Tabs */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex-1"
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-2"
           >
-            <Card className="relative bg-black/30 backdrop-blur-sm border border-cyan-500/20 overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              
-              <CardHeader>
-                <CardTitle className="text-cyan-100">Account Settings</CardTitle>
-                <CardDescription className="text-cyan-300/60">Update your account preferences</CardDescription>
-              </CardHeader>
-
-              <CardContent>
+            <div className="bg-gradient-to-br from-[#fffbe6]/90 to-[#e6f2ef]/90 border-2 border-[#b6d7b0]/50 rounded-3xl shadow-xl p-6 md:p-8">
                 <Tabs defaultValue="personal" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-black/20 border border-cyan-500/20">
+                <TabsList className="grid w-full grid-cols-2 bg-[#e6f2ef]/50 border border-[#b6d7b0]/30 rounded-xl p-1">
                     <TabsTrigger 
                       value="personal"
-                      className="data-[state=active]:bg-cyan-500/10 data-[state=active]:text-cyan-400 text-cyan-300/60"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#b6d7b0] data-[state=active]:to-[#ffe066] data-[state=active]:text-[#4e3b1f] data-[state=active]:shadow-md text-[#A67C52] rounded-lg py-2.5 font-semibold transition-all"
                     >
-                      <User className="w-4 h-4 mr-2" />
-                      Personal Info
+                    <Edit3 className="w-5 h-5 mr-2" /> Personal Info
                     </TabsTrigger>
                     <TabsTrigger 
                       value="security"
-                      className="data-[state=active]:bg-cyan-500/10 data-[state=active]:text-cyan-400 text-cyan-300/60"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#b6d7b0] data-[state=active]:to-[#ffe066] data-[state=active]:text-[#4e3b1f] data-[state=active]:shadow-md text-[#A67C52] rounded-lg py-2.5 font-semibold transition-all"
                     >
-                      <Shield className="w-4 h-4 mr-2" />
-                      Security
+                    <Lock className="w-5 h-5 mr-2" /> Security
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="personal" className="mt-4 space-y-4">
-                    <form onSubmit={handleSubmit(onUpdateProfile)} className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName" className="text-cyan-300/60">First Name</Label>
+                <TabsContent value="personal" className="mt-6 space-y-6">
+                  <form onSubmit={handleSubmitProfile(onUpdateProfile)} className="space-y-5">
+                    <div>
+                      <Label htmlFor="firstName" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">First Name</Label>
                           <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
                             <Input
                               id="firstName"
-                              {...register('firstName', { required: 'First name is required' })}
-                              className={cn(
-                                "pl-9 bg-black/30 border text-cyan-100 focus:border-cyan-500/50",
-                                errors.firstName ? "border-red-500" : "border-cyan-500/20"
-                              )}
-                            />
-                            <User className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                          {...registerProfile('firstName', { required: 'First name is required' })}
+                          className={classNames(
+                            "pl-10 pr-4 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
+                            profileErrors.firstName ? "border-red-500 focus:ring-red-500/50" : ""
+                          )}
+                          placeholder="Your first name"
+                        />
                           </div>
-                          {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+                      {profileErrors.firstName && <p className="mt-1 text-xs text-red-600">{String(profileErrors.firstName.message)}</p>}
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName" className="text-cyan-300/60">Last Name</Label>
+
+                    <div>
+                      <Label htmlFor="lastName" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">Last Name</Label>
                           <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
                             <Input
                               id="lastName"
-                              {...register('lastName', { required: 'Last name is required' })}
-                              className={cn(
-                                "pl-9 bg-black/30 border text-cyan-100 focus:border-cyan-500/50",
-                                errors.lastName ? "border-red-500" : "border-cyan-500/20"
-                              )}
-                            />
-                            <User className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                          {...registerProfile('lastName', { required: 'Last name is required' })}
+                          className={classNames(
+                            "pl-10 pr-4 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
+                            profileErrors.lastName ? "border-red-500 focus:ring-red-500/50" : ""
+                          )}
+                          placeholder="Your last name"
+                        />
                           </div>
-                          {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
+                      {profileErrors.lastName && <p className="mt-1 text-xs text-red-600">{String(profileErrors.lastName.message)}</p>}
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email" className="text-cyan-300/60">Email</Label>
+                    
+                    <div>
+                      <Label htmlFor="phone" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">Phone Number</Label>
                           <div className="relative">
-                            <Input
-                              id="email"
-                              type="email"
-                              defaultValue={user?.email}
-                              disabled
-                              className="pl-9 bg-black/50 border border-cyan-500/10 text-cyan-300/60"
-                            />
-                            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-cyan-300/60" />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phone" className="text-cyan-300/60">Phone</Label>
-                          <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
                             <Input
                               id="phone"
                               type="tel"
-                              {...register('phone')}
-                              className="pl-9 bg-black/30 border border-cyan-500/20 text-cyan-100 focus:border-cyan-500/50"
-                            />
-                            <Phone className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                          {...registerProfile('phone')}
+                           className={classNames(
+                            "pl-10 pr-4 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
+                            profileErrors.phone ? "border-red-500 focus:ring-red-500/50" : ""
+                          )}
+                          placeholder="e.g. 0701234567"
+                        />
                           </div>
+                       {profileErrors.phone && <p className="mt-1 text-xs text-red-600">{String(profileErrors.phone.message)}</p>}
                         </div>
+
+                    <div>
+                      <Label htmlFor="email" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">Email Address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
+                        <Input
+                          id="email"
+                          type="email"
+                          value={profile?.email || ''}
+                          disabled
+                          className="pl-10 pr-4 py-3 bg-[#e6f2ef]/50 border border-[#b6d7b0]/40 rounded-lg text-[#A67C52]/80 cursor-not-allowed"
+                        />
                       </div>
+                       <p className="mt-1 text-xs text-[#A67C52]/70">Email address cannot be changed.</p>
+                    </div>
+
                       <Button
                         type="submit"
-                        disabled={isUpdating}
-                        className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-cyan-500/20"
+                      disabled={authLoading}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-[#4e3b1f] bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/90 hover:to-[#ffe066]/90 shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C97C3A]/70"
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        {isUpdating ? 'Updating...' : 'Update Profile'}
+                      {authLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                      Save Changes
                       </Button>
                     </form>
                   </TabsContent>
 
-                  <TabsContent value="security" className="mt-4 space-y-4">
-                    <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="currentPassword" className="text-cyan-300/60">Current Password</Label>
+                <TabsContent value="security" className="mt-6 space-y-6">
+                  <form onSubmit={handleSubmitPassword(onChangePassword)} className="space-y-5">
+                    <div>
+                      <Label htmlFor="currentPassword" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">Current Password</Label>
                           <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
                             <Input
                               id="currentPassword"
-                              type="password"
-                              {...register('currentPassword', { required: 'Current password is required' })}
-                              className={cn(
-                                "pl-9 bg-black/30 border text-cyan-100 focus:border-cyan-500/50",
-                                errors.currentPassword ? "border-red-500" : "border-cyan-500/20"
-                              )}
-                            />
-                            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                          type={showCurrentPassword ? "text" : "password"}
+                          {...registerPassword('currentPassword', { required: 'Current password is required' })}
+                          className={classNames(
+                            "pl-10 pr-10 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
+                            passwordErrors.currentPassword ? "border-red-500 focus:ring-red-500/50" : ""
+                          )}
+                          placeholder="Enter your current password"
+                        />
+                        <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A67C52]/80 hover:text-[#4e3b1f]">
+                          {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                           </div>
-                          {errors.currentPassword && <p className="text-red-500 text-sm">{errors.currentPassword.message}</p>}
+                      {passwordErrors.currentPassword && <p className="mt-1 text-xs text-red-600">{String(passwordErrors.currentPassword.message)}</p>}
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="newPassword" className="text-cyan-300/60">New Password</Label>
+
+                    <div>
+                      <Label htmlFor="newPassword" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">New Password</Label>
                           <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
                             <Input
                               id="newPassword"
-                              type="password"
-                              {...register('newPassword', { required: 'New password is required' })}
-                              className={cn(
-                                "pl-9 bg-black/30 border text-cyan-100 focus:border-cyan-500/50",
-                                errors.newPassword ? "border-red-500" : "border-cyan-500/20"
-                              )}
-                            />
-                            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
+                          type={showNewPassword ? "text" : "password"}
+                          {...registerPassword('newPassword', { 
+                            required: 'New password is required',
+                            minLength: { value: 8, message: 'Password must be at least 8 characters' }
+                          })}
+                          className={classNames(
+                            "pl-10 pr-10 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
+                            passwordErrors.newPassword ? "border-red-500 focus:ring-red-500/50" : ""
+                          )}
+                          placeholder="Enter your new password"
+                        />
+                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A67C52]/80 hover:text-[#4e3b1f]">
+                          {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                           </div>
-                          {errors.newPassword && <p className="text-red-500 text-sm">{errors.newPassword.message}</p>}
+                      {passwordErrors.newPassword && <p className="mt-1 text-xs text-red-600">{String(passwordErrors.newPassword.message)}</p>}
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirmPassword" className="text-cyan-300/60">Confirm New Password</Label>
+
+                    <div>
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">Confirm New Password</Label>
                           <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
                             <Input
                               id="confirmPassword"
-                              type="password"
-                              {...register('confirmPassword', { required: 'Please confirm your new password' })}
-                              className={cn(
-                                "pl-9 bg-black/30 border text-cyan-100 focus:border-cyan-500/50",
-                                errors.confirmPassword ? "border-red-500" : "border-cyan-500/20"
-                              )}
-                            />
-                            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-cyan-400" />
-                          </div>
-                          {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>}
-                        </div>
+                          type={showConfirmPassword ? "text" : "password"}
+                          {...registerPassword('confirmPassword', {
+                            required: 'Please confirm your new password',
+                            validate: value => value === newPasswordValue || "Passwords do not match"
+                          })}
+                          className={classNames(
+                            "pl-10 pr-10 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
+                            passwordErrors.confirmPassword ? "border-red-500 focus:ring-red-500/50" : ""
+                          )}
+                          placeholder="Confirm your new password"
+                        />
+                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A67C52]/80 hover:text-[#4e3b1f]">
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                       </div>
+                      {passwordErrors.confirmPassword && <p className="mt-1 text-xs text-red-600">{String(passwordErrors.confirmPassword.message)}</p>}
+                    </div>
+
                       <Button
                         type="submit"
-                        disabled={isUpdating}
-                        className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-cyan-500/20"
+                      disabled={authLoading}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-[#4e3b1f] bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/90 hover:to-[#ffe066]/90 shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C97C3A]/70"
                       >
-                        <Shield className="w-4 h-4 mr-2" />
-                        {isUpdating ? 'Changing...' : 'Change Password'}
+                      {authLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
+                      Change Password
                       </Button>
                     </form>
                   </TabsContent>
                 </Tabs>
-              </CardContent>
-            </Card>
+            </div>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
-
-export default ProfilePage

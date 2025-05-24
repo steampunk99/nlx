@@ -116,7 +116,22 @@ export function useEarnings() {
       }
       return data.data;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+  
+  });
+}
+export function useRewards() {
+  return useQuery({
+    queryKey: ['rewards'],
+    queryFn: async () => {
+      const { data } = await api.get('/dashboard/reward');
+      console.log('Rewards response:', data.data);
+      if (!data.data) {
+        console.warn('No rewards data in response');
+        return [];
+      }
+      return data.data
+    },
+ 
   });
 }
 
@@ -128,7 +143,7 @@ export function useRecentActivities() {
       console.log('Recent activities response:', data);
       return data.data;
     },
-    staleTime: 1000 * 60 * 1, // Consider data fresh for 1 minute
+
   });
 }
 

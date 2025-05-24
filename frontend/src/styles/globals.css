@@ -61,3 +61,467 @@
 .premium-overlay {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
 }
+
+
+
+/* --- FarmMap.css --- */
+
+/* Main Container */
+.farm-map-container {
+  position: relative;
+  width: 100%;
+  height: 85vh;
+  min-height: 600px;
+  background: linear-gradient(to bottom, #a0d2e8, #b6d7b0);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Loading States */
+.farm-map-container-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  font-size: 1.2rem;
+  color: #4a5568;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Toolbar */
+.toolbar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 12px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  max-width: 600px;
+  width: 90%;
+}
+
+.toolbar:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+.search-bar, .filter-dropdown {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.search-bar:focus-within, .filter-dropdown:focus-within {
+  border-color: #659D32;
+  box-shadow: 0 0 0 3px rgba(101, 157, 50, 0.1);
+}
+
+.search-bar {
+  flex-grow: 1;
+}
+
+.search-icon, .filter-icon {
+  color: #659D32;
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+}
+
+.toolbar input, .toolbar select {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.95rem;
+  color: #1a202c;
+}
+
+.toolbar select {
+  cursor: pointer;
+  padding-right: 24px;
+    appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23659D32'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0px center;
+  background-size: 16px;
+}
+
+/* Farm Icon */
+.farm-icon-wrapper {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--farm-color, #ccc);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform-origin: center;
+}
+
+.farm-icon-wrapper.hovered {
+  transform: scale(1.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  background-color: white;
+}
+
+.farm-icon-wrapper.selected {
+  transform: scale(1.25);
+  box-shadow: 
+    0 0 0 4px white,
+    0 0 0 8px var(--farm-color, #ccc),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.farm-icon-wrapper.search-match {
+  animation: pulse 2s infinite;
+  box-shadow: 
+    0 0 0 4px white,
+    0 0 0 8px #3498db,
+    0 8px 24px rgba(52, 152, 219, 0.3);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 
+      0 0 0 4px white,
+      0 0 0 8px #3498db,
+      0 8px 24px rgba(52, 152, 219, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 4px white,
+      0 0 0 12px #3498db,
+      0 8px 28px rgba(52, 152, 219, 0.4);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 4px white,
+      0 0 0 8px #3498db,
+      0 8px 24px rgba(52, 152, 219, 0.3);
+  }
+}
+
+/* Legend */
+.legend {
+    position: absolute;
+  bottom: 20px;
+  left: 20px;
+    z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  color: #1a202c;
+  transition: all 0.3s ease;
+}
+
+.legend:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+.legend h4 {
+  margin: 0 0 12px 0;
+    font-weight: 600;
+  color: #2d3748;
+  font-size: 1rem;
+}
+
+.legend ul {
+    list-style: none;
+    padding: 0;
+  margin: 0 0 12px 0;
+}
+
+.legend li {
+    display: flex;
+    align-items: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.legend li svg {
+  margin-right: 10px;
+}
+
+.legend .instructions {
+  font-size: 0.85rem;
+  color: #4a5568;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.legend .instructions b {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+/* Farm Info Panel */
+.farm-info-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  border-left: 4px solid var(--farm-color, #659D32);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #659D32 #f7fafc;
+}
+
+.farm-info-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.farm-info-panel::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+.farm-info-panel::-webkit-scrollbar-thumb {
+  background-color: #659D32;
+  border-radius: 3px;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4a5568;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a202c;
+  transform: rotate(90deg);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(to right, rgba(101, 157, 50, 0.1), transparent);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1a202c;
+}
+
+.panel-subtitle {
+  font-size: 0.9rem;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.panel-content {
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.info-section {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.info-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #659D32;
+}
+
+.info-section h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+}
+
+.info-section h4 svg {
+    margin-right: 8px;
+    color: #659D32;
+}
+
+.info-section p {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-section p span:first-child {
+  color: #4a5568;
+}
+
+.info-section p span:last-child {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0;
+    background: none;
+    border: none;
+}
+
+.action-buttons:hover {
+  box-shadow: none;
+  border: none;
+}
+
+.btn {
+  padding: 12px 20px;
+    border: none;
+  border-radius: 8px;
+    cursor: pointer;
+  font-size: 0.95rem;
+    font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  cursor:progress
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: #659D32;
+    color: white;
+  box-shadow: 0 4px 12px rgba(101, 157, 50, 0.2);
+}
+
+.btn-primary:hover {
+  background: #558B28;
+  box-shadow: 0 6px 16px rgba(101, 157, 50, 0.3);
+}
+
+.btn-secondary {
+  background: #f0ad4e;
+    color: white;
+  box-shadow: 0 4px 12px rgba(240, 173, 78, 0.2);
+}
+
+.btn-secondary:hover {
+  background: #ec971f;
+  box-shadow: 0 6px 16px rgba(240, 173, 78, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .farm-map-container {
+    height: 80vh;
+    }
+  
+    .toolbar {
+        flex-direction: column;
+    padding: 12px;
+    }
+  
+    .farm-info-panel {
+    width: 100%;
+    height: 70%;
+    top: auto;
+    bottom: 0;
+    border-left: none;
+    border-top: 4px solid var(--farm-color, #659D32);
+  }
+  
+  .panel-header {
+    padding: 16px 20px;
+  }
+  
+    .panel-content {
+    padding: 16px;
+    z-index: 1000000000;
+    }
+  
+    .legend {
+    bottom: auto;
+    top: 20px;
+    left: 20px;
+    max-width: calc(100% - 40px);
+  }
+  
+    .legend .instructions {
+    display: none;
+  }
+  
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.farm-map-container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.toolbar, .legend {
+  animation: fadeIn 0.5s ease-out 0.2s backwards;
+}
+
+.farm-info-panel {
+  animation: slideIn 0.3s ease-out;
+}

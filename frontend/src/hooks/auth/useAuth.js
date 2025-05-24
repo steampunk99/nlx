@@ -133,26 +133,30 @@ export function useAuth() {
   })
 
   const registerMutation = useMutation({
-    mutationFn: (userData) => {
+    mutationFn: async (userData) => {
       console.log('Registration data:', userData); // Debug log
       
-      if (userData.password.length < 8) {
+      if (!userData || typeof userData !== 'object') {
+        throw new Error('Invalid user data provided')
+      }
+
+      if (userData.password && userData.password.length < 8) {
         throw new Error('Password must be at least 8 characters long')
       }
       
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(userData.email)) {
+      if (userData.email && !emailRegex.test(userData.email)) {
         throw new Error('Please enter a valid email address')
       }
 
       // Prepare registration data with trimming
       const registrationData = {
-        email: userData.email.trim(),
+        email: userData.email?.trim(),
         password: userData.password,
-        firstName: userData.firstName.trim(),
-        lastName: userData.lastName.trim(),
-        phone: userData.phone.trim(),
-        country: (userData.country || 'UG').trim(),
+        firstName: userData.firstName?.trim(),
+        lastName: userData.lastName?.trim(),
+        phone: userData.phone?.trim(),
+        country: (userData.country || 'UG')?.trim(),
         ...(userData.position && { position: Number(userData.position) }),
         ...(userData.referralCode?.trim() && { referralCode: userData.referralCode.trim() })
       };
@@ -190,16 +194,16 @@ export function useAuth() {
   })
 
   const logoutMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
         try {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
           clearAuthTokens()
           setUser(null)
-          return true
+          return Promise.resolve(true)
         } catch (error) {
           console.error('Logout error:', error)
-          return false
+          return Promise.reject(error)
         }
       },
    
@@ -217,7 +221,8 @@ export function useAuth() {
   })
 
   const resetPasswordMutation = useMutation({
-    mutationFn: ({ token, password }) => {
+    mutationFn: async (data) => {
+      const { token, password } = data
       return api.post('/auth/reset-password', { token, password }).then(response => response.data)
     },
     onError: (error) => {
@@ -227,7 +232,7 @@ export function useAuth() {
   })
 
   const forgotPasswordMutation = useMutation({
-    mutationFn: (email) => {
+    mutationFn: async (email) => {
       return api.post('/auth/forgot-password', { email }).then(response => response.data)
     },
     onError: (error) => {
@@ -249,6 +254,56 @@ export function useAuth() {
     staleTime: 1000 * 60 * 5 // 5 minutes
   })
 
+  // Add profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData) => {
+      try {
+        const response = await api.put('/auth/profile', profileData)
+        return response.data
+      } catch (error) {
+        const errorMessage = getErrorMessage(error)
+        toast.error(errorMessage)
+        throw error
+      }
+    },
+    onSuccess: (data) => {
+      // Update user in state
+      if (data?.success) {
+        setUser(prev => ({
+          ...prev,
+          ...data.data
+        }))
+        queryClient.invalidateQueries({ queryKey: ['profile'] })
+        toast.success('Profile updated successfully')
+      }
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error)
+      toast.error(errorMessage || 'Failed to update profile')
+    }
+  })
+
+  // Add change password mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwordData) => {
+      try {
+        const response = await api.post('/auth/change-password', passwordData)
+        return response.data
+      } catch (error) {
+        const errorMessage = getErrorMessage(error)
+        toast.error(errorMessage)
+        throw error
+      }
+    },
+    onSuccess: () => {
+      toast.success('Password changed successfully')
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error)
+      toast.error(errorMessage || 'Failed to change password')
+    }
+  })
+
   return {
     user,
     loading,
@@ -257,7 +312,10 @@ export function useAuth() {
     logout: logoutMutation.mutate,
     resetPassword: resetPasswordMutation.mutate,
     forgotPassword: forgotPasswordMutation.mutate,
+    updateProfile: updateProfileMutation.mutate,
+    changePassword: changePasswordMutation.mutate,
     profile,
-    isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending
+    isLoading: loginMutation.isPending || registerMutation.isPending || logoutMutation.isPending ||
+      updateProfileMutation.isPending || changePasswordMutation.isPending
   }
 }

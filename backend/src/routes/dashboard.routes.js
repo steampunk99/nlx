@@ -7,5 +7,6 @@ router.get('/stats', auth, dashboardController.getDashboardStats);
 router.get('/activities', auth, dashboardController.getRecentActivities);
 router.get('/network', auth, dashboardController.getNetworkStats);
 router.get('/earnings', auth, dashboardController.getEarnings);
+router.get('/reward', auth, dashboardController.getDailyReward);
 
 module.exports = router;

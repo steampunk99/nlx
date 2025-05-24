@@ -153,8 +153,11 @@ const getRecentActivities = async (req, res) => {
 
     const userId = req.user.id;
 
-    // Get recent commissions and network activities
-    const [commissions, networkActivities] = await Promise.all([
+    // Get user's node
+    const userNode = await prisma.node.findFirst({ where: { userId } });
+
+    // Get recent commissions, network activities, and daily rewards
+    const [commissions, networkActivities, dailyRewards] = await Promise.all([
       prisma.commission.findMany({
         where: {
           userId,
@@ -171,7 +174,7 @@ const getRecentActivities = async (req, res) => {
       prisma.node.findMany({
         where: {
           sponsorId: {
-            equals: (await prisma.node.findFirst({ where: { userId } }))?.id
+            equals: userNode?.id
           }
         },
         orderBy: {
@@ -181,7 +184,18 @@ const getRecentActivities = async (req, res) => {
         include: {
           user: true
         }
-      })
+      }),
+      userNode ? prisma.nodeStatement.findMany({
+        where: {
+          nodeId: userNode.id,
+          type: 'DAILY_HARVEST',
+          status: 'PROCESSED'
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: 10
+      }) : []
     ]);
 
     // Combine and format activities
@@ -189,9 +203,16 @@ const getRecentActivities = async (req, res) => {
       ...commissions.map(comm => ({
         type: 'commission',
         description: `Earned commission from ${comm.package?.name || 'package'}`,
-        amount: comm.amount, // Format as UGX
+        amount: comm.amount,
         date: comm.createdAt,
         icon: '💰'
+      })),
+      ...dailyRewards.map(reward => ({
+        type: 'daily_harvest',
+        description: 'Daily harvest',
+        amount: reward.amount,
+        date: reward.createdAt,
+        icon: '🌾'
       })),
       ...networkActivities.map(node => ({
         type: 'network',
@@ -366,10 +387,10 @@ const getEarnings = async (req, res) => {
     return res.json({
       success: true,
       data: {
-        availableBalance: `$${(availableBalance?.availableBalance || 0).toFixed(2)}`,
+        availableBalance: `${(availableBalance?.availableBalance || 0).toFixed(2)}`,
        
         history: history.map(item => ({
-          amount: `$${item.amount.toFixed(2)}`,
+          amount: `${item.amount.toFixed(2)}`,
           type: item.type,
           status: item.status,
           date: item.createdAt
@@ -382,6 +403,54 @@ const getEarnings = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch earnings data'
+    });
+  }
+};
+
+
+// Get today's daily reward for the logged-in user
+const getDailyReward = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated'
+      });
+    }
+    const userId = req.user.id;
+    // Find user's node
+    const node = await prisma.node.findFirst({ where: { userId } });
+    if (!node) {
+      return res.status(404).json({ success: false, message: 'Node not found for user' });
+    }
+    // Get today's date range (midnight to midnight)
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    // Query for today's DAILY_HARVEST statement
+    const todayReward = await prisma.nodeStatement.findFirst({
+      where: {
+        nodeId: node.id,
+        type: 'DAILY_HARVEST',
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return res.json({
+      success: true,
+      data: {
+        todayReward: todayReward ? (todayReward.amount) : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error in getDailyReward:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch today\'s daily reward'
     });
   }
 };
@@ -409,5 +478,7 @@ module.exports = {
   getDashboardStats,
   getRecentActivities,
   getNetworkStats,
-  getEarnings
+  getEarnings,
+
+  getDailyReward
 };

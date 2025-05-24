@@ -601,6 +601,8 @@ class AuthController {
       // Generate reset token
       const resetToken = await userService.generatePasswordResetToken(user.id);
 
+      console.log('🔑 Reset token:', resetToken);
+
       // Send reset token via email
       const emailSent = await emailService.sendPasswordResetEmail(email, resetToken);
       
@@ -738,6 +740,8 @@ class AuthController {
           status: user.status
         }
       });
+
+      console.log('🔑 Profile:', user);
 
     } catch (error) {
       console.error('Get profile error:', error);

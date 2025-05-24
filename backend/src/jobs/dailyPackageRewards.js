@@ -1,5 +1,8 @@
-
 const packageRewardService = require('../services/packageReward.service');
+const { PrismaClient } = require('@prisma/client');
+
+
+const prisma = new PrismaClient();
 
 async function processDailyPackageRewards() {
   // Find all active packages
@@ -24,3 +27,15 @@ async function processDailyPackageRewards() {
 }
 
 module.exports = { processDailyPackageRewards };
+
+if (require.main === module) {
+  processDailyPackageRewards()
+    .then(() => {
+      console.log('Daily package rewards processed successfully.');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('Error processing daily package rewards:', err);
+      process.exit(1);
+    });
+}

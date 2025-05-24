@@ -1,24 +1,34 @@
-// backend/src/services/packageReward.service.js
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+const notificationService = require('./notification.service');
+
 class PackageRewardService {
     async calculateDailyReward(nodePackage) {
       const { package: pkg, node } = nodePackage;
-      
-      // Base network volume (could be total network transactions, node earnings, etc.)
-      const baseNetworkVolume = await this.calculateNetworkVolume(node);
-      
-      // Daily reward calculation
-      const dailyReward = baseNetworkVolume * (pkg.dailyMultiplier || 0);
-      
-      // Create node statement
+      // Calculate base reward from package price and multiplier
+      const baseReward = Number(pkg.price) * (Number(pkg.dailyMultiplier || 0) / 100);
+      // Add a small random bonus (0 - 0.5% of package price)
+      const minBonus = 0;
+      const maxBonus = Number(pkg.price) * 0.005;
+      const randomBonus = Math.random() * (maxBonus - minBonus) + minBonus;
+      // Final daily reward (rounded to 2 decimals)
+      const dailyReward = Math.floor((baseReward + randomBonus) * 100) / 100;
+
+      // Create node statement for daily reward (fix: do not include 'node' property)
       await prisma.nodeStatement.create({
         data: {
           nodeId: node.id,
           amount: dailyReward,
-          type: 'DAILY_PACKAGE_REWARD',
-          description: `Daily reward for ${pkg.name} package`
+          type: 'DAILY_HARVEST',
+          description: `Daily harvest for ${pkg.name}`,
+          status:"PROCESSED",
+          referenceType: 'DAILY_HARVEST',
+          referenceId: 0 // required Int, not null
+
         }
       });
-  
+
       // Update node balance
       await prisma.node.update({
         where: { id: node.id },
@@ -28,28 +38,17 @@ class PackageRewardService {
           }
         }
       });
-  
+
+      // Send notification to user
+      await notificationService.create({
+        userId: node.userId,
+        title: 'Daily harvest Credited',
+        message: `You have received UGX ${dailyReward.toLocaleString()} as your daily harvest for the ${pkg.name} package.`,
+        type: 'PACKAGE'
+      });
+
       return dailyReward;
     }
-  
-    async calculateNetworkVolume(node) {
-      // Placeholder for network volume calculation
-      // Could be based on:
-      // - Total network transactions
-      // - Node's referral earnings
-      // - Previous day's network activity
-      const statements = await prisma.nodeStatement.findMany({
-        where: {
-          nodeId: node.id,
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-          }
-        }
-      });
-  
-      // Simple sum of statement amounts as a basic network volume
-      return statements.reduce((sum, statement) => sum + parseFloat(statement.amount), 0);
-    }
-  }
-  
-  module.exports = new PackageRewardService();
+}
+
+module.exports = new PackageRewardService();

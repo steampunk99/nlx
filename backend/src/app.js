@@ -7,6 +7,9 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const path = require('path')
 const fileUpload = require('express-fileupload');
+const cron = require("node-cron")
+
+const {processDailyPackageRewards} = require("./jobs/dailyPackageRewards")
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -144,6 +147,29 @@ app.use((req, res) => {
         success: false,
         message: 'Resource not found'
     });
+});
+
+//cron job
+cron.schedule('0 21 * * *', async () => {
+  console.log(`[${new Date().toISOString()}] Starting daily package rewards processing...`);
+  
+  try {
+    await processDailyPackageRewards();
+    console.log(`[${new Date().toISOString()}] Daily package rewards processed successfully`);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Failed to process daily rewards:`, error);
+  }
+});
+
+// Keep the service alive
+process.on('SIGTERM', () => {
+  console.log('Cron service shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('Cron service interrupted');
+  process.exit(0);
 });
 
 module.exports = app;

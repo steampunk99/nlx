@@ -113,16 +113,15 @@ class MobileMoneyCallbackController {
       // Process our payment status
       if (status === 'SUCCESSFUL') {
         await prisma.$transaction(async (tx) => {
-          const updatedPayment = await paymentController.processSuccessfulPayment(payment.id);
-          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);          
+          // Use the transaction context for all operations, including commissions
+          const updatedPayment = await paymentController.processSuccessfulPayment(payment.id, tx);
+          const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);
+          await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
           logger.info('✅ Payment processed:', {
             payment_id: payment.id,
             trans_id,
             package_id: nodePackage.id
           });
-          
-             // Calculate and create commissions
-             await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
         });
 
         return res.status(200).json({

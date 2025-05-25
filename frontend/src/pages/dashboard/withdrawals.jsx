@@ -20,6 +20,7 @@ import {
   Send, // Icon for request form
   Loader2 // Added for history loading state
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 // Animation variants for staggering children
 const containerVariants = {
@@ -40,8 +41,7 @@ const itemVariants = {
 export default function WithdrawalsPage() {
   // Hooks
   const { user } = useAuth(); // Keep if needed elsewhere or for future use
-  
-  const { data:earnings } = useEarnings()
+  const {data: earnings} = useEarnings()
   const queryClient = useQueryClient();
   const {
     register,
@@ -52,6 +52,7 @@ export default function WithdrawalsPage() {
   const { currency, formatAmount } = useCountry(); // Assuming provides { symbol: 'UGX', name: 'Ugandan Shilling' }, formatAmount function
 
   // --- State and Data Fetching ---
+  const [modal, setModal] = useState({ open: false, status: null, message: "" });
 
   // Calculate available balance (using optional chaining and nullish coalescing)
  const availableBalance = earnings?.availableBalance
@@ -83,6 +84,7 @@ export default function WithdrawalsPage() {
   // Withdrawal mutation using React Query
   const withdrawalMutation = useMutation({
     mutationFn: async (data) => {
+      if (!data || typeof data !== 'object') throw new Error('Invalid form data');
       const payload = {
         ...data,
         amount: parseFloat(data.amount)
@@ -92,7 +94,7 @@ export default function WithdrawalsPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message || "Withdrawal request submitted!");
+      setModal({ open: true, status: "success", message: data?.message || "Withdrawal request submitted!" });
       queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
       queryClient.invalidateQueries({ queryKey: ["commissions"] });
       reset();
@@ -104,6 +106,7 @@ export default function WithdrawalsPage() {
       } else if (error.message) {
         errorMessage = error.message;
       }
+      setModal({ open: true, status: "error", message: errorMessage });
       toast.error(errorMessage);
       console.error("Withdrawal error:", error);
     },
@@ -312,7 +315,7 @@ export default function WithdrawalsPage() {
                 </div>
               ) : withdrawalHistory.length > 0 ? (
                 <motion.ul
-                  className="space-y-3"
+                  className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[#b6d7b0] scrollbar-track-transparent hover:scrollbar-thumb-[#8d6748]/50 transition-colors"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
@@ -357,20 +360,60 @@ export default function WithdrawalsPage() {
           </div>
         </motion.section>
       </motion.div>
+      {/* Transaction Feedback Modal */}
+      <Dialog open={modal.open} onOpenChange={open => setModal(m => ({ ...m, open }))}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader className="">
+            <DialogTitle className="">
+              {modal.status === "success" ? (
+                <span className="flex flex-col items-center gap-2 text-emerald-600">
+                  <CheckCircle2 className="w-10 h-10 mx-auto" />
+                  Success!
+                </span>
+              ) : (
+                <span className="flex flex-col items-center gap-2 text-rose-500">
+                  <XCircle className="w-10 h-10 mx-auto" />
+                  Failed
+                </span>
+              )}
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-base text-[#4e3b1f]">
+              {modal.message}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="">
+            <button
+              className="mt-4 w-full px-4 py-2 rounded-lg bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] text-[#4e3b1f] font-semibold hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 transition"
+              onClick={() => setModal({ open: false, status: null, message: "" })}
+            >
+              Close
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Animations CSS */}
       <style>{`
         @keyframes cloud-move { 0%{transform:translateX(0);} 100%{transform:translateX(60vw);} }
         @keyframes cloud-move2 { 0%{transform:translateX(0);} 100%{transform:translateX(40vw);} }
         .animate-cloud-move { animation: cloud-move 60s linear infinite; }
         .animate-cloud-move2 { animation: cloud-move2 80s linear infinite; }
+        
+        /* Scrollbar Styles */
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: #b6d7b0;
+          border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: rgba(141, 103, 72, 0.5);
+        }
       `}</style>
     </div>
   );
 }
 
-// Add this to your global CSS if you don't have a utility for it:
-/*
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-*/

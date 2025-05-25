@@ -502,7 +502,7 @@ class PaymentController {
             nodeId: payment.nodeId,
             packageId: payment.packageId,
             status: 'ACTIVE',
-            expiresAt: addDays(new Date(), 30),
+            expiresAt: addDays(new Date(), 366),
             activatedAt: new Date(),
         }, tx);
 
@@ -522,7 +522,7 @@ class PaymentController {
             type: 'DEBIT',
             status: 'COMPLETED',
             description: `Package purchase completed - ${payment.package.name}`,
-            referenceType: 'PAYMENT',
+            referenceType: 'DEPOSIT',
             referenceId: payment.id,
             completedAt: new Date()
         }, tx);
@@ -531,19 +531,19 @@ class PaymentController {
         // Calculate package revenue
         await systemRevenueService.calculatePackageRevenue(payment, payment.package, tx);
 
-        // Create notification for successful package purchase
-        await notificationService.create({
-            userId: payment.node.userId,
-            title: 'Package Purchase Successful',
-            message: `Your payment of (payment.amount)} for ${payment.package.name} package has been confirmed.`,
-            type: 'PACKAGE_PURCHASE'
-        }, tx);
+        // // Create notification for successful package purchase
+        // await notificationService.create({
+        //     userId: payment.node.userId,
+        //     title: 'Package Purchase Successful',
+        //     message: `Your payment of (payment.amount)} for ${payment.package.name} package has been confirmed.`,
+        //     type: 'PACKAGE_PURCHASE'
+        // }, tx);
 
-        // Alert admins of payment processing
-        await adminNotificationUtils.systemAlert(
-            'Payment Processing Successful',
-            `Payment ID ${payment.id} processed successfully`
-        );
+        // // Alert admins of payment processing
+        // await adminNotificationUtils.systemAlert(
+        //     'Payment Processing Successful',
+        //     `Payment ID ${payment.id} processed successfully`
+        // );
 
         logger.info('Payment processed successfully:', {
             paymentId: payment.id,

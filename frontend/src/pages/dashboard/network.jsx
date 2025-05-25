@@ -61,6 +61,7 @@ export default function NetworkPage() {
   const { data: recentReferrals, isLoading: isRecentReferralsLoading } = useRecentReferrals();
   const { data: genealogyTree, isLoading: isGenealogyTreeLoading } = useGenealogyTree();
 
+  console.log("Recent referrals",recentReferrals)
   // Fetch referral link
   const { data: referralLinkData } = useQuery({
     queryKey: ["referralLink"],
@@ -109,41 +110,7 @@ export default function NetworkPage() {
     }
   };
 
-  // Helper function to get activity icon
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case "commission":
-        return Coins;
-      case "network":
-        return Users;
-      default:
-        return Activity;
-    }
-  };
 
-  // Helper function to get activity color
-  const getActivityColor = (type) => {
-    switch (type) {
-      case "commission":
-        return {
-          bg: "bg-green-900/30",
-          text: "text-green-400",
-          ring: "ring-green-400/20",
-        };
-      case "network":
-        return {
-          bg: "bg-blue-900/30",
-          text: "text-blue-400",
-          ring: "ring-blue-400/20",
-        };
-      default:
-        return {
-          bg: "bg-yellow-900/30",
-          text: "text-yellow-400",
-          ring: "ring-yellow-400/20",
-        };
-    }
-  };
 
   if (isLoading) {
     return (
@@ -260,7 +227,7 @@ export default function NetworkPage() {
             )}
             onClick={() => setActiveTab("referrals")}
           >
-            Recent Referrals
+            Direct Referrals
           </button>
         </section>
         {/* Tab Content */}
@@ -314,11 +281,12 @@ export default function NetworkPage() {
                 </div>
                 <div className="mt-8">
                   <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
-                    Recent Referrals
+                    Direct Referrals
                   </h2>
                   {recentReferrals?.length > 0 ? (
                     <div className="space-y-6">
                       {recentReferrals.map((referral, index) => (
+                        
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, y: 10 }}
@@ -332,11 +300,11 @@ export default function NetworkPage() {
                             </div>
                             <div>
                               <p className="font-medium text-[#4e3b1f]">{referral.name}</p>
-                              <p className="text-sm text-[#A67C52]">{referral.date}</p>
+                              <p className="text-sm text-[#4e3b1f]">{referral.joinedAt}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-[#C97C3A]">{referral.package}</p>
+                            <p className="font-medium text-[#4e3b1f]">{referral.package}</p>
                             <span
                               className={cn(
                                 "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",

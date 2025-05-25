@@ -122,7 +122,7 @@ class MobileMoneyCallbackController {
             trans_id,
             package_id: nodePackage.id
           });
-        });
+        }, { timeout: 150000 }); // Set transaction timeout to 1.5 minute
 
         return res.status(200).json({
           success: true,
@@ -138,7 +138,8 @@ class MobileMoneyCallbackController {
           type: 'DEBIT',
           status: 'FAILED',
           paymentId: payment.id,
-          reference: trans_id
+          referenceType: 'DEPOSIT',
+            referenceId: payment.id,
         });
         
         logger.info('❌ Payment failed:', {

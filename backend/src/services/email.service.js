@@ -23,9 +23,9 @@ class EmailService {
     // Verify connection configuration
     this.transporter.verify((error, success) => {
       if (error) {
-        logger.error('Gmail SMTP connection error:', error);
+        logger.error('Email connection error:', error);
       } else {
-        logger.info('Gmail SMTP server is ready to send emails');
+        logger.info('Email server is ready ');
       }
     });
   }

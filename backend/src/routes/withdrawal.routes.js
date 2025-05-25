@@ -46,7 +46,7 @@ router.post('/', [
     auth,
     body('amount').isNumeric().withMessage('Amount must be a number'),
     body('phone').notEmpty().withMessage('Phone number is required'),
-    validate
+    
 ], withdrawalController.requestWithdrawal);
 
 /**

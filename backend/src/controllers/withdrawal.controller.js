@@ -120,12 +120,12 @@ class WithdrawalController {
                 }
             });
 
-            // Record system revenue from fee
-            await systemRevenueService.recordRevenue({
-                amount: fee,
-                type: 'WITHDRAWAL_FEE',
-                referenceId: withdrawal.id
-            }, tx);
+            // // Record system revenue from fee
+            // await systemRevenueService.recordRevenue({
+            //     amount: fee,
+            //     type: 'WITHDRAWAL_FEE',
+            //     referenceId: withdrawal.id
+            // }, tx);
 
             // Update to PROCESSING before mobile money request
             await Promise.all([
@@ -302,12 +302,12 @@ class WithdrawalController {
         });
 
         // Create notification after transaction
-        await notificationService.createWithdrawalNotification(
-            userId,
-            result.withdrawal.id,
-            result.scriptNetworksResponse.success ? 'COMPLETED' : 'FAILED',
-            amount
-        );
+        // await notificationService.create(
+        //     userId,
+        //     result.withdrawal.id,
+        //     result.scriptNetworksResponse.success ? 'COMPLETED' : 'FAILED',
+        //     amount
+        // );
 
         res.status(201).json({
             success: true,

@@ -7,12 +7,12 @@ const { prisma } = require('../config/prisma');
  */
 const auth = async (req, res, next) => {
     try {
-        console.log(' Auth Middleware - Start');
+        // console.log(' Auth Middleware - Start');
         const authHeader = req.header('Authorization');
-        console.log(' Auth Header:', authHeader);
+        // console.log(' Auth Header:', authHeader);
         
         if (!authHeader) {
-            console.log(' No auth header provided');
+            // console.log(' No auth header provided');
             return res.status(401).json({
                 success: false,
                 message: 'No authentication token provided'
@@ -20,15 +20,15 @@ const auth = async (req, res, next) => {
         }
 
         const token = authHeader.replace('Bearer ', '');
-        console.log(' Token:', token.substring(0, 20) + '...');
+        // console.log(' Token:', token.substring(0, 20) + '...');
         
-        console.log(' JWT_SECRET from env:', process.env.JWT_SECRET ? ' Present' : ' Missing');
-        console.log(' JWT_SECRET from config:', JWT_SECRET ? ' Present' : ' Missing');
+        // console.log(' JWT_SECRET from env:', process.env.JWT_SECRET ? ' Present' : ' Missing');
+        // console.log(' JWT_SECRET from config:', JWT_SECRET ? ' Present' : ' Missing');
         
         let decoded;
         try {
             decoded = jwt.verify(token, JWT_SECRET);
-            console.log(' Decoded token:', { ...decoded, iat: undefined, exp: undefined });
+            // console.log(' Decoded token:', { ...decoded, iat: undefined, exp: undefined });
         } catch (error) {
             console.log(' Token verification failed:', error.message);
             return res.status(401).json({
@@ -77,7 +77,7 @@ const auth = async (req, res, next) => {
 
         // Check if session is valid
         if (decoded.sessionId) {
-            console.log(' Checking session:', decoded.sessionId);
+            // console.log(' Checking session:', decoded.sessionId);
             const session = await prisma.session.findUnique({
                 where: { id: decoded.sessionId }
             });
@@ -97,7 +97,7 @@ const auth = async (req, res, next) => {
         
         next();
     } catch (error) {
-        console.log(' Auth Middleware Error:', error);
+        // console.log(' Auth Middleware Error:', error);
         return res.status(401).json({
             success: false,
             message: 'Authentication failed'

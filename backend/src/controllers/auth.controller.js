@@ -741,7 +741,7 @@ class AuthController {
         }
       });
 
-      console.log('🔑 Profile:', user);
+      
 
     } catch (error) {
       console.error('Get profile error:', error);

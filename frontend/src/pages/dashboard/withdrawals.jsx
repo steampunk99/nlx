@@ -40,7 +40,7 @@ const itemVariants = {
 export default function WithdrawalsPage() {
   // Hooks
   const { user } = useAuth(); // Keep if needed elsewhere or for future use
-  const { commissionStats } = useCommissions();
+  
   const { data:earnings } = useEarnings()
   const queryClient = useQueryClient();
   const {
@@ -88,6 +88,7 @@ export default function WithdrawalsPage() {
         amount: parseFloat(data.amount)
       };
       const response = await api.post("/withdrawals", payload);
+      console.log("withdrawing")
       return response.data;
     },
     onSuccess: (data) => {

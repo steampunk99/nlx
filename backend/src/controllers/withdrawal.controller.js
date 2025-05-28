@@ -693,6 +693,41 @@ class WithdrawalController {
             }
         });
     })
+
+    /**
+     * Check withdrawal status by transactionId
+     */
+    checkWithdrawalStatus = catchAsync(async (req, res) => {
+        const { transactionId } = req.params;
+        if (!transactionId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing transactionId'
+            });
+        }
+        const withdrawal = await prisma.withdrawal.findUnique({
+            where: { transactionId },
+        });
+        if (!withdrawal) {
+            return res.status(404).json({
+                success: false,
+                message: 'Withdrawal not found'
+            });
+        }
+        res.json({
+            success: true,
+            
+                transactionId: withdrawal.transactionId,
+                status: withdrawal.status,
+                amount: withdrawal.amount,
+                method: withdrawal.method,
+                details: withdrawal.details,
+                createdAt: withdrawal.createdAt,
+                processedAt: withdrawal.processedAt,
+                completedAt: withdrawal.completedAt
+            
+        });
+    });
 }
 
 module.exports = new WithdrawalController();

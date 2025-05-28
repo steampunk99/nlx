@@ -114,7 +114,7 @@ export default function WithdrawalsPage() {
         errorMessage = error.message;
       }
       setModal({ open: true, status: "error", message: errorMessage });
-      toast.error(errorMessage);
+      // toast.error(errorMessage);
       console.error("Withdrawal error:", error);
     },
   });

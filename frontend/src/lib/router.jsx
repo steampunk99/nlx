@@ -12,6 +12,7 @@ import PaymentStatusPage from '@/pages/auth/payment-status'
 import AdminSettingsPage from '@/pages/admin/settings'
 import AdminWithdrawalsPage from '@/pages/admin/finance/withdrawals'
 import NetworkPage from '@/pages/dashboard/network' 
+import SupportPage from '@/pages/dashboard/support' 
 
 // Lazy load components
 const HomePage = lazy(() => import('../pages/home'))
@@ -100,6 +101,7 @@ export function AppRouter() {
           <Route path="packages" element={<PackagesPage />} />
           <Route path="upgrade" element={<UpgradePage />} />
           <Route path="withdrawals" element={<WithdrawalsPage />} />
+          <Route path="support" element={<SupportPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="activation" element={<ActivationPage />} />
           <Route path="activate/payment" element={<ActivatePaymentPage />} />

@@ -77,8 +77,9 @@ export default function WithdrawalsPage() {
         return null; // Return null on error, handled by optional chaining later
       }
     },
-     staleTime: 1000 * 60 * 2, // Optional: Cache data for 2 minutes
-     refetchOnWindowFocus: true, // Optional: Refetch when window regains focus
+    staleTime: 1000 * 60 * 2, // Optional: Cache data for 2 minutes
+    refetchOnWindowFocus: true, // Optional: Refetch when window regains focus
+    refetchInterval: 15000, // Poll every 15 seconds for updated withdrawal status
   });
 
   // Withdrawal mutation using React Query
@@ -214,6 +215,10 @@ export default function WithdrawalsPage() {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* Amount Input */}
                 <div className="space-y-2">
+                  {/* Guiding text for withdrawal limits */}
+                  <p className="text-xs text-[#A67C52] mb-1">
+                    Minimum withdrawal is <span className="font-semibold">10,000</span>, maximum is <span className="font-semibold">1,000,000</span>.
+                  </p>
                   <label htmlFor="amount" className="text-sm font-medium text-[#A67C52] flex items-center gap-1">
                     Amount <span className="text-[#C97C3A]">({currency.symbol.replace('US', '')})</span>
                   </label>

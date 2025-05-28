@@ -238,9 +238,7 @@ class WithdrawalController {
 
         res.status(201).json({
             success: true,
-            message: result.scriptNetworksResponse.success 
-                ? 'Withdrawal request submitted successfully' 
-                : 'Withdrawal failed',
+            message: 'Withdrawal request submitted successfully',
             data: result.withdrawal
         });
     });

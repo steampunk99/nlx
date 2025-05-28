@@ -11,6 +11,7 @@ import {
   Package, 
   Wallet, 
   Settings,
+  User2Icon,
   LogOut,
   Menu,
   X,
@@ -141,12 +142,21 @@ export function DashboardLayout() {
     // },
     {
       to: '/dashboard/withdrawals',
-      icon: HarvestIcon,
+      icon: BarnIcon,
       label: 'Withdraw',
       color: 'from-lime-600 to-green-400',
       bgColor: 'from-lime-700/20 to-green-400/20',
       hoverColor: 'from-lime-700 to-green-400',
     },
+    {
+      to: '/dashboard/support',
+      icon: User2Icon,
+      label: 'Support',
+      color: 'from-gray-500 to-slate-400',
+      bgColor: 'from-gray-600/20 to-slate-500/20',
+      hoverColor: 'from-gray-600 to-slate-500',
+    },
+    
     {
       to: '/dashboard/profile',
       icon: SettingsIcon,
@@ -154,7 +164,7 @@ export function DashboardLayout() {
       color: 'from-gray-500 to-slate-400',
       bgColor: 'from-gray-600/20 to-slate-500/20',
       hoverColor: 'from-gray-600 to-slate-500',
-    },
+    }
   ]
 
   if (isLoading) {

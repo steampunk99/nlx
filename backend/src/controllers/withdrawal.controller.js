@@ -15,6 +15,8 @@ class WithdrawalController {
     requestWithdrawal = catchAsync(async (req, res) => {
         const { amount, phone } = req.body;
         const userId = req.user.id;
+        const config = require('../config/config');
+        const isLiveMode = process.env.NODE_ENV === 'production' || config.env === 'production';
 
         logger.info('Received withdrawal request:', {
             amount,
@@ -146,72 +148,119 @@ class WithdrawalController {
                 })
             ]);
 
-            try {
-                // Process withdrawal using Script Networks
-                const scriptNetworksResponse = await ugandaMobileMoneyUtil.requestWithdrawal({
-                    amount,
-                    phone,
-                    trans_id,
-                    reason: 'Commission withdrawal'
-                });
+            // --- LIVE MODE: Call real API ---
+            if (isLiveMode) {
+                try {
+                    // Process withdrawal using Script Networks
+                    const scriptNetworksResponse = await ugandaMobileMoneyUtil.requestWithdrawal({
+                        amount,
+                        phone,
+                        trans_id,
+                        reason: 'Commission withdrawal'
+                    });
 
-                logger.info(`Script Networks Response:`, scriptNetworksResponse);
+                    logger.info(`Script Networks Response:`, scriptNetworksResponse);
 
-                // Update records based on Script Networks response
-                if (scriptNetworksResponse.success) {
-                    // Update withdrawal statuses to COMPLETED
-                    await Promise.all([
-                        tx.withdrawal.update({
-                            where: { id: withdrawal.id },
-                            data: {
-                                status: 'COMPLETED',
-                                completedAt: new Date(),
-                                details: {
-                                    ...withdrawal.details,
-                                    scriptNetworksResponse: scriptNetworksResponse.data,
+                    // Update records based on Script Networks response
+                    if (scriptNetworksResponse.success) {
+                        // Update withdrawal statuses to COMPLETED
+                        await Promise.all([
+                            tx.withdrawal.update({
+                                where: { id: withdrawal.id },
+                                data: {
+                                    status: 'COMPLETED',
+                                    completedAt: new Date(),
+                                    details: {
+                                        ...withdrawal.details,
+                                        scriptNetworksResponse: scriptNetworksResponse.data,
+                                        completedAt: new Date()
+                                    }
+                                }
+                            }),
+                            tx.nodeWithdrawal.update({
+                                where: { id: nodeWithdrawal.id },
+                                data: { 
+                                    status: 'COMPLETED',
                                     completedAt: new Date()
                                 }
-                            }
-                        }),
-                        tx.nodeWithdrawal.update({
-                            where: { id: nodeWithdrawal.id },
-                            data: { 
-                                status: 'COMPLETED',
-                                completedAt: new Date()
-                            }
-                        }),
-                        tx.nodeStatement.updateMany({
-                            where: {
-                                referenceType: 'WITHDRAWAL',
-                                referenceId: withdrawal.id
-                            },
-                            data: { 
-                                status: 'COMPLETED',
-                                completedAt: new Date()
-                            }
-                        }),
-                        // Update node's available balance
-                        tx.node.update({
-                            where: { id: user.node.id },
-                            data: {
-                                availableBalance: {
-                                    decrement: withdrawal.amount
+                            }),
+                            tx.nodeStatement.updateMany({
+                                where: {
+                                    referenceType: 'WITHDRAWAL',
+                                    referenceId: withdrawal.id
                                 },
-                                updatedAt: new Date()
-                            }
-                        })
-                    ]);
+                                data: { 
+                                    status: 'COMPLETED',
+                                    completedAt: new Date()
+                                }
+                            }),
+                            // Update node's available balance
+                            tx.node.update({
+                                where: { id: user.node.id },
+                                data: {
+                                    availableBalance: {
+                                        decrement: withdrawal.amount
+                                    },
+                                    updatedAt: new Date()
+                                }
+                            })
+                        ]);
 
-                    // Create notification for successful withdrawal
-                    await notificationService.create({
-                        userId: withdrawal.userId,
-                        title: 'Withdrawal Successful',
-                        message: `Your withdrawal request of ${withdrawal.amount} has been processed and completed successfully.`,
-                        type: 'WITHDRAWAL_SUCCESS'
-                    }, tx);
-                } else {
-                    // Update records to FAILED status
-                    const failureReason = scriptNetworksResponse.message || 'Mobile money transfer failed';
+                        // Create notification for successful withdrawal
+                        await notificationService.create({
+                            userId: withdrawal.userId,
+                            title: 'Withdrawal Successful',
+                            message: `Your withdrawal request of ${withdrawal.amount} has been processed and completed successfully.`,
+                            type: 'WITHDRAWAL_SUCCESS'
+                        }, tx);
+                    } else {
+                        // Update records to FAILED status
+                        const failureReason = scriptNetworksResponse.message || 'Mobile money transfer failed';
+                        await Promise.all([
+                            tx.withdrawal.update({
+                                where: { id: withdrawal.id },
+                                data: {
+                                    status: 'FAILED',
+                                    details: {
+                                        ...withdrawal.details,
+                                        scriptNetworksResponse: scriptNetworksResponse.data,
+                                        failureReason,
+                                        failedAt: new Date()
+                                    }
+                                }
+                            }),
+                            tx.nodeWithdrawal.update({
+                                where: { id: nodeWithdrawal.id },
+                                data: { 
+                                    status: 'FAILED',
+                                    reason: failureReason
+                                }
+                            }),
+                            tx.nodeStatement.updateMany({
+                                where: {
+                                    referenceType: 'WITHDRAWAL',
+                                    referenceId: withdrawal.id
+                                },
+                                data: { 
+                                    status: 'FAILED',
+                                    description: `${withdrawal.description} - Failed: ${failureReason}`
+                                }
+                            })
+                        ]);
+
+                        // Create notification for failed withdrawal
+                        await notificationService.create({
+                            userId: withdrawal.userId,
+                            title: 'Withdrawal Failed',
+                            message: `Your withdrawal request of ${withdrawal.amount} has failed. Please contact support if you need assistance.`,
+                            type: 'WITHDRAWAL_FAILED'
+                        }, tx);
+                    }
+
+                    return { withdrawal, scriptNetworksResponse };
+                } catch (error) {
+                    // Handle unexpected errors during mobile money processing
+                    const errorMessage = 'Unexpected error during withdrawal processing';
                     await Promise.all([
                         tx.withdrawal.update({
                             where: { id: withdrawal.id },
@@ -219,8 +268,8 @@ class WithdrawalController {
                                 status: 'FAILED',
                                 details: {
                                     ...withdrawal.details,
-                                    scriptNetworksResponse: scriptNetworksResponse.data,
-                                    failureReason,
+                                    error: error.message,
+                                    failureReason: errorMessage,
                                     failedAt: new Date()
                                 }
                             }
@@ -229,7 +278,7 @@ class WithdrawalController {
                             where: { id: nodeWithdrawal.id },
                             data: { 
                                 status: 'FAILED',
-                                reason: failureReason
+                                reason: errorMessage
                             }
                         }),
                         tx.nodeStatement.updateMany({
@@ -239,7 +288,7 @@ class WithdrawalController {
                             },
                             data: { 
                                 status: 'FAILED',
-                                description: `${withdrawal.description} - Failed: ${failureReason}`
+                                description: `${withdrawal.description} - Failed: ${errorMessage}`
                             }
                         })
                     ]);
@@ -251,68 +300,30 @@ class WithdrawalController {
                         message: `Your withdrawal request of ${withdrawal.amount} has failed. Please contact support if you need assistance.`,
                         type: 'WITHDRAWAL_FAILED'
                     }, tx);
+
+                    throw error;
                 }
-
-                return { withdrawal, scriptNetworksResponse };
-            } catch (error) {
-                // Handle unexpected errors during mobile money processing
-                const errorMessage = 'Unexpected error during withdrawal processing';
-                await Promise.all([
-                    tx.withdrawal.update({
-                        where: { id: withdrawal.id },
-                        data: {
-                            status: 'FAILED',
-                            details: {
-                                ...withdrawal.details,
-                                error: error.message,
-                                failureReason: errorMessage,
-                                failedAt: new Date()
-                            }
+            } else {
+                // --- TEST/DEV MODE: Do not mark as failed, leave as PROCESSING ---
+                await tx.withdrawal.update({
+                    where: { id: withdrawal.id },
+                    data: {
+                        details: {
+                            ...withdrawal.details,
+                            note: 'Test mode: withdrawal not sent to real API',
+                            lastAttempt: new Date()
                         }
-                    }),
-                    tx.nodeWithdrawal.update({
-                        where: { id: nodeWithdrawal.id },
-                        data: { 
-                            status: 'FAILED',
-                            reason: errorMessage
-                        }
-                    }),
-                    tx.nodeStatement.updateMany({
-                        where: {
-                            referenceType: 'WITHDRAWAL',
-                            referenceId: withdrawal.id
-                        },
-                        data: { 
-                            status: 'FAILED',
-                            description: `${withdrawal.description} - Failed: ${errorMessage}`
-                        }
-                    })
-                ]);
-
-                // Create notification for failed withdrawal
-                await notificationService.create({
-                    userId: withdrawal.userId,
-                    title: 'Withdrawal Failed',
-                    message: `Your withdrawal request of ${withdrawal.amount} has failed. Please contact support if you need assistance.`,
-                    type: 'WITHDRAWAL_FAILED'
-                }, tx);
-
-                throw error;
+                    }
+                });
+                logger.info('Test mode: withdrawal left as PROCESSING, awaiting webhook or manual update', { withdrawalId: withdrawal.id });
+                return { withdrawal, scriptNetworksResponse: { success: true, testMode: true } };
             }
         });
-
-        // Create notification after transaction
-        // await notificationService.create(
-        //     userId,
-        //     result.withdrawal.id,
-        //     result.scriptNetworksResponse.success ? 'COMPLETED' : 'FAILED',
-        //     amount
-        // );
 
         res.status(201).json({
             success: true,
             message: result.scriptNetworksResponse.success 
-                ? 'Withdrawal processed successfully' 
+                ? 'Withdrawal request submitted successfully' 
                 : 'Withdrawal failed',
             data: result.withdrawal
         });

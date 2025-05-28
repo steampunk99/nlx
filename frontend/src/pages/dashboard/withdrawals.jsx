@@ -119,30 +119,7 @@ export default function WithdrawalsPage() {
     },
   });
 
-  // Use the new hook for live status polling after a withdrawal
-  const {
-    status: withdrawalStatus,
-    isLoading: isPolling,
-    error: pollingError,
-    details: withdrawalDetails
-  } = useWithdrawalStatus(recentWithdrawalTxId);
 
-  // Update modal status based on live polling
-  // Only update if modal is open and recentWithdrawalTxId is set
-  useEffect(() => {
-    if (!modal.open || !recentWithdrawalTxId) return;
-    if (pollingError) {
-      setModal((m) => ({ ...m, status: "error", message: "Error checking withdrawal status." }));
-    } else if (withdrawalStatus === "SUCCESSFUL") {
-      setModal((m) => ({ ...m, status: "success", message: "Withdrawal successful!" }));
-    } else if (withdrawalStatus === "FAILED") {
-      setModal((m) => ({ ...m, status: "error", message: withdrawalDetails?.details?.failureReason || "Withdrawal failed." }));
-    } else if (withdrawalStatus === "PROCESSING" || withdrawalStatus === "PENDING") {
-      setModal((m) => ({ ...m, status: "pending", message: "Processing your withdrawal..." }));
-    }
-  }, [withdrawalStatus, pollingError, withdrawalDetails, modal.open, recentWithdrawalTxId]);
-
-  // --- Data Processing ---
 
   // **MODIFICATION 2: Access the '.withdrawals' array *within* the fetched object**
   const withdrawalHistory = withdrawalsApiResponse?.withdrawals?.map((withdrawal) => ({

@@ -73,4 +73,17 @@ router.post('/:id/cancel', [
     validate
 ], withdrawalController.cancelWithdrawal);
 
+/**
+ * @swagger
+ * /withdrawals/status/{transactionId}:
+ *   get:
+ *     summary: Check withdrawal status by transactionId
+ *     tags: [Withdrawals]
+ */
+router.get('/status/:transactionId', [
+    auth,
+    param('transactionId').isString(),
+    validate
+], withdrawalController.checkWithdrawalStatus);
+
 module.exports = router;

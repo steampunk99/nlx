@@ -1,4 +1,4 @@
-import { useState } from "react"; // Keep for potential future use
+import { useState, useEffect } from "react"; // Keep for potential future use
 import { useForm } from "react-hook-form";
 import { api } from "../../lib/axios"; // Assuming axios instance is configured
 import toast from "react-hot-toast";
@@ -21,6 +21,7 @@ import {
   Loader2 // Added for history loading state
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useWithdrawalStatus } from "@/hooks/withdrawals/useWithdrawalStatus";
 
 // Animation variants for staggering children
 const containerVariants = {
@@ -53,6 +54,9 @@ export default function WithdrawalsPage() {
 
   // --- State and Data Fetching ---
   const [modal, setModal] = useState({ open: false, status: null, message: "" });
+  const [recentWithdrawalTxId, setRecentWithdrawalTxId] = useState(null);
+  // --- Add state for expanded withdrawal ---
+  const [expandedId, setExpandedId] = useState(null);
 
   // Calculate available balance (using optional chaining and nullish coalescing)
  const availableBalance = earnings?.availableBalance
@@ -91,18 +95,20 @@ export default function WithdrawalsPage() {
         amount: parseFloat(data.amount)
       };
       const response = await api.post("/withdrawals", payload);
-      console.log("withdrawing")
+      console.log("withdrawing");
       return response.data;
     },
     onSuccess: (data) => {
-      setModal({ open: true, status: "success", message: data?.message || "Withdrawal request submitted!" });
+      // Use trans_id for polling (from backend response)
+      setRecentWithdrawalTxId(data?.withdrawal?.trans_id || data?.trans_id);
+      setModal({ open: true, status: "pending", message: data?.message || "Withdrawal request submitted!" });
       queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
       queryClient.invalidateQueries({ queryKey: ["commissions"] });
       reset();
     },
     onError: (error) => {
       let errorMessage = "Failed to process withdrawal. Please try again.";
-      if (error.isAxiosError && error.response?.data?.message) {
+      if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
@@ -112,6 +118,29 @@ export default function WithdrawalsPage() {
       console.error("Withdrawal error:", error);
     },
   });
+
+  // Use the new hook for live status polling after a withdrawal
+  const {
+    status: withdrawalStatus,
+    isLoading: isPolling,
+    error: pollingError,
+    details: withdrawalDetails
+  } = useWithdrawalStatus(recentWithdrawalTxId);
+
+  // Update modal status based on live polling
+  // Only update if modal is open and recentWithdrawalTxId is set
+  useEffect(() => {
+    if (!modal.open || !recentWithdrawalTxId) return;
+    if (pollingError) {
+      setModal((m) => ({ ...m, status: "error", message: "Error checking withdrawal status." }));
+    } else if (withdrawalStatus === "SUCCESSFUL") {
+      setModal((m) => ({ ...m, status: "success", message: "Withdrawal successful!" }));
+    } else if (withdrawalStatus === "FAILED") {
+      setModal((m) => ({ ...m, status: "error", message: withdrawalDetails?.details?.failureReason || "Withdrawal failed." }));
+    } else if (withdrawalStatus === "PROCESSING" || withdrawalStatus === "PENDING") {
+      setModal((m) => ({ ...m, status: "pending", message: "Processing your withdrawal..." }));
+    }
+  }, [withdrawalStatus, pollingError, withdrawalDetails, modal.open, recentWithdrawalTxId]);
 
   // --- Data Processing ---
 
@@ -320,7 +349,7 @@ export default function WithdrawalsPage() {
                 </div>
               ) : withdrawalHistory.length > 0 ? (
                 <motion.ul
-                  className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[#b6d7b0] scrollbar-track-transparent hover:scrollbar-thumb-[#8d6748]/50 transition-colors"
+                  className="space-y-3 max-h-[400px] sm:max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[#b6d7b0] scrollbar-track-transparent hover:scrollbar-thumb-[#8d6748]/50 transition-colors"
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
@@ -328,30 +357,46 @@ export default function WithdrawalsPage() {
                   {withdrawalHistory.map((withdrawal) => {
                     const statusConfig = getStatusConfig(withdrawal.status);
                     const StatusIcon = statusConfig.icon;
+                    const isExpanded = expandedId === withdrawal.id;
                     return (
                       <motion.li
                         key={withdrawal.id}
                         variants={itemVariants}
-                        className={`flex items-center justify-between gap-4 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-[#e6f2ef]/40`}
+                        className={`flex flex-col gap-2 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-[#e6f2ef]/40 cursor-pointer`}
+                        onClick={() => setExpandedId(isExpanded ? null : withdrawal.id)}
                       >
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${statusConfig.bg} border ${statusConfig.border}`}>
-                            <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${statusConfig.bg} border ${statusConfig.border}`}>
+                              <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-[#4e3b1f] truncate">
+                                {currency.symbol} {formatAmount(withdrawal.amount)}
+                              </p>
+                              <p className="text-xs text-[#A67C52] truncate">
+                                {new Date(withdrawal.createdAt).toLocaleDateString('en-UG', {
+                                  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-[#4e3b1f] truncate">
-                              {currency.symbol} {formatAmount(withdrawal.amount)}
-                            </p>
-                            <p className="text-xs text-[#A67C52] truncate">
-                              {new Date(withdrawal.createdAt).toLocaleDateString('en-UG', {
-                                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
+                          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                            {statusConfig.text}
+                          </span>
                         </div>
-                        <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
-                          {statusConfig.text}
-                        </span>
+                        {isExpanded && (
+                          <div className="mt-2 text-sm bg-white/70 rounded-lg p-3 border border-[#b6d7b0]/30">
+                            <div className="flex flex-col gap-1">
+                              <div><span className="font-semibold">Amount:</span> {currency.symbol} {formatAmount(withdrawal.amount)}</div>
+                              <div><span className="font-semibold">Status:</span> {withdrawal.status}</div>
+                              <div><span className="font-semibold">Date:</span> {new Date(withdrawal.createdAt).toLocaleString('en-UG')}</div>
+                              {/* Add more details if available, e.g. phone, failure reason */}
+                              {withdrawal.phone && <div><span className="font-semibold">Phone:</span> {withdrawal.phone}</div>}
+                              {withdrawal.failureReason && <div className="text-rose-500"><span className="font-semibold">Reason:</span> {withdrawal.failureReason}</div>}
+                            </div>
+                          </div>
+                        )}
                       </motion.li>
                     );
                   })}
@@ -365,37 +410,8 @@ export default function WithdrawalsPage() {
           </div>
         </motion.section>
       </motion.div>
-      {/* Transaction Feedback Modal */}
-      <Dialog open={modal.open} onOpenChange={open => setModal(m => ({ ...m, open }))}>
-        <DialogContent className="max-w-sm text-center">
-          <DialogHeader className="">
-            <DialogTitle className="">
-              {modal.status === "success" ? (
-                <span className="flex flex-col items-center gap-2 text-emerald-600">
-                  <CheckCircle2 className="w-10 h-10 mx-auto" />
-                  Success!
-                </span>
-              ) : (
-                <span className="flex flex-col items-center gap-2 text-rose-500">
-                  <XCircle className="w-10 h-10 mx-auto" />
-                  Failed
-                </span>
-              )}
-            </DialogTitle>
-            <DialogDescription className="mt-2 text-base text-[#4e3b1f]">
-              {modal.message}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="">
-            <button
-              className="mt-4 w-full px-4 py-2 rounded-lg bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] text-[#4e3b1f] font-semibold hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 transition"
-              onClick={() => setModal({ open: false, status: null, message: "" })}
-            >
-              Close
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Transaction Feedback Modal with live status */}
+     
       {/* Animations CSS */}
       <style>{`
         @keyframes cloud-move { 0%{transform:translateX(0);} 100%{transform:translateX(60vw);} }

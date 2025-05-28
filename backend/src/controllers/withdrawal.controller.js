@@ -174,12 +174,7 @@ class WithdrawalController {
                     });
                     await tx.nodeWithdrawal.update({
                         where: { id: nodeWithdrawal.id },
-                        data: {
-                            details: {
-                                scriptNetworksResponse: scriptNetworksResponse.data,
-                                lastAttempt: new Date()
-                            }
-                        }
+                        
                     });
                     // Optionally, you can log or store the API response for debugging
                 } catch (error) {
@@ -721,7 +716,7 @@ class WithdrawalController {
                 status: withdrawal.status,
                 amount: withdrawal.amount,
                 method: withdrawal.method,
-                details: withdrawal.details,
+                
                 createdAt: withdrawal.createdAt,
                 processedAt: withdrawal.processedAt,
                 completedAt: withdrawal.completedAt

@@ -172,10 +172,7 @@ class WithdrawalController {
                             }
                         }
                     });
-                    await tx.nodeWithdrawal.update({
-                        where: { id: nodeWithdrawal.id },
-                        
-                    });
+                    // Removed empty nodeWithdrawal.update call that caused Prisma error
                     // Optionally, you can log or store the API response for debugging
                 } catch (error) {
                     // Handle unexpected errors during mobile money processing

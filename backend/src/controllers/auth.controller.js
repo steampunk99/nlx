@@ -192,7 +192,7 @@ class AuthController {
         });
 
         // Send welcome email
-        await emailService.sendWelcomeEmail(user.email, user.firstName);
+        // await emailService.sendWelcomeEmail(user.email, user.firstName);
 
         // Notify admins of new registration
         await adminNotificationUtils.newUserRegistered(user);

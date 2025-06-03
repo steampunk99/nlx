@@ -20,8 +20,6 @@ import {
   Send, // Icon for request form
   Loader2 // Added for history loading state
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { useWithdrawalStatus } from "@/hooks/withdrawals/useWithdrawalStatus";
 
 // Animation variants for staggering children
 const containerVariants = {
@@ -40,8 +38,7 @@ const itemVariants = {
 };
 
 export default function WithdrawalsPage() {
-  // Hooks
-  const { user } = useAuth(); // Keep if needed elsewhere or for future use
+
   const {data: earnings} = useEarnings()
   const queryClient = useQueryClient();
   const {
@@ -52,8 +49,7 @@ export default function WithdrawalsPage() {
   } = useForm();
   const { currency, formatAmount } = useCountry(); // Assuming provides { symbol: 'UGX', name: 'Ugandan Shilling' }, formatAmount function
 
-  // --- State and Data Fetching ---
-  const [modal, setModal] = useState({ open: false, status: null, message: "" });
+
   const [recentWithdrawalTxId, setRecentWithdrawalTxId] = useState(null);
   // --- Add state for expanded withdrawal ---
   const [expandedId, setExpandedId] = useState(null);
@@ -123,12 +119,16 @@ export default function WithdrawalsPage() {
 
   // **MODIFICATION 2: Access the '.withdrawals' array *within* the fetched object**
   const withdrawalHistory = withdrawalsApiResponse?.withdrawals?.map((withdrawal) => ({
-     id: withdrawal.id,
-     amount: withdrawal.amount,
-     status: withdrawal.status?.toUpperCase() || 'UNKNOWN', // Normalize status
-     createdAt: withdrawal.createdAt
+    id: withdrawal.id,
+    amount: withdrawal.amount,
+    status: withdrawal.status?.toUpperCase() || 'UNKNOWN', // Normalize status
+    createdAt: withdrawal.createdAt,
+    phone: withdrawal.details?.phone || withdrawal.phone,
+    failureReason: withdrawal.failureReason,
+    details: withdrawal.details || {},
   })) || []; // Default to empty array if withdrawalsApiResponse or .withdrawals is missing/null
 
+ 
   // Calculate total withdrawn amount (only successful ones)
   const totalWithdrawn = withdrawalHistory.reduce(
     (total, withdrawal) =>
@@ -157,6 +157,16 @@ export default function WithdrawalsPage() {
   const onSubmit = (data) => {
     withdrawalMutation.mutate(data);
   };
+
+  // --- Check if user has already made a successful withdrawal today ---
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const hasWithdrawnToday = withdrawalHistory.some(w => {
+    if (w.status !== 'SUCCESSFUL') return false;
+    const created = new Date(w.createdAt);
+    created.setHours(0, 0, 0, 0);
+    return created.getTime() === today.getTime();
+  });
 
   // --- Render ---
 
@@ -215,10 +225,16 @@ export default function WithdrawalsPage() {
               </div>
             </div>
             <div className="mt-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
+              <h2 className="text-4xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
                 Request Withdrawal
               </h2>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {hasWithdrawnToday && (
+                  <div className="mb-4 p-3 rounded-lg bg-amber-100 border border-amber-300 text-amber-700 flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                    <span>You can only make one successful withdrawal per day. Please come back tomorrow.</span>
+                  </div>
+                )}
                 {/* Amount Input */}
                 <div className="space-y-2">
                   {/* Guiding text for withdrawal limits */}
@@ -226,12 +242,10 @@ export default function WithdrawalsPage() {
                     Minimum withdrawal is <span className="font-semibold">10,000</span>, maximum is <span className="font-semibold">1,000,000</span>.
                   </p>
                   <label htmlFor="amount" className="text-sm font-medium text-[#A67C52] flex items-center gap-1">
-                    Amount <span className="text-[#C97C3A]">({currency.symbol.replace('US', '')})</span>
+                    Amount 
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#C97C3A]/50">
-                      {currency.symbol.replace('US', '')}
-                    </div>
+                   
                     <input
                       id="amount"
                       type="number"
@@ -239,12 +253,13 @@ export default function WithdrawalsPage() {
                       {...register("amount", {
                         required: "Amount is required",
                         valueAsNumber: true,
-                        min: { value: 1000, message: `Minimum withdrawal is ${currency.symbol.replace('US', '')} 1,000` },
+                        min: { value: 10000, message: `Minimum withdrawal is ${currency.symbol.replace('US', '')} 10,000` },
                         max: { value: availableBalance, message: `Insufficient balance (Available: ${formatAmount(availableBalance)})` },
                         validate: value => value <= availableBalance || `Amount exceeds available balance`
                       })}
                       className="w-full pl-8 pr-4 py-2.5 bg-white/60 border border-[#b6d7b0]/40 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/40 focus:outline-none focus:border-[#b6d7b0]/80 focus:ring-1 focus:ring-[#b6d7b0]/50 transition duration-200"
                       placeholder="Enter amount"
+                      disabled={hasWithdrawnToday}
                     />
                   </div>
                   {errors.amount && (
@@ -270,6 +285,7 @@ export default function WithdrawalsPage() {
                     })}
                     className="w-full px-4 py-2.5 bg-white/60 border border-[#b6d7b0]/40 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/40 focus:outline-none focus:border-[#b6d7b0]/80 focus:ring-1 focus:ring-[#b6d7b0]/50 transition duration-200"
                     placeholder="e.g., 0701234567"
+                    disabled={hasWithdrawnToday}
                   />
                   {errors.phone && (
                     <p className="text-sm text-rose-400 flex items-center gap-1">
@@ -280,21 +296,16 @@ export default function WithdrawalsPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={withdrawalMutation.isPending || availableBalance < 1000}
+                  disabled={withdrawalMutation.isPending || availableBalance < 1000 || hasWithdrawnToday}
                   className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#b6d7b0]/50 focus:ring-[#C97C3A]
-                    ${withdrawalMutation.isPending || availableBalance < 1000
+                    ${withdrawalMutation.isPending || availableBalance < 1000 || hasWithdrawnToday
                       ? 'bg-gray-600 cursor-not-allowed opacity-70'
                       : 'bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 shadow-lg hover:shadow-[#b6d7b0]/40 transform hover:-translate-y-0.5'
                     }`}
                 >
                   {withdrawalMutation.isPending ? (
                     <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      >
-                        <Zap className="w-5 h-5" />
-                      </motion.div>
+                      <Loader2 className="w-5 h-5 animate-spin text-amber-400" />
                       Processing...
                     </>
                   ) : (
@@ -335,17 +346,31 @@ export default function WithdrawalsPage() {
                     const statusConfig = getStatusConfig(withdrawal.status);
                     const StatusIcon = statusConfig.icon;
                     const isExpanded = expandedId === withdrawal.id;
+                    // Spinner for PENDING/PROCESSING
+                    const isPending = withdrawal.status === "PENDING" || withdrawal.status === "PROCESSING";
                     return (
                       <motion.li
                         key={withdrawal.id}
                         variants={itemVariants}
                         className={`flex flex-col gap-2 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-[#e6f2ef]/40 cursor-pointer`}
-                        onClick={() => setExpandedId(isExpanded ? null : withdrawal.id)}
+                        onClick={() => setExpandedId(expandedId === withdrawal.id ? null : withdrawal.id)}
+                        tabIndex={0}
+                        role="button"
+                        aria-expanded={isExpanded}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setExpandedId(expandedId === withdrawal.id ? null : withdrawal.id);
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3 overflow-hidden">
                             <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${statusConfig.bg} border ${statusConfig.border}`}>
-                              <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                              {isPending ? (
+                                <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
+                              ) : (
+                                <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-[#4e3b1f] truncate">
@@ -371,6 +396,20 @@ export default function WithdrawalsPage() {
                               {/* Add more details if available, e.g. phone, failure reason */}
                               {withdrawal.phone && <div><span className="font-semibold">Phone:</span> {withdrawal.phone}</div>}
                               {withdrawal.failureReason && <div className="text-rose-500"><span className="font-semibold">Reason:</span> {withdrawal.failureReason}</div>}
+                              {/* Show details fields if present */}
+                              {withdrawal.details && (
+                                <>
+                                  {withdrawal.details.trans_id && (
+                                    <div><span className="font-semibold">Transaction ID:</span> {withdrawal.details.trans_id}</div>
+                                  )}
+                                  {withdrawal.details.fee !== undefined && (
+                                    <div><span className="font-semibold">Charge:</span> {currency.symbol} {formatAmount(withdrawal.details.fee)}</div>
+                                  )}
+                                  {withdrawal.details.phone && withdrawal.details.phone !== withdrawal.phone && (
+                                    <div><span className="font-semibold">Phone (details):</span> {withdrawal.details.phone}</div>
+                                  )}
+                                </>
+                              )}
                             </div>
                           </div>
                         )}
@@ -414,4 +453,3 @@ export default function WithdrawalsPage() {
     </div>
   );
 }
-

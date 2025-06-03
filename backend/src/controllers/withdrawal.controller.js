@@ -9,239 +9,6 @@ const { catchAsync } = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
 class WithdrawalController {
-    /**
-     * Request a new withdrawal
-     */
-    // requestWithdrawal = catchAsync(async (req, res) => {
-    //     const { amount, phone } = req.body;
-    //     const userId = req.user.id;
-    //     const config = require('../config/config');
-    //     const isLiveMode = process.env.NODE_ENV === 'production' || config.env === 'production';
-
-    //     logger.info('Received withdrawal request:', {
-    //         amount,
-    //         phone,
-    //         user_id: userId
-    //     });
-
-    //     // Check for existing pending withdrawals
-    //     const pendingWithdrawals = await prisma.withdrawal.findMany({
-    //         where: {
-    //             userId,
-    //             status: {
-    //                 in: ['PENDING', 'PROCESSING']
-    //             }
-    //         }
-    //     });
-
-    //     if (pendingWithdrawals.length > 0) {
-    //         logger.warn(`User ${userId} has pending withdrawals:`, pendingWithdrawals);
-    //         throw new AppError('You have pending withdrawals. Please wait for them to complete.', 400);
-    //     }
-
-    //     const result = await prisma.$transaction(async (tx) => {
-    //         // Get user with node
-    //         const user = await tx.user.findUnique({
-    //             where: { id: userId },
-    //             include: {
-    //                 node: true
-    //             }
-    //         });
-
-    //         if (!user?.node) {
-    //             logger.error(`User or node not found for User ID: ${userId}`);
-    //             throw new AppError('User or node not found', 404);
-    //         }
-
-    //         logger.info(`Processing withdrawal for user:`, user);
-
-    //         // Check available balance
-    //         if (user.node.availableBalance < amount) {
-    //             logger.error(`Insufficient balance for User ID: ${userId}. Available: ${user.node.availableBalance}, Requested: ${amount}`);
-    //             throw new AppError('Insufficient balance', 400);
-    //         }
-
-    //         // Calculate withdrawal fee
-    //         const fee = await systemRevenueService.calculateWithdrawalFee(amount);
-
-    //         // Generate transaction ID
-    //         const trans_id = `WTH${Date.now()}${Math.random().toString(36).substr(2, 4)}`;
-    //         logger.info(`Generated Transaction ID: ${trans_id}`);
-
-    //         // Create withdrawal records with initial PENDING status
-    //         const [withdrawal, nodeWithdrawal] = await Promise.all([
-    //             // Create user withdrawal record
-    //             tx.withdrawal.create({
-    //                 data: {
-    //                     userId: userId,
-    //                     amount: amount,
-    //                     status: 'PENDING',
-    //                     method: 'MOBILE MONEY',
-    //                     transactionId: trans_id,
-    //                     details: {
-    //                         phone,
-    //                         trans_id,
-    //                         amount,
-    //                         user: user.id,
-    //                         attempts: 0,
-    //                         fee
-    //                     }
-    //                 },
-    //                 include: {
-    //                     user: true
-    //                 }
-    //             }),
-
-    //             // Create node withdrawal record
-    //             tx.nodeWithdrawal.create({
-    //                 data: {
-    //                     nodeId: user.node.id,
-    //                     amount: amount,
-    //                     status: 'PENDING',
-    //                     transactionId: trans_id,
-    //                     paymentPhone: phone,
-    //                     paymentType: 'MOBILE MONEY',
-    //                     reason: 'Commission withdrawal',
-    //                     withdrawalDate: new Date()
-    //                 }
-    //             })
-    //         ]);
-
-    //         logger.info(`Withdrawal records created: User Withdrawal ID: ${withdrawal.id}, Node Withdrawal ID: ${nodeWithdrawal.id}`);
-
-    //         // Create node statement
-    //         await tx.nodeStatement.create({
-    //             data: {
-    //                 nodeId: user.node.id,
-    //                 amount: amount,
-    //                 type: 'DEBIT',
-    //                 status: 'PENDING',
-    //                 description: `Withdrawal request #${withdrawal.id}`,
-    //                 referenceType: 'WITHDRAWAL',
-    //                 referenceId: withdrawal.id
-    //             }
-    //         });
-
-    //         // // Record system revenue from fee
-    //         // await systemRevenueService.recordRevenue({
-    //         //     amount: fee,
-    //         //     type: 'WITHDRAWAL_FEE',
-    //         //     referenceId: withdrawal.id
-    //         // }, tx);
-
-    //         // Update to PROCESSING before mobile money request
-    //         await Promise.all([
-    //             tx.withdrawal.update({
-    //                 where: { id: withdrawal.id },
-    //                 data: {
-    //                     status: 'PROCESSING',
-    //                     details: {
-    //                         ...withdrawal.details,
-    //                         attempts: 1,
-    //                         lastAttempt: new Date()
-    //                     }
-    //                 }
-    //             }),
-    //             tx.nodeWithdrawal.update({
-    //                 where: { id: nodeWithdrawal.id },
-    //                 data: { status: 'PROCESSING' }
-    //             })
-    //         ]);
-
-    //         // --- LIVE MODE: Call real API ---
-    //         if (isLiveMode) {
-    //             try {
-    //                 // Process withdrawal using Script Networks
-    //                 const scriptNetworksResponse = await ugandaMobileMoneyUtil.requestWithdrawal({
-    //                     amount,
-    //                     phone,
-    //                     trans_id,
-    //                     reason: 'Commission withdrawal'
-    //                 });
-
-    //                 logger.info(`Script Networks Response:`, scriptNetworksResponse);
-
-    //                 // Always leave withdrawal as PROCESSING; webhook will update status
-    //                 await tx.withdrawal.update({
-    //                     where: { id: withdrawal.id },
-    //                     data: {
-    //                         details: {
-    //                             ...withdrawal.details,
-    //                             scriptNetworksResponse: scriptNetworksResponse.data,
-    //                             lastAttempt: new Date()
-    //                         }
-    //                     }
-    //                 });
-    //                 // Removed empty nodeWithdrawal.update call that caused Prisma error
-    //                 // Optionally, you can log or store the API response for debugging
-    //             } catch (error) {
-    //                 // Handle unexpected errors during mobile money processing
-    //                 const errorMessage = 'Unexpected error during withdrawal processing';
-    //                 await Promise.all([
-    //                     tx.withdrawal.update({
-    //                         where: { id: withdrawal.id },
-    //                         data: {
-    //                             status: 'FAILED',
-    //                             details: {
-    //                                 ...withdrawal.details,
-    //                                 error: error.message,
-    //                                 failureReason: errorMessage,
-    //                                 failedAt: new Date()
-    //                             }
-    //                         }
-    //                     }),
-    //                     tx.nodeWithdrawal.update({
-    //                         where: { id: nodeWithdrawal.id },
-    //                         data: { 
-    //                             status: 'FAILED',
-    //                             reason: errorMessage
-    //                         }
-    //                     }),
-    //                     tx.nodeStatement.updateMany({
-    //                         where: {
-    //                             referenceType: 'WITHDRAWAL',
-    //                             referenceId: withdrawal.id
-    //                         },
-    //                         data: { 
-    //                             status: 'FAILED',
-    //                             description: `${withdrawal.description} - Failed: ${errorMessage}`
-    //                         }
-    //                     })
-    //                 ]);
-
-    //                 // Create notification for failed withdrawal
-    //                 await notificationService.create({
-    //                     userId: withdrawal.userId,
-    //                     title: 'Withdrawal Failed',
-    //                     message: `Your withdrawal request of ${withdrawal.amount} has failed. Please contact support if you need assistance.`,
-    //                     type: 'WITHDRAWAL_FAILED'
-    //                 }, tx);
-
-    //                 throw error;
-    //             }
-    //         } else {
-    //             // --- TEST/DEV MODE: Do not mark as failed, leave as PROCESSING ---
-    //             await tx.withdrawal.update({
-    //                 where: { id: withdrawal.id },
-    //                 data: {
-    //                     details: {
-    //                         ...withdrawal.details,
-    //                         note: 'Test mode: withdrawal not sent to real API',
-    //                         lastAttempt: new Date()
-    //                     }
-    //                 }
-    //             });
-    //             logger.info('Test mode: withdrawal left as PROCESSING, awaiting webhook or manual update', { withdrawalId: withdrawal.id });
-    //             return { withdrawal, scriptNetworksResponse: { success: true, testMode: true } };
-    //         }
-    //     });
-
-    //     res.status(201).json({
-    //         success: true,
-    //         message: 'Withdrawal request submitted successfully',
-    //         data: result.withdrawal
-    //     });
-    // });
 
 
     requestWithdrawal = catchAsync(async (req, res) => {
@@ -263,6 +30,31 @@ class WithdrawalController {
     if (pendingWithdrawals.length > 0) {
         logger.warn(`User ${userId} has pending withdrawals:`, pendingWithdrawals);
         throw new AppError('You have pending withdrawals. Please wait for them to complete.', 400);
+    }
+
+    // Limit: Only one successful withdrawal per day
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const todaysSuccessfulWithdrawal = await prisma.withdrawal.findFirst({
+        where: {
+            userId,
+            status: 'SUCCESSFUL',
+            createdAt: {
+                gte: startOfDay,
+                lte: endOfDay
+            }
+        }
+    });
+
+    if (todaysSuccessfulWithdrawal) {
+        logger.warn(`User ${userId} attempted multiple withdrawals in one day.`);
+        return res.status(400).json({
+            success: false,
+            message: 'You can only make one successful withdrawal per day.'
+        });
     }
 
     // 1. Create withdrawal records in a transaction (no API call inside)

@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// FOR ADMIN
 class NodeWithdrawalService {
     async findAll(nodeId, { status } = {}) {
         const where = { nodeId };

@@ -216,6 +216,21 @@ model Notification {
   @@map("notifications")
 }
 
+model PrizeConfig {
+  title           String // Name/title of the prize
+  id              Int      @id @default(autoincrement())
+  amount          Decimal  @db.Decimal(15,2) // Total prize pool for the window
+  startTimeUTC    String   // e.g., "22:00"
+  durationMinutes Int      // e.g., 10
+  maxWinners      Int      // e.g., 10
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("prize_config")
+}
+
+
 model Report {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")

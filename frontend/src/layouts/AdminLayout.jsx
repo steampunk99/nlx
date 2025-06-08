@@ -36,6 +36,11 @@ const navigation = [
     icon: 'lucide:users'
   },
   { 
+    name: 'Prizes', 
+    href: '/admin/prizes',
+    icon: 'lucide:gift'
+  },
+  { 
     name: 'Packages', 
     href: '/admin/packages',
     icon: 'lucide:package'

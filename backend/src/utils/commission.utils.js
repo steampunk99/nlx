@@ -43,16 +43,16 @@ async function calculateCommissions(nodeId, amount, packageId, tx = prisma) {
         }
 
         // Get sponsor chain without transaction
-        const sponsorChain = await getSponsorChain(node.id, 7);
+        const sponsorChain = await getSponsorChain(node.id, 3);
 
         const commissionRates = {
-            1: 40,
-            2: 10,
-            3: 5,
-            4: 2,
-            5: 2,
-            6: 2,
-            7: 1
+            1: 35,
+            2: 2,
+            3: 2,
+            // 4: 2,
+            // 5: 2,
+            // 6: 2,
+            // 7: 1
         };
 
         let totalCommissionsDistributed = 0;

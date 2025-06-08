@@ -361,7 +361,7 @@ export default function NetworkPage() {
                 Recruitment Bonus
               </p>
               <p className="mt-1 text-[#4e3b1f]">
-                For each new farmer that joins with your link, you'll earn 40% commission on their package purchase.
+                For each new farmer that joins with your link, you'll earn 35% commission on their plan purchase.
               </p>
             </div>
           </div>

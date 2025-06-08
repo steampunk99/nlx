@@ -15,6 +15,7 @@ import { useCommissions } from "../../hooks/dashboard/useCommissions"
 
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../lib/axios"
+import { Badge } from "@/components/ui/badge"
 
 // --- Inline SVG React Components ---
 function CocoaPod(props) {
@@ -185,11 +186,11 @@ function DashboardOverview() {
   const getActivityEmoji = (type) => {
     switch (type) {
       case 'commission':
-        return '🌱';
+        return '💰';
       case 'referral':
-        return '👩‍🌾';
+        return '💰';
       default:
-        return '🍫';
+        return '💰';
     }
   };
 
@@ -254,8 +255,8 @@ function DashboardOverview() {
           >
             <div className="p-4 md:p-6 relative bg-gradient-to-br from-[#ffe066]/40 to-[#b6d7b0]/20 h-full">
               {/* Farmhouse decoration in top right */}
-              <div className="absolute top-5 right-5 opacity-70">
-                <Farmhouse className="w-10 h-10 md:w-12 md:h-12" />
+              <div className="absolute scale-2 top-5 right-5 opacity-70">
+              
               </div>
               
               {/* Left border accent */}
@@ -280,18 +281,7 @@ function DashboardOverview() {
                 
                 {/* Chip decoration */}
                
-                {/* Bottom stats */}
-                <div className="flex justify-between items-end">
-                  <div className="ml-3">
-                    <p className="text-xs text-[#A67C52]/60">Harvested Today</p>
-                    <p className="text-lg font-semibold text-[#C97C3A]">{currency.symbol} {formatAmount(dailyReward || 0)}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Harvest className="w-12 h-12" />
-                    {/* <p className="text-xs font-mono text-[#A67C52]/80">05/25</p> */}
-                  </div>
-                </div>
+               
               </div>
             </div>
           </motion.div>
@@ -376,7 +366,7 @@ function DashboardOverview() {
                   transition={{ delay: index * 0.1 + 0.4 }}
                   onClick={() => setExpandedActivity(isExpanded ? null : index)}
                 >
-                  <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gradient-to-br from-[#ffe066]/40 to-[#b6d7b0]/30 border-2 border-[#ffe066]/30 flex items-center justify-center text-2xl">
+                  <div className="flex-shrink-0 ml-3 w-14 h-14 rounded-full bg-gradient-to-br from-[#ffe066]/40 to-[#b6d7b0]/30 border-2 border-[#ffe066]/30 flex items-center justify-center text-2xl">
                     {emoji}
                   </div>
                   <div className={
@@ -388,7 +378,7 @@ function DashboardOverview() {
                         "font-medium text-[#8D6748] truncate text-lg transition-all duration-300 " +
                         (isExpanded ? "whitespace-normal break-words text-base md:text-lg" : "")
                       }>
-                        {activity.description}
+                       <Badge className="mr-2" variant="outline">{activity.type}</Badge> 
                       </p>
                       {activity?.amount && (
                         <p className="flex-shrink-0 text-[#C97C3A] font-bold text-lg">
@@ -405,7 +395,7 @@ function DashboardOverview() {
                           className="mt-2"
                         >
                           <div className="text-sm text-[#A67C52] whitespace-pre-line">
-                            {activity.details || 'No additional details.'}
+                            {activity.description || 'No additional details.'}
                           </div>
                         </motion.div>
                       )}

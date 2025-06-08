@@ -15,16 +15,15 @@ const {processDailyPackageRewards} = require("./jobs/dailyPackageRewards")
 const authRoutes = require('./routes/auth.routes');
 const networkRoutes = require('./routes/network.routes');
 const packageRoutes = require('./routes/package.routes');
-const financeRoutes = require('./routes/finance.routes');
 const withdrawalRoutes = require('./routes/withdrawal.routes');
 const adminRoutes = require('./routes/admin.routes');
-const announcementRoutes = require('./routes/announcement.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const commissionRoutes = require('./routes/commission.routes');
 const systemRevenueRoutes = require('./routes/systemRevenue.routes');
 const prizeRoutes = require('./routes/prize.routes');
+const {expirePrizes} = require("./jobs/prizeExpiryJob")
 
 
 const { auth } = require('./middleware/auth');
@@ -122,16 +121,15 @@ app.get('/api-docs.json', (req, res) => {
 app.use('/api/v1/auth', authRoutes,createRateLimiter(1 * 60 * 1000, 10));
 app.use('/api/v1/network', networkRoutes);
 app.use('/api/v1/packages', packageRoutes);
-app.use('/api/v1/finance', financeRoutes);
+
 app.use('/api/v1/withdrawals', withdrawalRoutes,createRateLimiter(1 * 60 * 1000, 20));
 app.use('/api/v1/admin', auth, adminRoutes);
-app.use('/api/v1/announcements', auth, announcementRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/dashboard', auth, dashboardRoutes);
 app.use('/api/v1/notifications', auth, notificationRoutes);
 app.use('/api/v1/commissions', auth, commissionRoutes,createRateLimiter(1 * 60 * 1000, 50));
 app.use('/api/v1/system-revenue', systemRevenueRoutes);
-app.use('/api/v1/prizes',auth, prizeRoutes);
+app.use('/api/v1/prizes',auth, prizeRoutes,createRateLimiter(1 * 60 * 1000, 10));
 
 if(process.env.NODE_ENV === 'production') {
     app.get('*', (req,res) => {
@@ -161,6 +159,25 @@ cron.schedule('0 21 * * *', async () => {
     console.error(`[${new Date().toISOString()}] Failed to process daily rewards:`, error);
   }
 });
+
+//cron job for prize expiry
+cron.schedule(
+  '*/2 22-23,0-2 * * *',   // every 5 minutes during hours 22–23 and 00–02
+  async () => {
+    const now = new Date();
+    console.log(`[${now.toISOString()}] Starting prize expiry processing...`);
+    try {
+      await expirePrizes();
+      console.log(`[${new Date().toISOString()}] Prize expiry processed successfully`);
+    } catch (error) {
+      console.error(`[${new Date().toISOString()}] Failed to process prize expiry:`, error);
+    }
+  },
+  {
+    timezone: 'Africa/Kampala'
+  }
+);
+
 
 // Keep the service alive
 process.on('SIGTERM', () => {

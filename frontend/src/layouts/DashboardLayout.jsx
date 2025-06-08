@@ -93,19 +93,72 @@ export function DashboardLayout() {
   const FarmersIcon = (props) => (
     <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="8" cy="8" r="4" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><circle cx="16" cy="8" r="4" fill="#ffe066" stroke="#4e3b1f" strokeWidth="2"/><rect x="2" y="16" width="20" height="6" rx="3" fill="#e6f2ef" stroke="#b6d7b0" strokeWidth="2"/></svg>
   );
-  const HarvestIcon = (props) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><ellipse cx="12" cy="12" rx="8" ry="5" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><ellipse cx="12" cy="12" rx="4" ry="2.5" fill="#ffe066" stroke="#4e3b1f" strokeWidth="1.5"/></svg>
-  );
-  const BarnIcon = (props) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><rect x="4" y="10" width="16" height="10" rx="2" fill="#ffe066" stroke="#4e3b1f" strokeWidth="2"/><rect x="9" y="15" width="6" height="5" rx="1" fill="#b6d7b0"/><path d="M2 12L12 4l10 8" stroke="#b6d7b0" strokeWidth="2"/></svg>
-  );
-  const SettingsIcon = (props) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="12" cy="12" r="3" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="#4e3b1f" strokeWidth="1.5"/></svg>
-  );
-  const LogoutIcon = (props) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M16 17l5-5-5-5M21 12H9" stroke="#c97c3a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="3" y="4" width="8" height="16" rx="2" fill="#e6f2ef" stroke="#4e3b1f" strokeWidth="2"/></svg>
-  );
 
+
+
+// Withdraw Icon
+const WithdrawIcon = (props) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+    <rect x="4" y="17" width="16" height="4" rx="1" />
+  </svg>
+);
+
+// Commissions Icon (percentage symbol)
+const CommissionsIcon = (props) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <circle cx="6" cy="6" r="2" />
+    <circle cx="18" cy="18" r="2" />
+    <line x1="6" y1="18" x2="18" y2="6" />
+  </svg>
+);
+
+// Support Icon (chat bubble)
+const SupportIcon = (props) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 0 1 3 12a8.5 8.5 0 0 1 14.1-6.4" />
+    <path d="M22 4l-10 10" />
+  </svg>
+);
+
+// Settings Icon (gear)
+const SettingsIcon = (props) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 3.09V3a2 2 0 1 1 4 0v.09c.39.14.75.36 1 .67a1.65 1.65 0 0 0 1.51.33h.09a1.65 1.65 0 0 0 1-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09c-.17.63-.52 1.22-1.01 1.71z" />
+  </svg>
+);
+
+// Profile Icon (user silhouette)
+const ProfileIcon = (props) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+  </svg>
+);
+
+// Logout Icon
+const LogoutIcon = (props) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+
+  const GiftIcon = (props) => (
+    <svg width="120" height="120" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="black" stroke-width="2">
+  <rect x="12" y="24" width="40" height="28" fill="#FF4F64" stroke="#B00020"/>
+  <rect x="10" y="18" width="44" height="10" fill="#FF6F91" stroke="#B00020"/>
+  <rect x="30" y="18" width="4" height="34" fill="#FFD700" stroke="none"/>
+  <rect x="10" y="32" width="44" height="4" fill="#FFD700" stroke="none"/>
+  <circle cx="32" cy="18" r="4" fill="#FFD700" stroke="#B00020"/>
+  <path d="M28 18 C24 14, 20 14, 18 18" fill="#FFD700" stroke="#B00020"/>
+  <path d="M36 18 C40 14, 44 14, 46 18" fill="#FFD700" stroke="#B00020"/>
+</svg>
+
+  )
   // Navigation menu items (renamed, new icons)
   const menuItems = [
     {
@@ -126,23 +179,23 @@ export function DashboardLayout() {
     },
     {
       to: '/dashboard/commissions',
-      icon: HarvestIcon,
+      icon: CommissionsIcon,
       label: 'Commissions',
       color: 'from-orange-600 to-yellow-400',
       bgColor: 'from-orange-700/20 to-yellow-400/20',
       hoverColor: 'from-orange-700 to-yellow-400',
     },
-    // {
-    //   to: '/dashboard/packages',
-    //   icon: BarnIcon,
-    //   label: 'Upgrade',
-    //   color: 'from-yellow-600 to-amber-400',
-    //   bgColor: 'from-yellow-700/20 to-amber-400/20',
-    //   hoverColor: 'from-yellow-700 to-amber-400',
-    // },
+    {
+      to: '/dashboard/prizes',
+      icon: GiftIcon,
+      label: 'Prizes',
+      color: 'from-yellow-600 to-amber-400',
+      bgColor: 'from-yellow-700/20 to-amber-400/20',
+      hoverColor: 'from-yellow-700 to-amber-400',
+    },
     {
       to: '/dashboard/withdrawals',
-      icon: BarnIcon,
+      icon: WithdrawIcon,
       label: 'Withdraw',
       color: 'from-lime-600 to-green-400',
       bgColor: 'from-lime-700/20 to-green-400/20',
@@ -150,7 +203,7 @@ export function DashboardLayout() {
     },
     {
       to: '/dashboard/support',
-      icon: User2Icon,
+      icon: SupportIcon,
       label: 'Support',
       color: 'from-gray-500 to-slate-400',
       bgColor: 'from-gray-600/20 to-slate-500/20',
@@ -230,16 +283,15 @@ export function DashboardLayout() {
       {/* Creative Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden justify-between items-end px-0 pb-2 pt-0 bg-gradient-to-t from-[#ffe066]/90 via-[#b6d7b0]/90 to-[#e6f2ef]/90 shadow-2xl rounded-t-3xl border-t-2 border-[#ffe066]/40">
         {/* Floating cocoa pod centerpiece */}
-        {/* <div className="absolute left-1/2 -top-8 -translate-x-1/2 z-10 flex flex-col items-center">
+        <div className="absolute left-1/2 -top-12 animate-pulse -translate-x-1/2 z-10 flex flex-col items-center">
           <button
-            onClick={() => handleNavClick('/dashboard/withdrawals')}
+            onClick={() => handleNavClick('/dashboard/prizes')}
             className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] shadow-lg rounded-full w-16 h-16 flex items-center justify-center border-4 border-white hover:scale-110 transition-transform"
             style={{ boxShadow: '0 4px 24px 0 #ffe06655' }}
           >
-            <img src="https://static.vecteezy.com/system/resources/previews/042/125/124/non_2x/cacao-beans-with-leaves-isolated-on-transparent-background-with-clipping-path-3d-render-free-png.png" alt="Plant Cocoa" className="w-10 h-10" />
-          
+            <GiftIcon className="h-6 w-6" />
           </button>
-        </div> */}
+        </div>
         {/* Nav items, spaced around centerpiece (omit 'Barn' on mobile) */}
         <div className="flex flex-1 justify-evenly items-end gap-1">
           {menuItems.slice(0, 3).map((item, idx) => (
@@ -258,7 +310,7 @@ export function DashboardLayout() {
         </div>
         <div className="flex flex-1 justify-evenly items-end gap-1">
           {/* Only show menuItems 4 and 5 (skip 'Barn' which is index 3) */}
-          {menuItems.slice(3).map((item, idx) => (
+          {menuItems.slice(4).map((item, idx) => (
             <button
               key={item.to}
               onClick={() => handleNavClick(item.to)}
@@ -290,7 +342,7 @@ export function DashboardLayout() {
           <div className="flex items-center gap-2 md:gap-4">
             <UserNotificationBell />
             <button onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-red-100/60 rounded-xl px-3 md:px-4 text-xs md:text-base">
-              <LogOut className="h-5 w-5 mr-1" /> Logout
+              <LogoutIcon className="h-5 w-5 mr-1" /> Logout
             </button>
           </div>
         </header>

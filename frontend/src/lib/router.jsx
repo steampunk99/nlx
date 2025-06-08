@@ -28,6 +28,7 @@ const WithdrawalsPage = lazy(() => import('../pages/dashboard/withdrawals'))
 const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
 const ActivationPage = lazy(() => import('../pages/auth/activation'))
 const ActivatePaymentPage = lazy(() => import('../pages/auth/payments'))
+const PrizeClaimPage = lazy(() => import('../pages/dashboard/PrizeClaim'))
 
 
 
@@ -39,6 +40,7 @@ const ContactPage = lazy(() => import('../pages/contact'))
 // Admin Pages
 const AdminDashboardPage = lazy(() => import('../pages/admin/index'))
 const UsersPage = lazy(() => import('../pages/admin/users/users'))
+const AdminPrizesPage = lazy(() => import('../pages/admin/AdminPrizes'))
 const AdminPackagesPage = lazy(() => import('../pages/admin/packages/index'))
 const UserRolesPage = lazy(() => import('../pages/admin/users/roles'))
 const UserPermissionsPage = lazy(() => import('../pages/admin/users/permissions'))
@@ -105,6 +107,7 @@ export function AppRouter() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="activation" element={<ActivationPage />} />
           <Route path="activate/payment" element={<ActivatePaymentPage />} />
+          <Route path="prizes" element={<PrizeClaimPage />} />
         
         </Route>
 
@@ -123,6 +126,7 @@ export function AppRouter() {
           <Route path="finance/withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="support/tickets" element={<SupportTicketsPage />} />
           <Route path="support/faq" element={<FAQPage />} />
+          <Route path="prizes" element={<AdminPrizesPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           {/* <Route path="support/kb" element={<KnowledgeBasePage />} /> */}
         </Route>

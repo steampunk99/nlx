@@ -19,7 +19,7 @@ import { useNetworkStats, useNetworkLevels, useRecentReferrals, useGenealogyTree
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
 import toast from "react-hot-toast";
-
+ 
 // --- Inline SVGs for farm/cocoa theme ---
 const CocoaPod = (props) => (
   <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,23 +1,69 @@
 const prisma = require('../lib/prisma');
+const { addMinutes, isAfter } = require('date-fns');
 
 async function expirePrizes() {
-  const now = new Date();
-  // Find all active prizes whose window has ended
-  const activePrizes = await prisma.prizeConfig.findMany({ where: { isActive: true } });
-  for (const prize of activePrizes) {
-    // Compute window end
-    const [hour, minute] = prize.startTimeUTC.split(':').map(Number);
-    const windowStart = new Date(prize.createdAt);
-    windowStart.setUTCHours(hour, minute, 0, 0);
-    const windowEnd = new Date(windowStart.getTime() + prize.durationMinutes * 60000);
-    if (now > windowEnd) {
-      await prisma.prizeConfig.update({
-        where: { id: prize.id },
-        data: { isActive: false },
-      });
-      console.log(`[PrizeExpiryJob] Marked prize ${prize.id} as inactive (expired)`);
+  try {
+    const now = new Date();
+    console.log(`[PrizeExpiryJob] Checking for expired prizes at ${now.toISOString()}`);
+
+    // Find all active prizes with a duration set
+    const activePrizes = await prisma.prizeConfig.findMany({ 
+      where: { 
+        isActive: true,
+        durationMinutes: {gte:0},
+       
+      } 
+    });
+
+    console.log(`[PrizeExpiryJob] Found ${activePrizes.length} active prizes to check`);
+
+    let expiredCount = 0;
+    
+    for (const prize of activePrizes) {
+      try {
+        // Calculate expiration time based on prize creation time + duration
+        const expirationTime = addMinutes(new Date(prize.createdAt), prize.durationMinutes);
+
+        if (isAfter(now, expirationTime)) {
+          console.log(`[PrizeExpiryJob] Prize ${prize.id} expired at ${expirationTime.toISOString()}`);
+
+          await prisma.prizeConfig.update({
+            where: { id: prize.id },
+            data: { 
+              isActive: false,
+              updatedAt: new Date()
+            },
+          });
+
+          console.log(`[PrizeExpiryJob] Successfully deactivated prize ${prize.id}`);
+          expiredCount++;
+        }
+      } catch (prizeError) {
+        console.error(`[PrizeExpiryJob] Error processing prize ${prize.id}:`, prizeError);
+        // Continue with other prizes even if one fails
+      }
     }
+
+    console.log(`[PrizeExpiryJob] Completed. Deactivated ${expiredCount} prizes.`);
+    return { success: true, expiredCount };
+  } catch (error) {
+    console.error('[PrizeExpiryJob] Fatal error:', error);
+    throw error;
   }
 }
 
-module.exports = expirePrizes;
+/**
+ * Checks if a prize has expired based on its creation time and duration
+ * @param {Object} prize - The prize object from the database
+ * @returns {boolean} - True if the prize has expired
+ */
+function isPrizeExpired(prize) {
+  if (!prize.durationMinutes) return false;
+  const expirationTime = addMinutes(new Date(prize.createdAt), prize.durationMinutes);
+  return isAfter(new Date(), expirationTime);
+}
+
+module.exports = {
+  expirePrizes,
+  isPrizeExpired
+};

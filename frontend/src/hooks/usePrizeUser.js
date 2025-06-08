@@ -1,14 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
+import { toast } from 'react-hot-toast';
 
 // Fetch the active prize only
 export function useActivePrize() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['activePrize'],
     queryFn: async () => {
-      const res = await api.get('/prizes/config');
-      return res.data.data;
-    }
+      try {
+        const res = await api.get('/prizes/config');
+        return res.data?.data || null;
+      } catch (error) {
+        // If no active prize, return null instead of throwing
+        if (error.response?.status === 404) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   return {
@@ -19,43 +30,36 @@ export function useActivePrize() {
   };
 }
 
-import { toast } from 'react-hot-toast';
-
 export function usePrizeClaim() {
   const queryClient = useQueryClient();
+  
   const mutation = useMutation({
     mutationFn: async () => {
-      const res = await api.post('/prizes/claim');
-      return res.data.data;
+      try {
+        const res = await api.post('/prizes/claim');
+        return res.data.data;
+      } catch (error) {
+        // Re-throw the error to be handled by the component
+        throw new Error(
+          error.response?.data?.message || 
+          error.message || 
+          'Failed to claim prize. Please try again.'
+        );
+      }
     },
     onSuccess: (data) => {
+      // Invalidate queries to refetch the latest data
+      queryClient.invalidateQueries({ queryKey: ['activePrize'] });
+      // Show success message
       toast.success('Prize claimed successfully!');
-      queryClient.invalidateQueries(['activePrize']);
     },
-    onError: (error) => {
-      let msg = error?.response?.data?.message || error.message || 'Unknown error';
-      if (msg.toLowerCase().includes('already claimed')) {
-        toast.error('You have already claimed this prize.');
-      } else if (msg.toLowerCase().includes('fully claimed')) {
-        toast.error('Prize has already been fully claimed.');
-      } else {
-        toast.error(msg);
-      }
-    }
+    // Let the component handle the error state
   });
-
-  // Compute disableButton for UI
-  const errorMsg = mutation.error?.response?.data?.message?.toLowerCase() || '';
-  const alreadyClaimed = errorMsg.includes('already claimed');
-  const fullyClaimed = errorMsg.includes('fully claimed');
-  const disableButton = mutation.isLoading || mutation.isSuccess || alreadyClaimed || fullyClaimed;
 
   return {
     claimPrize: mutation.mutateAsync,
-    isClaiming: mutation.isLoading,
+    isClaiming: mutation.isPending,
     claimError: mutation.error,
     claimSuccess: mutation.isSuccess,
-    disableButton
   };
 }
-

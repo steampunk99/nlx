@@ -318,7 +318,7 @@ function DashboardOverview() {
               <div className="absolute left-0 top-0 h-full w-2 bg-[#C97C3A]" />
               <div className="p-4 flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-semibold text-[#C97C3A] mb-1">Cocoa Investment</h3>
+                  {/* <h3 className="text-lg font-semibold text-[#C97C3A] mb-1">Cocoa Investment</h3> */}
                   <div className="flex items-center gap-2">
                     <div className={`text-lg font-bold ${userPackage ? 'text-green-600' : 'text-[#4e3b1f]'}`}>
                       {userPackage ? 'ACTIVE' : 'NONE'}
@@ -329,7 +329,7 @@ function DashboardOverview() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-[#8D6748]/70 mt-1">Current cocoa investment</p>
+                  <p className="text-xs text-[#8D6748]/70 mt-1">Current pan</p>
                 </div>
                 <div className="bg-[#C97C3A]/20 p-3 rounded-full">
                   <Barn className="w-12 h-12" />

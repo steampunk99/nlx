@@ -232,7 +232,7 @@ function DashboardOverview() {
             <Farmhouse className="w-16 h-16 md:w-24 md:h-24 drop-shadow-lg" />
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#8D6748] font-cursive drop-shadow-sm">
-                Welcome to Your Cocoa Farm, {user?.firstName || 'Farmer'}!
+                Hi, {user?.firstName || 'Farmer'}!
               </h1>
               <p className="text-[#A67C52]/80 font-medium text-lg md:text-xl mt-2">Grow, harvest, and earn in your own virtual cocoa world.</p>
             </div>

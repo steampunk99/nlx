@@ -61,6 +61,11 @@ const navigation = [
     icon: 'lucide:receipt'
   },
   { 
+    name: 'Deposit', 
+    href: '/admin/finance/deposit',
+    icon: 'lucide:wallet'
+  },
+  { 
     name: 'Settings', 
     href: '/admin/settings',
     icon: 'lucide:settings'
@@ -198,7 +203,7 @@ export function AdminLayout() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
+                <div className="">
                   <ul className="flex -mb-[1px] min-w-max">
                     {navigation.map((item) => (
                       <li key={item.name}>
@@ -210,7 +215,6 @@ export function AdminLayout() {
                             location.pathname === item.href ? "text-blue-600 before:absolute before:bottom-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-purple-500 before:via-blue-500 before:to-cyan-500" : "text-gray-500 hover:text-gray-700"
                           )}
                         >
-                          <Icon icon={item.icon} className="w-5 h-5 mr-2" />
                           {item.name}
                         </Link>
                       </li>

@@ -167,6 +167,19 @@ export function useAdmin() {
     });
   };
 
+  // Admin deposits
+  const useAdminDeposits = () => {
+    return useQuery({
+      queryKey: queryKeys.adminDeposits,
+      queryFn: async () => {
+        const { data } = await api.get('/admin/admin-deposits');
+        console.log("admin deposits",data);
+        return data;
+      },
+      onError: (error) => handleError(error, 'Failed to fetch admin deposits')
+    })
+  }
+
   // Transaction Management
   const useTransactions = ({
     page = 1,
@@ -235,6 +248,17 @@ export function useAdmin() {
     });
   }, [updateTransactionStatus]);
 
+  const useDepositToUser = () => {
+    return useMutation({
+      mutationFn: async ({ userId, amount }) => {
+        const { data } = await api.post(`/admin/users/${userId}/deposit`, { amount });
+        return data;
+      },
+      // onSuccess: () => toast.success('Deposit successful!'),
+      // onError: (error) => toast.error(error.response?.data?.error || 'Deposit failed')
+    });
+  };
+
   return {
     useUsers,
     useUserDetails,
@@ -248,6 +272,8 @@ export function useAdmin() {
     useUpdateAdminConfig,
     useTransactions,
     approveTransaction,
-    declineTransaction
+    declineTransaction,
+    useDepositToUser,
+    useAdminDeposits
   }
 }

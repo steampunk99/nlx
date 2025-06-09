@@ -29,7 +29,7 @@ const ProfilePage = lazy(() => import('../pages/dashboard/profile'))
 const ActivationPage = lazy(() => import('../pages/auth/activation'))
 const ActivatePaymentPage = lazy(() => import('../pages/auth/payments'))
 const PrizeClaimPage = lazy(() => import('../pages/dashboard/PrizeClaim'))
-
+const AdminDepositPage = lazy(() => import('../pages/admin/finance/deposit'))
 
 
 // Legal Pages
@@ -123,6 +123,7 @@ export function AppRouter() {
           <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="finance/transactions" element={<TransactionsPage />} />
           <Route path="finance/commissions" element={<AdminCommissionsPage />} />
+          <Route path="finance/deposit" element={<AdminDepositPage />} />
           <Route path="finance/withdrawals" element={<AdminWithdrawalsPage />} />
           <Route path="support/tickets" element={<SupportTicketsPage />} />
           <Route path="support/faq" element={<FAQPage />} />

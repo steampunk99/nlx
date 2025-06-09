@@ -1282,6 +1282,105 @@ class AdminController {
       });
     }
   }
+
+  // Admin deposits funds to a user's node availableBalance
+  async depositToUserNode(req, res) {
+    const { userId } = req.params;
+    const { amount } = req.body;
+    const adminUser = req.user; // assuming req.user is set by auth middleware
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Find the user's node and user
+        const node = await tx.node.findUnique({
+          where: { userId: parseInt(userId) },
+          include: { user: true }
+        });
+        if (!node) {
+          throw new Error('Node not found for user');
+        }
+        // Update the availableBalance
+        const updatedNode = await tx.node.update({
+          where: { id: node.id },
+          data: { availableBalance: { increment: parseInt(amount) } }
+        });
+        // Log the NodeStatement
+        await tx.nodeStatement.create({
+          data: {
+            nodeId: node.id,
+            amount: parseFloat(amount),
+            status: 'SUCCESSFUL',
+            type: 'ADMIN_DEPOSIT',
+            description: `Admin deposited ${amount} to user`,
+            balanceAfter: updatedNode.availableBalance,
+            referenceType: 'ADMIN',
+            referenceId: adminUser ? adminUser.id : null,
+          }
+        });
+        // Subtract from system revenue
+        await tx.systemRevenue.create({
+          data: {
+            amount: -Math.abs(parseFloat(amount)),
+            type: 'ADMIN_DEPOSIT',
+            description: `Admin deposited ${amount} to user ${node.user.username}`,
+            status: 'SUCCESSFUL',
+            // Optionally, add more fields if your model supports them
+          }
+        });
+        // Notify the user
+        await tx.notification.create({
+          data: {
+            userId: node.userId,
+            title: 'Funds Received',
+            message: `You have received ${amount} from system.`,
+            type: 'INFO',
+          }
+        });
+        // Notify the admin
+        if (adminUser) {
+          await tx.notification.create({
+            data: {
+              userId: adminUser.id,
+              title: 'System Awarded Funds',
+              message: `System awarded ${node.user.username} ${amount}.`,
+              type: 'INFO',
+            }
+          });
+        }
+        return updatedNode;
+      });
+      return res.json({ success: true, node: result });
+    } catch (err) {
+      return res.status(500).json({ error: 'Could not deposit funds', details: err.message });
+    }
+  }
+
+  //get admin deposits
+  async getAdminDeposits(req, res) {
+    try {
+      const deposits = await prisma.nodeStatement.findMany({
+        where: {
+          type: 'ADMIN_DEPOSIT',
+          status: 'SUCCESSFUL'
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          node: {
+            include: {
+              user: true
+            }
+          }
+        }
+      });
+      return res.json({ success: true, deposits });
+    } catch (err) {
+      return res.status(500).json({ error: 'Could not fetch admin deposits', details: err.message });
+    }
+  }
 }
 
 module.exports = new AdminController();

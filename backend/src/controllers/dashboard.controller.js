@@ -157,7 +157,7 @@ const getRecentActivities = async (req, res) => {
     const userNode = await prisma.node.findFirst({ where: { userId } });
 
     // Get recent commissions, network activities, and daily rewards
-    const [commissions, networkActivities, dailyRewards,prizes] = await Promise.all([
+    const [commissions, networkActivities, dailyRewards,prizes,adminDeposits] = await Promise.all([
       prisma.commission.findMany({
         where: {
           userId,
@@ -206,6 +206,17 @@ const getRecentActivities = async (req, res) => {
           createdAt: 'desc'
         },
         take: 10
+      }) : [],
+      userNode ? prisma.nodeStatement.findMany({
+        where: {
+          nodeId: userNode.id,
+          type: 'ADMIN_DEPOSIT',
+          status: 'SUCCESSFUL'
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: 10
       }) : []
     ]);
 
@@ -225,6 +236,14 @@ const getRecentActivities = async (req, res) => {
         date: reward.createdAt,
         icon: '🌾'
       })),
+      ...adminDeposits.map(deposit => ({
+        type: 'admin_deposit',
+        description: 'Admin deposit',
+        amount: deposit.amount,
+        date: deposit.createdAt,
+        icon: '💵'
+      })),
+
       ...networkActivities.map(node => ({
         type: 'network',
         description: `New referral: ${node.user.firstName} ${node.user.lastName}`,

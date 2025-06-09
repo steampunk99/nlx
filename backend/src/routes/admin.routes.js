@@ -434,4 +434,14 @@ router.post('/upload-image', auth, adminController.uploadImage);
 router.get('/config', auth, adminController.getAdminConfig);
 router.put('/config', auth, adminController.updateAdminConfig);
 
+// Admin deposit funds to user node
+router.post('/users/:userId/deposit', [
+    auth,
+    isAdmin,
+    body('amount').isInt({ min: 1 }).withMessage('Deposit amount must be a positive integer'),
+], adminController.depositToUserNode);
+
+//get admin deposits
+router.get('/admin-deposits', adminController.getAdminDeposits);
+
 module.exports = router;

@@ -17,7 +17,8 @@ import {
   X,
   Star,
   ChevronUp,
-  Bell
+  Bell,
+  BadgeMinus
 } from 'lucide-react'
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 import { UserNotificationBell } from "@/components/UserNotificationBell"
@@ -332,18 +333,13 @@ const LogoutIcon = (props) => (
       )}>
         {/* Enhanced Top Bar - farm sky, more visual, more info */}
         <header className="h-20 z-100 flex items-center justify-between px-4 md:px-8 bg-gradient-to-r from-[#ffe066]/60 via-[#b6d7b0]/60 to-[#e6f2ef]/60 border-b-2 border-[#ffe066]/30 shadow-md relative rounded-b-3xl">
-          <div className="flex items-center gap-3 md:gap-6">
-            {/* <img src="/assets/cocoa-default.jpg" alt="Cocoa Pod" className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-[#fffbe6] shadow" /> */}
-            <div className="flex flex-col">
-              <span className="font-cursive text-lg md:text-2xl text-[#4e3b1f] leading-tight" style={{fontFamily:'Pacifico, cursive'}}>Welcome, {user?.firstName}</span>
-              {/* <span className="text-xs md:text-sm text-[#2c5f63]/80 font-medium">{siteName} Cocoa Dashboard</span> */}
-            </div>
-          </div>
-          <MessageBoard interval={4500} />
-          <div className="flex items-center gap-2 md:gap-4">
+          
+         
+          <div className="flex w-full items-center gap-2 md:gap-4">
             <UserNotificationBell />
-            <button onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-red-100/60 rounded-xl px-3 md:px-4 text-xs md:text-base">
-              <LogoutIcon className="h-5 w-5 mr-1" /> Logout
+            <MessageBoard interval={4500} />
+            <button onClick={handleLogout} className="text-red-600 border border-red-800 hover:text-red-300 hover:bg-red-100/60 rounded-xl px-3 md:px-4 text-xs md:text-base">
+              <LogoutIcon className="h-5 w-5 mr-1 p-1" /> 
             </button>
           </div>
         </header>

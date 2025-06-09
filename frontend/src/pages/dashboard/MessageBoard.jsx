@@ -29,9 +29,11 @@ export default function MessageBoard({ interval = 4000 }) {
             transition={{ duration: 0.4 }}
             className="w-full flex flex-col items-center"
           >
-            <span className="text-[#2c5f63] text-base md:text-lg font-medium text-center">
-              {messages[index].message}
-            </span>
+            <span
+  className="text-[#2c5f63] text-base md:text-lg font-medium text-center min-w-[250px] max-w-[360px] w-full block truncate"
+>
+  {messages[index].message}
+</span>
             <span className="text-xs text-[#A67C52]/70 mt-1">{messages[index].timeAgo}</span>
           </motion.div>
         </AnimatePresence>

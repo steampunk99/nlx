@@ -48,8 +48,8 @@ export default function AdminSettingsPage() {
     }
 
     return (
-        <div className="container py-6 space-y-6">
-            <div className="flex justify-between items-center">
+        <div className=" bg-[#f2f2f2]">
+            <div className="flex justify-between items-center p-4">
                 <h1 className="text-2xl font-bold">System Settings</h1>
                 <Button onClick={handleSubmit} disabled={isUpdating}>
                     {isUpdating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

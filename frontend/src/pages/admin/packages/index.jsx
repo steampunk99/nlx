@@ -145,7 +145,7 @@ export function AdminPackagesPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="h-screen bg-[#f2f2f2] mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Package Management</h1>
         <Button 

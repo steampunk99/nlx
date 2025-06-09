@@ -399,6 +399,8 @@ class WithdrawalController {
                 });
             }
 
+            // NOT BEING CALLED
+
             const cancelledWithdrawal = await prisma.withdrawal.update({
                 where: { id },
                 data: {

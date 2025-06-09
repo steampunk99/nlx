@@ -121,9 +121,9 @@ export function AdminLayout() {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50/30'} text-foreground`}>
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-[#819A91]'} text-[#3B3B1A]`}>
       {/* Navigation */}
-      <div className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur-sm backdrop-saturate-150 supports-[backdrop-filter]:bg-white/50">
+      <div className="sticky p-4 top-0 z-40 w-full border-b bg-white/80 backdrop-blur-sm backdrop-saturate-150 supports-[backdrop-filter]:bg-white/50">
         {/* Gradient line */}
         <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500/50 via-blue-500/50 to-cyan-500/50" />
         
@@ -188,8 +188,8 @@ export function AdminLayout() {
                             to={item.href}
                             onClick={() => setIsOpen(false)}
                             className={cn(
-                              "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100",
-                              location.pathname === item.href ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
+                              "flex text-lg items-center gap-3 px-3 py-2 font-bold rounded-md hover:bg-gray-100",
+                              location.pathname === item.href ? 'bg-gray-100 text-[#3B3B1A]' : 'text-[#3B3B1A]'
                             )}
                           >
                             <Icon icon={item.icon} className="w-5 h-5" />
@@ -210,7 +210,7 @@ export function AdminLayout() {
                         <Link
                           to={item.href}
                           className={cn(
-                            "relative inline-flex items-center px-6 py-5 text-sm font-medium transition-colors",
+                            "relative inline-flex items-center px-6 py-5 text-lg font-bold text-black transition-colors",
                             "hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500",
                             location.pathname === item.href ? "text-blue-600 before:absolute before:bottom-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-purple-500 before:via-blue-500 before:to-cyan-500" : "text-gray-500 hover:text-gray-700"
                           )}
@@ -267,7 +267,7 @@ export function AdminLayout() {
       </div>
 
       {/* Content */}
-      <main className={`max-w-full min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50/30'} px-4 py-6`}>
+      <main className={`max-w-full min-h-screen ${isDark ? 'bg-[#EEEFE0]' : 'bg-[#EEEFE0]'} px-4 `}>
         <Outlet />
       </main>
     </div>

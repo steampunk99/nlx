@@ -239,7 +239,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="bg-[#f2f2f2] mx-auto py-8 space-y-8">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card 

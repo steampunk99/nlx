@@ -22,7 +22,7 @@ import {
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 import { UserNotificationBell } from "@/components/UserNotificationBell"
 import { Button } from "@/components/ui/button"
-
+import MessageBoard from "@/pages/dashboard/MessageBoard"
 // Custom utility function for conditionally joining classes
 const classNames = (...classes) => classes.filter(Boolean).join(' ')
 
@@ -339,6 +339,7 @@ const LogoutIcon = (props) => (
               {/* <span className="text-xs md:text-sm text-[#2c5f63]/80 font-medium">{siteName} Cocoa Dashboard</span> */}
             </div>
           </div>
+          <MessageBoard interval={4500} />
           <div className="flex items-center gap-2 md:gap-4">
             <UserNotificationBell />
             <button onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-red-100/60 rounded-xl px-3 md:px-4 text-xs md:text-base">

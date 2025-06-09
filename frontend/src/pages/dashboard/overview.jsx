@@ -12,6 +12,7 @@ import { usePackages } from "../../hooks/payments/usePackages"
 import { useCountry } from "../../hooks/config/useCountry"
 import { useSiteConfig } from "../../hooks/config/useSiteConfig"
 import { useCommissions } from "../../hooks/dashboard/useCommissions"
+import MessageBoard from "./MessageBoard"; // Interactive message board
 
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../../lib/axios"
@@ -222,7 +223,9 @@ function DashboardOverview() {
         <svg className="absolute top-32 left-1/3 w-16 h-8 animate-bird-fly" viewBox="0 0 40 20"><path d="M2 10 Q10 2 20 10 Q30 18 38 10" stroke="#8d6748" strokeWidth="2" fill="none"/></svg>
       </div>
       {/* Main Content (z-10) */}
-      <div className="relative z-10 px-0 md:px-8 lg:px-16 pt-10 pb-8">
+      <div className="relative -mt-12 z-10 px-0 md:px-8 lg:px-16 pt-10 pb-8">
+        {/* Interactive Message Board */}
+    
         {/* Farm Welcome Banner */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
@@ -401,11 +404,8 @@ function DashboardOverview() {
                       )}
                     </AnimatePresence>
                     <div className="mt-1 flex items-center justify-between text-xs">
-                      <p className="text-[#A67C52]/60">{formatDate(activity?.date)}</p>
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[#ffe066]/20 text-[#A67C52] border border-[#ffe066]/30">
-                        <ActivityIcon className="h-4 w-4" />
-                        {activity.type}
-                      </span>
+                      
+                    <p className="text-[#A67C52]/60">{formatDate(activity?.date)}</p>
                     </div>
                   </div>
                   {isNew && (

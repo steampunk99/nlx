@@ -32,7 +32,7 @@ class PackageController {
     }
   }
 
-
+//
 
   /**
    * Get user's purchased packages

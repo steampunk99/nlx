@@ -173,8 +173,17 @@ export default function ActivationPage() {
   const { country, currency, formatAmount } = useCountry();
   const { user } = useAuth();
   const { availablePackages, packagesLoading } = usePackages();
+  const [activeTab, setActiveTab] = useState("Trinitario");
 
   console.log("Available Packages:", availablePackages);
+
+  const tabs = ["Trinitario", "Forastero", "Criollo"];
+  
+  const filteredPackages = useMemo(() => {
+    return availablePackages.filter(pkg => 
+      pkg.description === activeTab
+    );
+  }, [availablePackages, activeTab]);
 
   const handlePackagePurchase = (pkg) => {
     if (user.country === "UG") {
@@ -211,23 +220,71 @@ export default function ActivationPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="pt-16 pb-12 px-4"
+          className="pt-16 pb-8 px-4"
         >
           <div className="max-w-4xl mx-auto text-center space-y-4">
             <h1 className="text-3xl lg:text-4xl xl:text-5xl font-extralight text-slate-900 tracking-wide">
-              Get <span className="font-light">started</span>
+              Get <span className="font-light">Started</span>
             </h1>
-           
+            {/* <p className="text-slate-600 font-light max-w-2xl mx-auto leading-relaxed">
+              Choose from our carefully curated selection of investment opportunities, 
+              designed to deliver consistent returns with transparent terms.
+            </p> */}
+          </div>
+        </motion.div>
+
+        {/* Tabs Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="px-4 pb-8"
+        >
+          <div className="max-w-4xl mx-auto">
+            <div className="flex justify-center">
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 border border-slate-200/50 shadow-sm">
+                <div className="flex flex-wrap gap-1">
+                  {tabs.map((tab) => (
+                    <motion.button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`relative px-6 py-3 rounded-xl font-light tracking-wide transition-all duration-300 ${
+                        activeTab === tab
+                          ? 'text-white shadow-lg'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {activeTab === tab && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute inset-0 bg-slate-900 rounded-xl"
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      <span className="relative z-10">{tab}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </motion.div>
 
         {/* Packages Container */}
         <div className="px-4 pb-20">
           <div className="max-w-6xl mx-auto">
-            <AnimatePresence>
-              {availablePackages.length > 0 ? (
-                <div className="space-y-6 lg:space-y-8">
-                  {availablePackages.map((pkg, index) => (
+            <AnimatePresence mode="wait">
+              {filteredPackages.length > 0 ? (
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-6 lg:space-y-8"
+                >
+                  {filteredPackages.map((pkg, index) => (
                     <PackageCard
                       key={pkg.id || index}
                       pkg={pkg}
@@ -237,11 +294,14 @@ export default function ActivationPage() {
                       formatAmount={formatAmount}
                     />
                   ))}
-                </div>
+                </motion.div>
               ) : (
                 <motion.div
+                  key="empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
                   className="text-center py-20"
                 >
                   <div className="max-w-md mx-auto space-y-4">
@@ -249,10 +309,10 @@ export default function ActivationPage() {
                       <Sparkles className="w-8 h-8 text-slate-400" />
                     </div>
                     <h3 className="text-xl font-light text-slate-700">
-                      No packages available
+                      No {activeTab} packages available
                     </h3>
                     <p className="text-slate-500 font-light">
-                      Please check back later for new investment opportunities.
+                      Please check other categories or come back later for new investment opportunities.
                     </p>
                   </div>
                 </motion.div>

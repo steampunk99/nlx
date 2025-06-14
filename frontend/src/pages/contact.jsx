@@ -35,7 +35,7 @@ function ContactPage() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 text-neutral-400">
             {/* Telegram Item */}
             <a
-              href="https://t.me/+9qsr7iCdJ-g4M2E8"
+              href="https://t.me/+egiwN3hFTz01ZjQ0"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center text-blue-400 gap-2 hover:text-emerald-400 transition-colors group"
@@ -50,7 +50,7 @@ function ContactPage() {
               className="flex items-center gap-2 hover:text-emerald-400 transition-colors group"
             >
               <Phone className="w-5 h-5 text-neutral-500 group-hover:text-emerald-400 transition-colors" />
-              <span>0763 641 452</span>
+              <span>072696341</span>
             </a>
 
             {/* Phone 2 Item */}

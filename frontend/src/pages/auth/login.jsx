@@ -69,15 +69,19 @@ const LoginPage = () => {
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Access your personalized dashboard</p>
+                  <p className="text-white/90">We pay farmers per day of the harvests</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Track your earnings and network growth</p>
+                  <p className="text-white/90">Instant withdrawals</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Connect with your team members</p>
+                  <p className="text-white/90">We have 3 Million farmers in africa.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-1 rounded-full bg-white" />
+                  <p className="text-white/90">Join the farming club</p>
                 </div>
               </div>
             </motion.div>

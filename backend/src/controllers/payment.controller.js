@@ -12,6 +12,7 @@ const systemRevenueService = require('../services/systemRevenue.service');
 const commissionUtil = require('../utils/commission.utils');
 const notificationService = require('../services/notification.service'); // Added notification service
 const adminNotificationUtils = require('../utils/admin-notification.utils'); // Added admin notification utils
+const bonusUtils = require('../utils/bonus.utils');
 
 const prisma = new PrismaClient();
 
@@ -254,6 +255,7 @@ class PaymentController {
                     // Calculate revenue and commissions
                     await systemRevenueService.calculatePackageRevenue(updatedPayment, payment.package, tx);
                     await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
+                    await bonusUtils.giveActivationBonus(payment.nodeId, payment.id, tx);
 
                     // Create notification for successful package purchase
                     await notificationService.create({
@@ -515,6 +517,7 @@ class PaymentController {
             }
         });
 
+
         // Update statement to completed
         await nodeStatementService.create({
             nodeId: payment.nodeId,
@@ -545,6 +548,13 @@ class PaymentController {
         //     `Payment ID ${payment.id} processed successfully`
         // );
 
+         //give user account activation bonus
+         // Only give bonus if this is the user's first successful package payment
+       // Give activation bonus
+
+        
+           
+         
         logger.info('Payment processed successfully:', {
             paymentId: payment.id,
             nodePackageId: nodePackage.id,

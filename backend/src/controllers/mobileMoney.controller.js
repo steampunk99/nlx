@@ -4,6 +4,7 @@ const nodePaymentService = require('../services/nodePayment.service');
 const nodePackageService = require('../services/nodePackage.service');
 const commissionService = require('../services/commission.service');
 const commissionUtil = require('../utils/commission.utils');
+const bonusUtils = require('../utils/bonus.utils');
 const paymentController = require('./payment.controller');
 const nodeStatementService = require('../services/nodeStatement.service');
 
@@ -245,6 +246,10 @@ class MobileMoneyCallbackController {
           const updatedPayment = await paymentController.processSuccessfulPayment(payment.id, tx);
           const nodePackage = await nodePackageService.activatePackageForPayment(updatedPayment, tx);
           await commissionUtil.calculateCommissions(payment.nodeId, payment.amount, payment.packageId, tx);
+
+          // Give activation bonus
+          await bonusUtils.giveActivationBonus(payment.nodeId, payment.id, tx);
+
           logger.info('✅ Payment processed:', {
             payment_id: payment.id,
             trans_id,

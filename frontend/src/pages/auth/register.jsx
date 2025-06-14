@@ -166,24 +166,29 @@ export default function RegisterPage() {
             >
               <div>
                 <h1 className="text-5xl font-bold mb-4">Join {siteName}</h1>
-                <p className="text-xl text-white/90">Start your journey to financial freedom</p>
+                <p className="text-xl text-white/90">{siteName} is a farming  company that grows quality cocoa.</p>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Create your personalized entrepreneur portfolio</p>
+                  <p className="text-white/90">We also pay farmers per day of the harvests</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Access exclusive entrepreneur opportunities</p>
+                  <p className="text-white/90">We have 3 Million farmers in africa.</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Join a community of successful entrepreneurs</p>
+                  <p className="text-white/90">Join the farming club</p>
                 </div>
               </div>
             </motion.div>
+          
+
+
+
+
           </div>
         </motion.div>
 

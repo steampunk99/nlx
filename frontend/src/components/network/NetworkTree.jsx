@@ -14,20 +14,53 @@ const FarmTreeIcon = (props) => (
   <svg {...props} viewBox="0 0 32 32" fill="none"><ellipse cx="16" cy="24" rx="10" ry="6" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2" /><rect x="14" y="12" width="4" height="12" rx="2" fill="#C97C3A" /><ellipse cx="16" cy="12" rx="8" ry="8" fill="#A7F3D0" stroke="#059669" strokeWidth="2" /></svg>
 )
 
-// --- Tree Layout Helper (simple vertical, expandable) ---
-function layoutTree(root, x=0, y=0, depth=0, spacingX=120, spacingY=100, nodes=[], links=[], parent=null) {
-  // Each node: { ...data, x, y, depth, parentId }
-  const id = root.id || Math.random().toString(36).slice(2)
-  const children = Array.isArray(root.children) ? root.children : Object.values(root.children||{}).flat()
-  nodes.push({ ...root, x, y, depth, parentId: parent?.id })
-  if (parent) links.push({ source: parent.id, target: id })
-  if (children && children.length) {
-    // Center children horizontally
-    const totalWidth = (children.length-1) * spacingX
-    children.forEach((child, i) => {
-      layoutTree(child, x - totalWidth/2 + i*spacingX, y+spacingY, depth+1, spacingX, spacingY, nodes, links, { ...root, id })
+// --- NEW: Process your hierarchical data ---
+function processNetworkData(rawData) {
+  if (!rawData) return { nodes: [], links: [] }
+  
+  const nodes = []
+  const links = []
+  
+  // Add root node
+  nodes.push({
+    id: rawData.id.toString(),
+    user: rawData.user,
+    status: rawData.status,
+    package: rawData.package,
+    level: 0,
+    x: 0,
+    y: 0,
+    children: rawData.children ? Object.values(rawData.children).flat() : []
+  })
+  
+  // Process each level of children
+  if (rawData.children) {
+    Object.entries(rawData.children).forEach(([levelKey, children]) => {
+      const level = parseInt(levelKey)
+      
+      children.forEach((child, index) => {
+        // Add child node
+        nodes.push({
+          id: child.id.toString(),
+          user: child.user,
+          status: child.status,
+          package: child.package,
+          sponsorId: child.sponsorId.toString(),
+          level: level,
+          x: (index * 150) - (children.length * 75), // Spread horizontally
+          y: level * 120, // Stack vertically by level
+          children: [] // Flatten for now, can be expanded later
+        })
+        
+        // Add link from child to their actual sponsor
+        links.push({
+          source: child.sponsorId.toString(),
+          target: child.id.toString()
+        })
+      })
     })
   }
+  
   return { nodes, links }
 }
 
@@ -57,14 +90,8 @@ export default function NetworkTree({ networkData }) {
       }).format(numericAmount);
     };
   
-  // Layout tree (only expanded nodes)
-  function filterTree(node) {
-    if (!node) return null
-    const id = node.id || Math.random().toString(36).slice(2)
-    if (expanded[id] === false && node.children) return { ...node, children: [] }
-    return { ...node, children: node.children ? Object.values(node.children).flat().map(filterTree) : [] }
-  }
-  const tree = layoutTree(filterTree(networkData||{}))
+  // Process the network data
+  const tree = processNetworkData(networkData)
 
   // Pan/zoom handlers
   function onPointerDown(e) {

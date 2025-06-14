@@ -35,7 +35,7 @@ function ContactPage() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 text-neutral-400">
             {/* Telegram Item */}
             <a
-              href="https://t.me/+9qsr7iCdJ-g4M2E8"
+              href="https://t.me/+egiwN3hFTz01ZjQ0"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center text-blue-400 gap-2 hover:text-emerald-400 transition-colors group"

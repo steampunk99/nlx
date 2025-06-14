@@ -59,7 +59,7 @@ function ContactPage() {
               className="flex items-center gap-2 hover:text-emerald-400 transition-colors group"
             >
               <Phone className="w-5 h-5 text-neutral-500 group-hover:text-emerald-400 transition-colors" />
-              <span>0745 780 096</span>
+              <span>07xxxx</span>
             </a>
 
             {/* Email Item */}

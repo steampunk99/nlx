@@ -72,6 +72,23 @@ export function useAdmin() {
     })
   }
 
+  //verify user
+  const useVerifyUser = () => {
+    const queryClient = useQueryClient()
+    return useMutation({
+      mutationFn: async (userId) => {
+        if (!userId) throw new Error('User ID is required');
+        const { data } = await api.post(`/admin/users/${userId}/verify`)
+        return data
+      },
+      onSuccess: (_, userId) => {
+        queryClient.invalidateQueries(queryKeys.users.all)
+        queryClient.invalidateQueries(queryKeys.stats)
+      },
+      onError: (error) => handleError(error, 'Failed to verify user')
+    })
+  }
+
   const useDeleteUser = () => {
     return useMutation({
       mutationFn: async (userId) => {
@@ -261,6 +278,7 @@ export function useAdmin() {
 
   return {
     useUsers,
+    useVerifyUser,
     useUserDetails,
     useUpdateUserStatus,
     useDeleteUser,

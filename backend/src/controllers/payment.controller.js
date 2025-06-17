@@ -13,6 +13,7 @@ const commissionUtil = require('../utils/commission.utils');
 const notificationService = require('../services/notification.service'); // Added notification service
 const adminNotificationUtils = require('../utils/admin-notification.utils'); // Added admin notification utils
 const bonusUtils = require('../utils/bonus.utils');
+const userService = require('../services/user.service');
 
 const prisma = new PrismaClient();
 
@@ -94,6 +95,7 @@ class PaymentController {
                 'Payment Processing Error',
                 `Failed to process manual payment ${req.body.transactionId}. Error: ${error.message}`
             );
+
 
             if (!res.headersSent) {
                 res.status(500).json({
@@ -264,6 +266,8 @@ class PaymentController {
                         message: `Your payment of ${payment.amount} for ${payment.package.name} package has been confirmed.`,
                         type: 'PACKAGE_PURCHASE'
                     }, tx);
+
+                    await userService.verifyUser(payment.node.userId, tx);
 
                     logger.info('USDT payment processed successfully:', {
                         payment_id: payment.id,
@@ -552,7 +556,7 @@ class PaymentController {
          // Only give bonus if this is the user's first successful package payment
        // Give activation bonus
 
-        
+        await userService.verifyUser(payment.node.userId, tx);
            
          
         logger.info('Payment processed successfully:', {

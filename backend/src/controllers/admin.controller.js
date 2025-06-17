@@ -39,21 +39,10 @@ class AdminController {
         sortOrder
       });
 
-      // Detailed logging
-      users.forEach(user => {
-        console.log('User:', user.id);
-        console.log('Node:', user.node);
-        if (user.node) {
-          console.log('Package:', user.node.package);
-        }
-      });
-
-      console.log('users returned:::', JSON.stringify(users, null, 2));
       res.json({
         success: true,
         data: {
-          users,
-         
+          users
         }
       });
 

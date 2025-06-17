@@ -102,7 +102,7 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
                     >
                       <Star 
                         className={`w-4 h-4 ${
-                          i < rating 
+                          i < rating
                             ? 'fill-amber-400 text-amber-400' 
                             : 'text-slate-300'
                         }`}
@@ -146,7 +146,7 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
               <motion.div whileTap={{ scale: 0.95 }}>
                 <Button
                   onClick={() => onPurchase(pkg)}
-                  className="group relative px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white font-light tracking-wide rounded-2xl transition-all duration-300 overflow-hidden"
+                  className="group relative px-8 py-3 bg-green-900 hover:bg-slate-800 text-white font-light tracking-wide rounded-2xl transition-all duration-300 overflow-hidden"
                 >
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-slate-700 to-slate-900"
@@ -222,7 +222,7 @@ export default function ActivationPage() {
           transition={{ duration: 0.8 }}
           className="pt-16 pb-8 px-4"
         >
-          <div className="max-w-4xl mx-auto text-center space-y-4">
+          <div className="max-w-4xl mx-auto text-center mt-12">
             <h1 className="text-3xl lg:text-4xl xl:text-5xl font-extralight text-slate-900 tracking-wide">
               Get <span className="font-light">Started</span>
             </h1>
@@ -242,7 +242,7 @@ export default function ActivationPage() {
         >
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-center">
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 border border-slate-200/50 shadow-sm">
+              <div className="bg-white/60 px-8 pb-8 border border-green-400 backdrop-blur-sm rounded-2xl p-2 border border-slate-200/50 shadow-sm">
                 <div className="flex flex-wrap gap-1">
                   {tabs.map((tab) => (
                     <motion.button
@@ -258,7 +258,7 @@ export default function ActivationPage() {
                       {activeTab === tab && (
                         <motion.div
                           layoutId="activeTab"
-                          className="absolute inset-0 bg-slate-900 rounded-xl"
+                          className="absolute inset-0 bg-green-600 rounded-xl"
                           transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                         />
                       )}

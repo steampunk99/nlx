@@ -67,26 +67,27 @@ class AdminController {
   }
 
   /**
-   * Verify user by ID
+   * Verify a user by ID
    * @param {Request} req 
    * @param {Response} res 
    */
   async verifyUser(req, res) {
     try {
       const { id } = req.params;
-
-      await userService.verifyUser(id);
-
-      res.json({
+      
+      // Verify user
+      const user = await userService.verifyUser(parseInt(id));
+      
+      return res.json({
         success: true,
-        message: 'User verified successfully'
+        message: 'User verified successfully',
+        data: user
       });
-
     } catch (error) {
       console.error('Verify user error:', error);
-      res.status(500).json({
+      return res.status(error.message === 'User not found' ? 404 : 500).json({
         success: false,
-        message: 'Error verifying user'
+        message: error.message || 'Error verifying user'
       });
     }
   }

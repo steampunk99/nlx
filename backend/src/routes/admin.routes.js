@@ -97,6 +97,33 @@ router.put('/users/:id/status', [
     
 ], adminController.updateUserStatus);
 
+//verify user
+/**
+ * @swagger
+ * /admin/users/{id}/verify:
+ *   post:
+ *     summary: Verify a user
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User verified successfully
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/users/:id/verify', [
+    isAdmin,
+    param('id').isString(),
+], adminController.verifyUser);
+
 /**
  * @swagger
  * /admin/users/{id}:

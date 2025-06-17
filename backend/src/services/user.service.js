@@ -33,9 +33,7 @@ class UserService {
                 }
             }
         });
-    }
-
-    // update isVerified status to 1
+    }    // update isVerified status to true.
     async verifyUser(id) {
         if (!id) throw new Error('User ID is required');
         if (isNaN(id)) throw new Error('User ID must be a number');
@@ -47,7 +45,8 @@ class UserService {
         console.log("user found and now verified");
         return prisma.user.update({
             where: { id: Number(id) },
-            data: { isVerified: 1 }
+            data: { isVerified: true, status: 'ACTIVE' },
+            
         });
 
     }

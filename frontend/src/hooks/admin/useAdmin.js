@@ -76,12 +76,12 @@ export function useAdmin() {
   const useVerifyUser = () => {
     const queryClient = useQueryClient()
     return useMutation({
-      mutationFn: async (userId) => {
-        if (!userId) throw new Error('User ID is required');
-        const { data } = await api.post(`/admin/users/${userId}/verify`)
+      mutationFn: async (id) => {
+        if (!id) throw new Error('User ID is required');
+        const { data } = await api.post(`/admin/users/${id}/verify`)
         return data
       },
-      onSuccess: (_, userId) => {
+      onSuccess: (_, id) => {
         queryClient.invalidateQueries(queryKeys.users.all)
         queryClient.invalidateQueries(queryKeys.stats)
       },

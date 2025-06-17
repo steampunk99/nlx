@@ -67,6 +67,31 @@ class AdminController {
   }
 
   /**
+   * Verify user by ID
+   * @param {Request} req 
+   * @param {Response} res 
+   */
+  async verifyUser(req, res) {
+    try {
+      const { id } = req.params;
+
+      await userService.verifyUser(id);
+
+      res.json({
+        success: true,
+        message: 'User verified successfully'
+      });
+
+    } catch (error) {
+      console.error('Verify user error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error verifying user'
+      });
+    }
+  }
+
+  /**
    * Get all transactions - ADMIN
    * @param {Request} req 
    * @param {Response} res

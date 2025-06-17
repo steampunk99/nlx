@@ -35,6 +35,23 @@ class UserService {
         });
     }
 
+    // update isVerified status to 1
+    async verifyUser(id) {
+        if (!id) throw new Error('User ID is required');
+        if (isNaN(id)) throw new Error('User ID must be a number');
+        // Check if user exists
+        const user = await prisma.user.findUnique({
+            where: { id: Number(id) }
+        });
+        if (!user) throw new Error('User not found');
+        console.log("user found and now verified");
+        return prisma.user.update({
+            where: { id: Number(id) },
+            data: { isVerified: 1 }
+        });
+
+    }
+
     /**
      * Find user by email
      * @param {string} email 

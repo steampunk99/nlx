@@ -4,6 +4,7 @@ import { CreateUserDialog } from '../../../components/admin/CreateUserDialog'
 import { UserDetailsDialog } from '../../../components/admin/UserDetailsDialog'
 import { formatDistanceToNow } from 'date-fns'
 import ReactCountryFlag from 'react-country-flag'
+import { toast } from 'react-hot-toast'
 
 import {
   Card,
@@ -54,8 +55,11 @@ import {
   Users as UsersIcon,
   UserPlus,
   Activity,
-  Clock
+  Clock,
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react'
+
 
 const COUNTRY_NAMES = {
   'UG': 'Uganda',
@@ -79,9 +83,10 @@ const UsersPage = () => {
     sortOrder: 'desc'
   })
 
-  const { useUsers, useDeleteUser } = useAdmin()
+  const { useUsers, useDeleteUser, useVerifyUser } = useAdmin()
   const { data, isLoading, refetch } = useUsers(queryParams)
   const deleteUser = useDeleteUser()
+  const verifyUser = useVerifyUser()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -111,6 +116,16 @@ const UsersPage = () => {
       toast.success('User deleted successfully')
     } catch (error) {
       toast.error(error.message || 'Failed to delete user')
+    }
+  }
+
+  const handleVerify = async (userId) => {
+    try {
+      await verifyUser.mutateAsync(userId)
+      toast.success('User verified successfully')
+      refetch() // Refresh the user list
+    } catch (error) {
+      toast.error(error.message || 'Failed to verify user')
     }
   }
 
@@ -358,22 +373,66 @@ const UsersPage = () => {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setSelectedUserId(user.id)}
-                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeleteUserId(user.id)}
-                              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSelectedUserId(user.id)}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>View Details</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
+                            {user.node?.status !== 'ACTIVE' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleVerify(user.id)}
+                                      className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                      disabled={verifyUser.isLoading}
+                                    >
+                                      {verifyUser.isLoading ? (
+                                        <RefreshCcw className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <ShieldCheck className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Verify User</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setDeleteUserId(user.id)}
+                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete User</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         </td>
                       </tr>

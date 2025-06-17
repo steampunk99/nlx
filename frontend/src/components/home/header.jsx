@@ -141,7 +141,7 @@ export function Header() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden bg-black rounded-full shadow-lg">
+          <div className="md:hidden bg-green-600 p-4 transition  rounded-full shadow-lg">
             <Button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               variant="ghost"
@@ -161,7 +161,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-black backdrop-blur-lg border-t border-black shadow-2xl rounded-b-3xl">
+        <div className="md:hidden bg-gray-200 backdrop-blur-lg  shadow-2xl rounded-b-3xl">
           <div className="px-4 pt-4 pb-6 space-y-3">
             {navigation.map((item) => (
               <div key={item.name} className="space-y-2">
@@ -172,14 +172,14 @@ export function Header() {
                         <NavigationMenuTrigger className="w-full text-left text-emerald-800 hover:text-cyan-700 bg-emerald-50 hover:bg-cyan-50 rounded-xl border border-emerald-100">
                           {item.name}
                         </NavigationMenuTrigger>
-                        <NavigationMenuContent>
-                          <ul className="w-full p-2 bg-white rounded-2xl border border-black">
+                        <NavigationMenuContent className="p-8">
+                          <ul className="w-full  bg-white rounded-2xl ">
                             {item.submenu.map((subItem) => (
                               <li key={subItem.name}>
                                 <NavigationMenuLink asChild>
                                   <Link
                                     to={subItem.href}
-                                    className="block px-4 py-2 text-base text-emerald-800 hover:text-cyan-700 hover:bg-emerald-50 rounded-lg"
+                                    className="block w-full px-4 text-start py-2 text-base text-emerald-800 hover:text-cyan-700 hover:bg-emerald-50 rounded-lg"
                                     onClick={() => setMobileMenuOpen(false)}
                                   >
                                     {subItem.name}
@@ -205,19 +205,17 @@ export function Header() {
             ))}
 
             {/* Mobile auth buttons */}
-            <div className="pt-4 border-t border-emerald-100 space-y-3">
+            <div className="pt-4  space-y-3">
               {user ? (
                 <div className="space-y-3">
-                  <div className="px-4 py-2 text-base font-semibold text-emerald-700 bg-emerald-50 rounded-xl">
-                    {user.firstName} {user.lastName}
-                  </div>
+                  
                   <Button
                     onClick={() => {
                       logout();
                       setMobileMenuOpen(false);
                     }}
                     variant="ghost"
-                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-100/60 rounded-xl"
+                    className="w-full justify-start text-red-700 hover:text-red-600 hover:bg-red-100/60 rounded-xl"
                   >
                     <LogOut className="h-5 w-5 mr-2" />
                     Logout

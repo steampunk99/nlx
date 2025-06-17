@@ -47,13 +47,13 @@ export function useAuth() {
     }
   }
 
-  const loginMutation = useMutation({
-    mutationFn: async (credentials) => {
-     try {
+//login mutation
+const loginMutation = useMutation({
+  mutationFn: async (credentials) => {
+    try {
       const response = await api.post('/auth/login', credentials)
       
-
-      //validate response
+      // Validate response
       if (!response.data?.data?.user || !response.data?.data?.accessToken) {
         toast('Login failed: wrong email or password')
         clearAuthTokens()
@@ -62,75 +62,79 @@ export function useAuth() {
       }
 
       const { accessToken, refreshToken, user } = response.data.data
+      
       // Set tokens first
       setAuthTokens(accessToken, refreshToken)
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
+      
       // Then update user state
       setUser(user)
-     
-
+      
       return response.data
-     } 
-     catch (error) {
+    } 
+    catch (error) {
       const errorMessage = getErrorMessage(error)
       clearAuthTokens()
       setUser(null)
       toast.error(errorMessage)
       throw error
-     }
-    },
-    onMutate: () => {
-      
-      setLoading(true)
-     
-    },
-    onSuccess: (data) => {
-      try {
-        const { user } = data.data;
-        
-        // Handle ADMIN role
-        if (user.role === 'ADMIN') {
-          toast.success('Welcome back, Admin');
-          setTimeout(() => navigate('/admin'), 2000);
-          return;
-        }
-
-        // Handle USER role
-        if (user.role === 'USER') {
-          toast.success('Subscription Active, Welcome back')
-          setTimeout(()=> {
-            navigate('/dashboard')
-          })
-          return;
-        }
-        else {
-          toast.error('Activate your account to continue..')
-          setTimeout(()=> navigate('/activation'))
-        }
-
-        // Handle unknown role
-        toast.error('Invalid user role');
-        clearAuthTokens();
-        setUser(null);
-      } catch (error) {
-        console.error('Navigation error:', error);
-        toast.error('Error during login');
-        clearAuthTokens();
-        setUser(null);
-      }
-    },
-    onError: (error) => {
-      const errorMessage = getErrorMessage(error)
-      toast.error(errorMessage)
-      console.error('Login error:', error)
-      clearAuthTokens()
-      setUser(null)
-    },
-    onSettled: () => {
-      setLoading(false)
     }
-  })
+  },
+  onMutate: () => {
+    setLoading(true)
+  },
+  onSuccess: (data) => {
+    try {
+      const { user } = data.data;
+      
+      // Handle ADMIN role - admins don't need verification
+      if (user.role === 'ADMIN') {
+        toast.success('Welcome back, Admin');
+        setTimeout(() => navigate('/admin'), 1500);
+        return;
+      }
+
+      // Handle USER role with verification check
+      if (user.role === 'USER') {
+        // Check if user is verified (0 = not verified, 1 = verified)
+        if (!user.isVerified || user.isVerified === 0) {
+          toast.error('Activate your account to continue..');
+          setTimeout(() => navigate('/activation'), 1500);
+          return;
+        }
+        
+        // User is verified - go to dashboard
+        toast.success('Welcome back!');
+        setTimeout(() => navigate('/dashboard'), 1500);
+        return;
+      }
+
+      // Fallback for unknown roles
+      console.warn('Unknown user role:', user.role);
+      toast.error('Invalid user role');
+      clearAuthTokens();
+      setUser(null);
+      
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast.error('Error during login');
+      clearAuthTokens();
+      setUser(null);
+    }
+  },
+  onError: (error) => {
+    const errorMessage = getErrorMessage(error)
+    toast.error(errorMessage)
+    console.error('Login error:', error)
+    clearAuthTokens()
+    setUser(null)
+  },
+  onSettled: () => {
+    setLoading(false)
+  }
+})
+
 
   const registerMutation = useMutation({
     mutationFn: async (userData) => {

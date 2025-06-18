@@ -36,7 +36,7 @@ const app = express();
 // Basic middleware
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-      ? ['https://www.earndrip.com', 'https://minerals-two.vercel.app/']  // Frontend internal URL
+      ? ['https://www.earndrip.com', 'https://minerals-two.vercel.app']  // Frontend internal URL
       : ['http://localhost:8080','http://172.28.0.1:8080', 'http://192.168.100.48.8080', 'http://localhost:5173','http://192.168.240.1:8080'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -131,11 +131,11 @@ app.use('/api/v1/commissions', auth, commissionRoutes,createRateLimiter(1 * 60 *
 app.use('/api/v1/system-revenue', systemRevenueRoutes);
 app.use('/api/v1/prizes',auth, prizeRoutes,createRateLimiter(1 * 60 * 1000, 10));
 
-if(process.env.NODE_ENV === 'production') {
-    app.get('*', (req,res) => {
-        res.redirect('https://www.earndrip.com')
-    })
-}
+// if(process.env.NODE_ENV === 'production') {
+//     app.get('*', (req,res) => {
+//         res.redirect('https://www.earndrip.com')
+//     })
+// }
 
 // Error handling
 app.use(errorHandler);

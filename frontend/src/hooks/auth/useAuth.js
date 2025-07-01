@@ -62,8 +62,6 @@ const loginMutation = useMutation({
       }
 
       const { accessToken, refreshToken, user } = response.data.data
-
-      console.log('User after login:', user);
       
       // Set tokens first
       setAuthTokens(accessToken, refreshToken)
@@ -99,12 +97,12 @@ const loginMutation = useMutation({
 
       // Handle USER role with verification check
       if (user.role === 'USER') {
-        // Check if user is verified (0 = not verified, 1 = verified)
-        if (!user.isVerified || user.isVerified === 0) {
-          toast.error('Activate your account to continue..');
-          setTimeout(() => navigate('/activation'), 1500);
-          return;
-        }
+        // Check if user's node is active
+      if (!user.node || user.node.status !== 'ACTIVE') {
+  toast.error('Activate your account to continue..');
+  setTimeout(() => navigate('/activation'), 1500);
+  return;
+}
         
         // User is verified - go to dashboard
         toast.success('Welcome back!');

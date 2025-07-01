@@ -62,6 +62,8 @@ const loginMutation = useMutation({
       }
 
       const { accessToken, refreshToken, user } = response.data.data
+
+      console.log('User after login:', user);
       
       // Set tokens first
       setAuthTokens(accessToken, refreshToken)

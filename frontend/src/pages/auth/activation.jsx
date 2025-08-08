@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, Star, CheckCircle2, Sparkles, ArrowRight, Shield, Zap, Trophy } from "lucide-react"
+import { Check, Star, CheckCircle2, Sparkles, ArrowRight, Shield, Zap, Trophy, Copy } from "lucide-react"
 import { usePackages } from "@/hooks/payments/usePackages"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "@/hooks/auth/useAuth"
@@ -8,6 +8,9 @@ import { useNavigate } from "react-router-dom"
 import defaultImg from "@/assets/golden.png"
 import { useCountry } from "@/hooks/config/useCountry"
 import ReactCountryFlag from "react-country-flag"
+import api from "@/lib/axios"
+import { useQuery } from "@tanstack/react-query"
+import { toast } from "react-hot-toast"
 
 const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -179,6 +182,46 @@ export default function ActivationPage() {
 
   const tabs = ["Trinitario", "Forastero", "Criollo"];
   
+  // Referral link fetch — allow users to share even before activation
+  const { data: referralLinkData } = useQuery({
+    queryKey: ["referralLink"],
+    queryFn: async () => {
+      const response = await api.get("/network/referral-link");
+      return response.data.data;
+    },
+  });
+
+  const handleCopyLink = () => {
+    if (referralLinkData?.referralLink) {
+      navigator.clipboard
+        .writeText(referralLinkData.referralLink)
+        .then(() => {
+          toast.success("Copied");
+        })
+        .catch(() => toast.error("Copy failed"));
+    }
+  };
+
+  const handleShare = async () => {
+    const link = referralLinkData?.referralLink;
+    if (!link) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Join me on Earn Drip",
+          text: "Sign up using my referral link:",
+          url: link,
+        });
+        toast.success("Shared");
+      } else {
+        await navigator.clipboard.writeText(link);
+        toast.success("Copied (share unavailable)");
+      }
+    } catch (err) {
+      toast.error("Share failed");
+    }
+  };
+
   const filteredPackages = useMemo(() => {
     return availablePackages.filter(pkg => 
       pkg.description === activeTab
@@ -226,10 +269,42 @@ export default function ActivationPage() {
             <h1 className="text-3xl lg:text-4xl xl:text-5xl font-extralight text-slate-900 tracking-wide">
               Get <span className="font-light">Started</span>
             </h1>
-            {/* <p className="text-slate-600 font-light max-w-2xl mx-auto leading-relaxed">
-              Choose from our carefully curated selection of investment opportunities, 
-              designed to deliver consistent returns with transparent terms.
-            </p> */}
+            <p className="text-slate-600 font-light max-w-2xl mx-auto leading-relaxed">
+              Carefully curated selection of opportunities,
+              
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Referral Section — available pre-activation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="px-4 pb-4"
+        >
+          <div className="max-w-4xl mx-auto">
+            <div className="rounded-xl p-[1px] bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-500/30">
+              <div className="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-[10px] p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-slate-500 text-xs uppercase tracking-wide mb-1">Referral link</div>
+                    <div className="text-slate-800 text-sm truncate px-3 py-2 border border-slate-200 rounded-lg bg-white">
+                      {referralLinkData?.referralLink || "Generating..."}
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleCopyLink} 
+                    variant="outline" 
+                    className="h-10 w-full sm:w-10 p-0 border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
+                    aria-label="Copy link"
+                    disabled={!referralLinkData?.referralLink}
+                  >
+                    <Copy className="h-4 w-4 text-emerald-700" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </motion.div>
 

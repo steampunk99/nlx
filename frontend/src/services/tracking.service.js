@@ -16,7 +16,7 @@ export const trackReferralClick = async (code) => {
     return response.data
   } catch (error) {
     console.error('Failed to track referral click:', error)
-    // Don't throw error as this is not critical for user experience
+    // Don't throw error
     return null
   }
 }

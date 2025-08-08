@@ -317,17 +317,32 @@ export default function ActivationPage() {
         >
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-center">
-              <div className="bg-white/60 px-8 pb-8 border border-green-400 backdrop-blur-sm rounded-2xl p-2 border border-slate-200/50 shadow-sm">
-                <div className="flex flex-wrap gap-1">
+              <div className="bg-white/60 px-4 sm:px-8 pb-8 backdrop-blur-sm rounded-2xl p-2 border border-slate-200/50 shadow-sm">
+                {/* Mobile Select (fallback) */}
+                <div className="sm:hidden mb-3">
+                  <select
+                    value={activeTab}
+                    onChange={(e) => setActiveTab(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  >
+                    {tabs.map((tab) => (
+                      <option key={tab} value={tab}>{tab}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Scrollable chip row */}
+                <div className="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x snap-mandatory">
                   {tabs.map((tab) => (
                     <motion.button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`relative px-6 py-3 rounded-xl font-light tracking-wide transition-all duration-300 ${
+                      className={`relative px-4 py-2 md:px-6 md:py-3 rounded-xl font-light tracking-wide transition-all duration-300 shrink-0 whitespace-nowrap snap-start ${
                         activeTab === tab
                           ? 'text-white shadow-lg'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                       }`}
+                      aria-pressed={activeTab === tab}
                       whileTap={{ scale: 0.95 }}
                     >
                       {activeTab === tab && (

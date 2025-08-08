@@ -70,11 +70,11 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
               )}
             </div>
             {/* Rating */}
-            <div className="flex items-center justify-center gap-1">
+            {/* <div className="flex items-center justify-center gap-1">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className={`w-4 h-4 ${i < rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Stats Grid */}

@@ -64,12 +64,6 @@
 //     console.log('Package purchase seeded and commissions distributed successfully');
 //   } catch (error) {
 //     console.error('Error seeding package purchase and distributing commissions:', error);
-//   } finally {
-//     await prisma.$disconnect();
-//   }
-// }
-
-// seedPackagePurchase();
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -104,7 +98,8 @@ async function seedAdmin() {
         status: 'ACTIVE',
         role: 'ADMIN',
         isVerified: true,
-        country: 'UG'
+        country: 'UG',
+        avatarUrl: dicebearAvatar('Hyper', 'Admin')
       }
     });
 
@@ -113,13 +108,141 @@ async function seedAdmin() {
     console.log('👤 Username:', adminUser.username);
     console.log('🔑 Password:', defaultPassword);
     console.log('⚠️  Please change the password after first login!');
-    
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
+  } finally {
+    // keep connection for further seeding
+  }
+}
+
+function dicebearAvatar(firstName, lastName) {
+  const seed = encodeURIComponent(`${firstName} ${lastName}`.trim());
+  return `https://api.dicebear.com/7.x/initials/png?seed=${seed}`;
+}
+
+async function upsertUser({ email, username, firstName, lastName, phone, status, role = 'USER', isVerified = false, country = 'UG', password }) {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const avatarUrl = dicebearAvatar(firstName, lastName);
+  // Try find existing by email
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    return prisma.user.update({
+      where: { email },
+      data: {
+        username,
+        firstName,
+        lastName,
+        phone,
+        status,
+        role,
+        isVerified,
+        country,
+        password: hashedPassword,
+        avatarUrl
+      }
+    });
+  }
+  return prisma.user.create({
+    data: {
+      email,
+      username,
+      firstName,
+      lastName,
+      phone,
+      status,
+      role,
+      isVerified,
+      country,
+      password: hashedPassword,
+      avatarUrl
+    }
+  });
+}
+
+async function ensureNodeForUser(userId) {
+  const existing = await prisma.node.findUnique({ where: { userId } });
+  if (existing) return existing;
+  return prisma.node.create({ data: { userId, status: 'ACTIVE', position: 'ONE', level: 1 } });
+}
+
+async function assignPackageToNode(nodeId, packageName) {
+  const pkg = await prisma.package.findFirst({ where: { name: packageName } });
+  if (!pkg) throw new Error(`Package not found: ${packageName}. Run seed-packages first.`);
+  // If node already has a package, update it; else create
+  const now = new Date();
+  const expires = new Date(now.getTime());
+  // duration is in days according to our schema intent
+  // Fetch duration from package
+  const durationDays = pkg.duration ?? 30;
+  expires.setDate(expires.getDate() + durationDays);
+
+  const existing = await prisma.nodePackage.findUnique({ where: { nodeId } });
+  if (existing) {
+    return prisma.nodePackage.update({
+      where: { nodeId },
+      data: {
+        packageId: pkg.id,
+        status: 'ACTIVE',
+        activatedAt: now,
+        expiresAt: expires
+      }
+    });
+  }
+  return prisma.nodePackage.create({
+    data: {
+      nodeId,
+      packageId: pkg.id,
+      status: 'ACTIVE',
+      activatedAt: now,
+      expiresAt: expires
+    }
+  });
+}
+
+async function seedDemoUsers() {
+  try {
+    // 1) Verified user with active package
+    const user1 = await upsertUser({
+      email: 'demo@active.com',
+      username: 'demoactive',
+      firstName: 'Demo',
+      lastName: 'Active',
+      phone: '+256700000001',
+      status: 'ACTIVE',
+      role: 'USER',
+      isVerified: true,
+      country: 'UG',
+      password: 'DemoPass123!'
+    });
+    const node1 = await ensureNodeForUser(user1.id);
+    await assignPackageToNode(node1.id, 'Gold');
+
+    // 2) Inactive user with no package
+    await upsertUser({
+      email: 'demo.inactive@earndrip.com',
+      username: 'demoinactive',
+      firstName: 'Demo',
+      lastName: 'Inactive',
+      phone: '+256700000002',
+      status: 'INACTIVE',
+      role: 'USER',
+      isVerified: false,
+      country: 'UG',
+      password: 'DemoPass123!'
+    });
+
+    console.log('✅ Demo users seeded.');
+    console.log('Login with: demo@active.com / DemoPass123!');
+  } catch (err) {
+    console.error('❌ Error seeding demo users:', err);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-// Run the seed function
-seedAdmin();
+async function main() {
+  await seedAdmin();
+  await seedDemoUsers();
+}
+
+main();

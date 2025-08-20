@@ -12,6 +12,30 @@ import api from "@/lib/axios"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "react-hot-toast"
 
+const getDetectedCategory = (pkg) => {
+  if (!pkg) return 'Other'
+  // Prefer explicit category field if it exists
+  if (pkg.category && typeof pkg.category === 'string') return pkg.category
+  // Heuristics based on common names in DB
+  const name = `${pkg.name || ''} ${pkg.description || ''}`.toLowerCase()
+  if (name.includes('trinitario')) return 'Trinitario'
+  if (name.includes('forastero')) return 'Forastero'
+  if (name.includes('criollo')) return 'Criollo'
+  return 'Other'
+}
+
+const categoryFallbackImages = {
+  Trinitario: [defaultImg, defaultImg],
+  Forastero: [defaultImg, defaultImg],
+  Criollo: [defaultImg, defaultImg],
+  Other: [defaultImg, defaultImg]
+}
+
+const getFallbackImage = (category, index) => {
+  const list = categoryFallbackImages[category] || categoryFallbackImages.Other
+  return list[index % list.length] || defaultImg
+}
+
 const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
   const [isHovered, setIsHovered] = useState(false)
   
@@ -26,7 +50,9 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
     return { price, dailyIncome, totalRevenue, duration }
   }, [pkg.price, pkg.dailyMultiplier, pkg.duration])
 
-  const img = pkg.imageUrl || defaultImg
+  const detectedCategory = getDetectedCategory(pkg)
+  const img = pkg.imageUrl || getFallbackImage(detectedCategory, index)
+  
   const rating = pkg.rating || ((index % 5) + 1)
   const featured = pkg.featured || index === 0
 
@@ -121,11 +147,19 @@ export default function ActivationPage() {
   const { country, currency, formatAmount } = useCountry();
   const { user } = useAuth();
   const { availablePackages, packagesLoading } = usePackages();
-  const [activeTab, setActiveTab] = useState("Trinitario");
+  // Build categories dynamically from data + include a default 'All'
+  const dynamicCategories = useMemo(() => {
+    const set = new Set(['All'])
+    for (const p of availablePackages || []) {
+      set.add(getDetectedCategory(p))
+    }
+    return Array.from(set)
+  }, [availablePackages])
+  const [activeTab, setActiveTab] = useState('All');
 
   console.log("Available Packages:", availablePackages);
 
-  const tabs = ["Trinitario", "Forastero", "Criollo"];
+  const tabs = dynamicCategories;
   
   // Referral link fetch — allow users to share even before activation
   const { data: referralLinkData } = useQuery({
@@ -168,9 +202,9 @@ export default function ActivationPage() {
   };
 
   const filteredPackages = useMemo(() => {
-    return availablePackages.filter(pkg => 
-      pkg.description === activeTab
-    );
+    if (!availablePackages || availablePackages.length === 0) return []
+    if (activeTab === 'All') return availablePackages
+    return availablePackages.filter((pkg) => getDetectedCategory(pkg) === activeTab)
   }, [availablePackages, activeTab]);
 
   const handlePackagePurchase = (pkg) => {

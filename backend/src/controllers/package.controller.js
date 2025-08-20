@@ -7,6 +7,7 @@ const { validatePackagePurchase, validatePackageCreate } = require('../middlewar
 const { calculateCommissions } = require('../utils/commission.utils');
 const prisma = require('../config/prisma');
 const nodePaymentService = require('../services/nodePayment.service');
+const cloudinaryService = require('../services/cloudinary.service');
 
 class PackageController {
   /**
@@ -100,8 +101,21 @@ class PackageController {
         benefits,
         maxNodes,
         duration,
-        status
+        status,
+        imageUrl: imageUrlFromBody
       } = req.body;
+
+      // Handle image upload if file is provided
+      let imageUrl = imageUrlFromBody || null;
+      try {
+        if (req.files && req.files.image && req.files.image.tempFilePath) {
+          const upload = await cloudinaryService.uploadFile(req.files.image.tempFilePath, { folder: 'packages' });
+          imageUrl = upload.url;
+        }
+      } catch (e) {
+        console.error('Package image upload failed:', e);
+        // Not fatal; continue without image if upload fails
+      }
 
       const newPackage = await packageService.adminCreate({
         name,
@@ -112,7 +126,8 @@ class PackageController {
         benefits,
         maxNodes: Number(maxNodes),
         duration: Number(duration),
-        status
+        status,
+        imageUrl
       });
 
       res.status(201).json({
@@ -143,6 +158,17 @@ class PackageController {
       if (updateData.level) updateData.level = Number(updateData.level);
       if (updateData.maxNodes) updateData.maxNodes = Number(updateData.maxNodes);
       if (updateData.duration) updateData.duration = Number(updateData.duration);
+
+      // Handle image upload if present
+      try {
+        if (req.files && req.files.image && req.files.image.tempFilePath) {
+          const upload = await cloudinaryService.uploadFile(req.files.image.tempFilePath, { folder: 'packages' });
+          updateData.imageUrl = upload.url;
+        }
+      } catch (e) {
+        console.error('Package image upload failed:', e);
+        // continue without changing image if upload fails
+      }
 
       const updatedPackage = await packageService.adminUpdate(id, updateData);
       

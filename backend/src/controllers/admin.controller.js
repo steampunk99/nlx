@@ -403,10 +403,22 @@ class AdminController {
       maxNodes = 1,
       duration = 30,
       features,
-      dailyMultiplier = 1
+      dailyMultiplier = 1,
+      imageUrl: imageUrlFromBody
     } = req.body;
 
     try {
+      // Prepare image URL (from file upload or direct URL)
+      let imageUrl = imageUrlFromBody || null;
+      try {
+        if (req.files && req.files.image && req.files.image.tempFilePath) {
+          const upload = await cloudinaryService.uploadFile(req.files.image.tempFilePath, { folder: 'packages' });
+          imageUrl = upload.url;
+        }
+      } catch (e) {
+        console.error('Admin create package image upload failed:', e);
+      }
+
       // Start transaction
       const result = await prisma.$transaction(async (tx) => {
         // Check if package with same name exists
@@ -435,7 +447,8 @@ class AdminController {
             maxNodes: parseInt(maxNodes),
             duration: parseInt(duration),
             features: features ? JSON.stringify(features) : null,
-            dailyMultiplier: parseFloat(dailyMultiplier)
+            dailyMultiplier: parseFloat(dailyMultiplier),
+            imageUrl
           }
         });
 
@@ -468,6 +481,16 @@ class AdminController {
     const updateData = req.body;
 
     try {
+      // Handle image upload if provided
+      try {
+        if (req.files && req.files.image && req.files.image.tempFilePath) {
+          const upload = await cloudinaryService.uploadFile(req.files.image.tempFilePath, { folder: 'packages' });
+          updateData.imageUrl = upload.url;
+        }
+      } catch (e) {
+        console.error('Admin update package image upload failed:', e);
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         // Check if package exists
         const existingPackage = await tx.package.findUnique({
@@ -506,7 +529,8 @@ class AdminController {
           maxNodes: updateData.maxNodes ? parseInt(updateData.maxNodes) : undefined,
           duration: updateData.duration ? parseInt(updateData.duration) : undefined,
           features: updateData.features ? JSON.stringify(updateData.features) : undefined,
-          dailyMultiplier: updateData.dailyMultiplier ? parseFloat(updateData.dailyMultiplier) : undefined
+          dailyMultiplier: updateData.dailyMultiplier ? parseFloat(updateData.dailyMultiplier) : undefined,
+          imageUrl: updateData.imageUrl ? updateData.imageUrl : undefined
         };
 
         // Remove undefined values

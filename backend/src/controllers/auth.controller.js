@@ -139,6 +139,10 @@ class AuthController {
         }
       }
 
+      // Prepare DiceBear avatar URL
+      const dicebearSeed = encodeURIComponent(`${firstName} ${lastName}`.trim() || email);
+      const avatarUrl = `https://api.dicebear.com/7.x/initials/png?seed=${dicebearSeed}`;
+
       // Create user without package association
       const user = await prisma.user.create({
         data: {
@@ -150,7 +154,8 @@ class AuthController {
           phone,
           country: country || 'UG',
           status: 'ACTIVE',
-          role: 'USER'
+          role: 'USER',
+          avatarUrl
         }
       });
 
@@ -228,6 +233,7 @@ class AuthController {
               lastName: user.lastName,
               phone: user.phone,
               country: user.country,
+              avatarUrl: user.avatarUrl,
               isVerified: user.isVerified,
               createdAt: user.createdAt
             },
@@ -252,6 +258,7 @@ class AuthController {
               lastName: user.lastName,
               phone: user.phone,
               country: user.country,
+              avatarUrl: user.avatarUrl,
               isVerified: user.isVerified,
               createdAt: user.createdAt
             },
@@ -371,6 +378,7 @@ class AuthController {
             lastName: user.lastName,
             country: user.country,
             role: user.role,
+            avatarUrl: user.avatarUrl,
             node: user.node
           },
           accessToken,
@@ -737,7 +745,8 @@ class AuthController {
           phone: user.phone,
           country: user.country,
           role: user.role,
-          status: user.status
+          status: user.status,
+          avatarUrl: user.avatarUrl
         }
       });
 

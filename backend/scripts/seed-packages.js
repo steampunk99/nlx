@@ -8,9 +8,9 @@ async function seedPackages() {
 
         const packages = [
             {
-                name: 'Starter Package',
+                name: 'Gold',
                 description: 'Entry-level package for new members',
-                price: 50000.00,
+                price: '50000.00',
                 level: 2,
                 status: 'ACTIVE',
                 benefits: {
@@ -26,9 +26,9 @@ async function seedPackages() {
                 features: 'Basic networking tools, Daily rewards, Community access'
             },
             {
-                name: 'Bronze Package',
+                name: 'Silver',
                 description: 'Intermediate package with more benefits',
-                price: 100000.00,
+                price: '100000.00',
                 level: 3,
                 status: 'ACTIVE',
                 benefits: {
@@ -44,9 +44,9 @@ async function seedPackages() {
                 features: 'Advanced networking tools, Higher rewards, Priority support'
             },
             {
-                name: 'Silver Package',
+                name: 'Platinum',
                 description: 'Advanced package with enhanced earning potential',
-                price: 250000.00,
+                price: '250000.00',
                 level: 4,
                 status: 'ACTIVE',
                 benefits: {
@@ -62,9 +62,9 @@ async function seedPackages() {
                 features: 'Premium tools, VIP support, Exclusive training'
             },
             {
-                name: 'Gold Package',
+                name: 'Bronze',
                 description: 'Premium package with maximum benefits',
-                price: 500000.00,
+                price: '500000.00',
                 level: 5,
                 status: 'ACTIVE',
                 benefits: {
@@ -83,14 +83,15 @@ async function seedPackages() {
 
         // Create packages
         const createdPackages = await Promise.all(
-            packages.map(packageData => 
-                prisma.package.create({ data: packageData })
-            )
+            packages.map(async (pkg) => {
+                // create by unique name to avoid duplicates if this script changes
+                return prisma.package.create({ data: pkg });
+            })
         );
 
-        console.log('Packages seeded successfully:', createdPackages);
+        console.log('Minerals seeded successfully:', createdPackages);
     } catch (error) {
-        console.error('Error seeding packages:', error);
+        console.error('Error seeding minerals:', error);
     } finally {
         await prisma.$disconnect();
     }

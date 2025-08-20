@@ -216,6 +216,7 @@ export function AdminPackagesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Image</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
@@ -226,13 +227,24 @@ export function AdminPackagesPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : packages?.length > 0 ? (
                   packages.map((pkg) => (
                     <TableRow key={pkg.id}>
+                      <TableCell>
+                        {pkg.imageUrl ? (
+                          <img
+                            src={pkg.imageUrl}
+                            alt={pkg.name}
+                            className="h-10 w-10 rounded object-cover border"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded border bg-muted" />
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">{pkg.name}</div>
@@ -296,7 +308,7 @@ export function AdminPackagesPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       No packages found.
                     </TableCell>
                   </TableRow>

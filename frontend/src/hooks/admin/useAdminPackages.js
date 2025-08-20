@@ -52,7 +52,8 @@ export function useAdminPackages(options = {}) {
         maxNodes: data.maxNodes ? parseInt(data.maxNodes) : 1,
         duration: data.duration ? parseInt(data.duration) : 30,
         features: data.features || null,
-        dailyMultiplier: data.dailyMultiplier ? parseFloat(data.dailyMultiplier) : 1
+        dailyMultiplier: data.dailyMultiplier ? parseFloat(data.dailyMultiplier) : 1,
+        imageUrl: data.imageUrl || undefined
       };
 
       const response = await api.post('/admin/packages', packageData);
@@ -81,7 +82,8 @@ export function useAdminPackages(options = {}) {
         maxNodes: data.maxNodes ? parseInt(data.maxNodes) : undefined,
         duration: data.duration ? parseInt(data.duration) : undefined,
         features: data.features,
-        dailyMultiplier: data.dailyMultiplier ? parseFloat(data.dailyMultiplier) : undefined
+        dailyMultiplier: data.dailyMultiplier ? parseFloat(data.dailyMultiplier) : undefined,
+        imageUrl: data.imageUrl || undefined
       };
 
       // Remove undefined values

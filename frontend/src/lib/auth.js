@@ -6,6 +6,7 @@ export const userAtom = atomWithStorage('user', null)
 export const isAuthenticatedAtom = atom(
   (get) => get(userAtom) !== null
 )
+//get user avatar fro
 
 // Auth utils
 export function setAuthTokens(tokens) {
@@ -33,8 +34,10 @@ export function clearAuthTokens() {
 export function getAuthTokens() {
   const tokens = {
     accessToken: localStorage.getItem('accessToken'),
+    
     refreshToken: localStorage.getItem('refreshToken'),
   }
+
 
 
 

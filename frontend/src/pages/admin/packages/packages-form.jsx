@@ -29,6 +29,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Card, CardContent } from '@/components/ui/card';
+import { api } from '@/lib/axios';
 
 // Form validation schema
 const packageSchema = z.object({
@@ -67,6 +68,8 @@ const packageSchema = z.object({
 
 const PackageForm = ({ packageData, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(packageData?.imageUrl || '');
   const { createPackage, updatePackage } = useAdminPackages();
 
   const form = useForm({
@@ -103,9 +106,21 @@ const PackageForm = ({ packageData, onSuccess }) => {
         }
       }
 
+      // If an image file was selected, upload first to get a URL
+      let imageUrl = packageData?.imageUrl || undefined;
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        const uploadRes = await api.post('/admin/upload-image', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        imageUrl = uploadRes?.data?.data?.url || imageUrl;
+      }
+
       const packagePayload = {
         ...data,
-        benefits: parsedBenefits
+        benefits: parsedBenefits,
+        imageUrl
       };
 
       if (packageData?.id) {
@@ -138,6 +153,39 @@ const PackageForm = ({ packageData, onSuccess }) => {
           <TabsContent value="basic" className="space-y-4 mt-4">
             <Card>
               <CardContent className="space-y-4 pt-4">
+                {/* Image upload */}
+                <div className="space-y-2">
+                  <FormLabel>Image</FormLabel>
+                  {previewUrl ? (
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={previewUrl}
+                        alt="preview"
+                        className="h-16 w-16 rounded object-cover border"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => { setPreviewUrl(''); setImageFile(null); }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ) : null}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageFile(file);
+                        const url = URL.createObjectURL(file);
+                        setPreviewUrl(url);
+                      }
+                    }}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="name"

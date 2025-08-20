@@ -16,6 +16,10 @@ const packageCreateSchema = Joi.object({
         .allow('')
         .max(1000),
     
+    imageUrl: Joi.string()
+        .uri()
+        .allow(''),
+    
     benefits: Joi.object()
         .default({}),
     
@@ -55,6 +59,10 @@ const packageUpdateSchema = Joi.object({
     description: Joi.string()
         .allow('')
         .max(1000),
+    
+    imageUrl: Joi.string()
+        .uri()
+        .allow(''),
     
     benefits: Joi.object(),
     

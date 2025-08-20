@@ -413,7 +413,8 @@ class PackageService {
                 features: Array.isArray(data.features) ? JSON.stringify(data.features) : data.features,
                 maxNodes: data.maxNodes || 1,
                 duration: data.duration || 30,
-                status: data.status || 'ACTIVE'
+                status: data.status || 'ACTIVE',
+                imageUrl: data.imageUrl || null
             }
         });
     }
@@ -431,6 +432,7 @@ class PackageService {
                 ...(data.maxNodes && { maxNodes: data.maxNodes }),
                 ...(data.duration && { duration: data.duration }),
                 ...(data.status && { status: data.status }),
+                ...(data.imageUrl && { imageUrl: data.imageUrl }),
                 updatedAt: new Date()
             }
         });

@@ -17,7 +17,7 @@ import { Checkbox } from "../../components/ui/checkbox"
 import toast from 'react-hot-toast'
 import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 import { Badge } from '@/components/ui/badge'
-import bg from '@/assets/bg.jpg'
+
 
 // List of countries with codes
 const countries = [

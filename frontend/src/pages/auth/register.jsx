@@ -17,6 +17,7 @@ import { Checkbox } from "../../components/ui/checkbox"
 import toast from 'react-hot-toast'
 import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 import { Badge } from '@/components/ui/badge'
+import bg from '@/assets/bg.jpg'
 
 // List of countries with codes
 const countries = [
@@ -140,7 +141,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-layout min-h-screen">
+    <div className="min-h-screen bg-stone-50">
       <div className="min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Background Image */}
         <motion.div
@@ -151,10 +152,10 @@ export default function RegisterPage() {
           <div 
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1579226905180-636b76d96082?q=80&w=2574&auto=format&fit=crop")',
+              backgroundImage: `url("https://plus.unsplash.com/premium_photo-1746108793640-d866511539e3?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")`,
             }}
           />
-          <div className="absolute inset-0 auth-gradient backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
           
           {/* Content Overlay */}
           <div className="relative z-10 p-12 flex flex-col justify-center text-white">
@@ -165,22 +166,22 @@ export default function RegisterPage() {
               className="space-y-8 max-w-lg mx-auto"
             >
               <div>
-                <h1 className="text-5xl font-bold mb-4">Join {siteName}</h1>
-                <p className="text-xl text-white/90">{siteName} is a farming  company that grows quality cocoa.</p>
+                <h1 className="text-5xl font-mono font-semibold mb-4 tracking-tight">Join {siteName}</h1>
+                <p className="text-xl text-white/90">Invest in minerals with a calm, transparent experience.</p>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">We also pay farmers per day of the harvests</p>
+                  <p className="text-white/90">Daily accruals on curated mineral packages</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">We have 3 Million farmers in africa.</p>
+                  <p className="text-white/90">Fast, reliable withdrawals</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Join the farming club</p>
+                  <p className="text-white/90">Join Mineral Traders</p>
                 </div>
               </div>
             </motion.div>
@@ -199,25 +200,26 @@ export default function RegisterPage() {
           className="flex-1 flex items-center justify-center px-4 py-20 lg:px-12 relative z-10"
         >
           <div className="w-full max-w-md">
+            <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 md:p-8">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight premium-text-gradient">Create Account</h2>
-              <p className="text-gray-400">Join our community of entrepreneurs</p>
+              <h2 className="text-3xl font-mono font-semibold tracking-tight text-stone-900">Create Account</h2>
+              <p className="text-stone-600">Join Mineral Traders to start investing</p>
             </div>
 
             {submitError && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-md p-3 text-sm"
+                className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-md p-3 text-sm"
               >
                 {submitError}
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <form onSubmit={handleSubmit} className="mt-6 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-gray-300">First Name</Label>
+                  <Label htmlFor="firstName" className="text-stone-700">First Name</Label>
                   <Input
                     id="firstName"
                     name="firstName"
@@ -226,16 +228,16 @@ export default function RegisterPage() {
                     placeholder="John"
                     required
                     className={cn(
-                      "bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500",
+                      "bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none",
                       formErrors.firstName && "border-red-500/50"
                     )}
                   />
                   {formErrors.firstName && (
-                    <p className="text-sm text-red-400 mt-1">{formErrors.firstName}</p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.firstName}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-gray-300">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-stone-700">Last Name</Label>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -244,18 +246,18 @@ export default function RegisterPage() {
                     placeholder="Doe"
                     required
                     className={cn(
-                      "bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500",
+                      "bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none",
                       formErrors.lastName && "border-red-500/50"
                     )}
                   />
                   {formErrors.lastName && (
-                    <p className="text-sm text-red-400 mt-1">{formErrors.lastName}</p>
+                    <p className="text-sm text-red-600 mt-1">{formErrors.lastName}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300">Email</Label>
+                <Label htmlFor="email" className="text-stone-700">Email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -265,25 +267,25 @@ export default function RegisterPage() {
                   placeholder="john.doe@example.com"
                   required
                   className={cn(
-                    "bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500",
+                    "bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none",
                     formErrors.email && "border-red-500/50"
                   )}
                 />
                 {formErrors.email && (
-                  <p className="text-sm text-red-400 mt-1">{formErrors.email}</p>
+                  <p className="text-sm text-red-600 mt-1">{formErrors.email}</p>
                 )}
               </div>
 
               {/* Country Selection */}
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
+                <Label htmlFor="country" className="text-stone-700">Country</Label>
                 <Select 
                   
                   name="country"
                   value={formData.country}
                   onValueChange={(value) => handleChange({ target: { name: 'country', value } })}
                 >
-                  <SelectTrigger className="bg-gray-900 border-none  text-white">
+                  <SelectTrigger className="bg-white border border-stone-300 text-stone-900 focus:ring-amber-500/20 focus:border-amber-600 focus:outline-none">
                     <SelectValue placeholder="Select your country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -295,20 +297,19 @@ export default function RegisterPage() {
                   </SelectContent>
                 </Select>
                 {formErrors.country && (
-                  <p className="text-sm text-red-500">{formErrors.country}</p>
+                  <p className="text-sm text-red-600">{formErrors.country}</p>
                 )}
               </div>
 
               {/* Phone Number with country detection */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone" className="text-stone-700">Phone Number</Label>
                 <PhoneInput
                   international
                   defaultCountry={formData.country || 'UG'}
                   value={formData.phone}
                   onChange={(value) => handleChange({ target: { name: 'phone', value } })}
-                  className="flex h-12 w-full rounded-md border border-gray-800 bg-gray-900/50 px-3 py-2 
-                  text-sm "
+                  className="flex h-12 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus-within:border-amber-600 focus-within:ring-1 focus-within:ring-amber-500/20"
                 />
                 {formErrors.phone && (
                   <Badge variant="secondary" >{formErrors.phone}</Badge>
@@ -316,7 +317,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-300">Password</Label>
+                <Label htmlFor="password" className="text-stone-700">Password</Label>
                 <Input
                   id="password"
                   name="password"
@@ -326,7 +327,7 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                   className={cn(
-                    "bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500",
+                    "bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none",
                     formErrors.password && "border-red-500/50"
                   )}
                 />
@@ -335,11 +336,11 @@ export default function RegisterPage() {
                     {formErrors.password.map((error, index) => (
                       <div key={index} className="flex items-center gap-2 text-sm">
                         {error.includes('✓') ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
+                          <Check className="w-4 h-4 text-amber-600" />
                         ) : (
-                          <X className="w-4 h-4 text-red-400" />
+                          <X className="w-4 h-4 text-red-600" />
                         )}
-                        <span className={error.includes('✓') ? 'text-emerald-400' : 'text-red-400'}>
+                        <span className={error.includes('✓') ? 'text-amber-700' : 'text-red-600'}>
                           {error}
                         </span>
                       </div>
@@ -349,7 +350,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-300">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-stone-700">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -359,24 +360,24 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                   className={cn(
-                    "bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500",
+                    "bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none",
                     formErrors.confirmPassword && "border-red-500/50"
                   )}
                 />
                 {formErrors.confirmPassword && (
-                  <p className="text-sm text-red-400 mt-1">{formErrors.confirmPassword}</p>
+                  <p className="text-sm text-red-600 mt-1">{formErrors.confirmPassword}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="referralCode" className="text-gray-300">Referral Code (Optional)</Label>
+                <Label htmlFor="referralCode" className="text-stone-700">Referral Code (Optional)</Label>
                 <Input
                   id="referralCode"
                   name="referralCode"
                   value={formData.referralCode}
                   onChange={handleChange}
                   placeholder="Enter referral code"
-                  className="bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500"
+                  className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none"
                 />
               </div>
 
@@ -388,24 +389,24 @@ export default function RegisterPage() {
                   onCheckedChange={(checked) => 
                     handleChange({ target: { name: 'acceptTerms', type: 'checkbox', checked }})
                   }
-                  className="border-gray-700 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                  className="border-stone-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
                 />
                 <label
                   htmlFor="acceptTerms"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-stone-700"
                 >
-                  I accept the <Link to="/terms" className="text-emerald-400 hover:text-emerald-300">terms and conditions</Link>
+                  I accept the <Link to="/terms" className="text-amber-700 hover:text-amber-800">terms and conditions</Link>
                 </label>
               </div>
               {formErrors.acceptTerms && (
-                <p className="text-sm text-red-400">{formErrors.acceptTerms}</p>
+                <p className="text-sm text-red-600">{formErrors.acceptTerms}</p>
               )}
 
               <Button
                 type="submit"
                 disabled={isLoading}
                 className={cn(
-                  "w-full h-12 premium-button",
+                  "w-full h-12 bg-amber-600 hover:bg-amber-700 text-white rounded-lg",
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -428,13 +429,14 @@ export default function RegisterPage() {
                 )}
               </Button>
 
-              <p className="text-center text-gray-400">
+              <p className="text-center text-stone-600">
                 Already have an account?{" "}
-                <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium">
+                <Link to="/login" className="text-amber-700 hover:text-amber-800 font-medium">
                   Sign in
                 </Link>
               </p>
             </form>
+            </div>
           </div>
         </motion.div>
       </div>

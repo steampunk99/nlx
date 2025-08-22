@@ -108,14 +108,26 @@ const handleCopyToClipboard = () => {
   const wallet = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 
   return (
-    <div className="flex items-center bg-gradient-to-r from-yellow-500/10 to-purple-500/10 justify-center min-h-[100vh] p-4">
-         <Tabs defaultValue="mobile-money" className="w-[400px]">
-         <TabsList>
-    <TabsTrigger value="mobile-money">Mobile Money</TabsTrigger>
-    <TabsTrigger value="usdt">USDT</TabsTrigger>
+    <div className="relative min-h-screen">
+      {/* Washi-like subtle background */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_1px_1px,_rgba(2,6,23,0.05)_1px,_transparent_0)] bg-[length:22px_22px]" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-white via-white/90 to-slate-50/90" />
+
+      <div className="flex items-start justify-center pt-12 pb-16 px-4">
+        <div className="w-full max-w-2xl">
+          {/* Header */}
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-light tracking-wide text-slate-900">Complete Your Activation</h1>
+            <p className="text-slate-600 text-sm mt-2">Choose a payment method below. Minimal, calm, and focused.</p>
+          </div>
+
+          <Tabs defaultValue="mobile-money" className="w-full">
+         <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-1 shadow-sm">
+    <TabsTrigger value="mobile-money" className="rounded-md transition-all data-[state=active]:bg-amber-600 data-[state=active]:text-white">Mobile Money</TabsTrigger>
+    <TabsTrigger value="usdt" className="rounded-md transition-all data-[state=active]:bg-amber-600 data-[state=active]:text-white">USDT</TabsTrigger>
   </TabsList>
   <TabsContent value="mobile-money">
-      <Card className="w-full max-w-md">
+      <Card className="w-full border border-slate-200/70 rounded-2xl shadow-sm bg-white/95 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -130,7 +142,7 @@ const handleCopyToClipboard = () => {
         <CardContent>
           <form className="space-y-6">
             {/* Package Summary */}
-            <div className="rounded-lg bg-muted p-4">
+            <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-muted-foreground">Package</span>
                 <span className="font-medium">{selectedPackage.name}</span>
@@ -166,7 +178,7 @@ const handleCopyToClipboard = () => {
                   setPhone(value);
                 }}
                 placeholder="Enter your mobile money number"
-                className="w-full focus:outline-none focus:ring-indigo-500 "
+                className="w-full bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none rounded-lg transition-colors"
                 required
                 disabled={isSubmitting}
               />
@@ -174,7 +186,7 @@ const handleCopyToClipboard = () => {
             </div>
 
             {/* Payment Method */}
-            <div className="rounded-lg border p-4">
+            <div className="rounded-xl border border-slate-200 p-4">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-primary" />
                 <span className="font-medium">Payment Method</span>
@@ -190,12 +202,12 @@ const handleCopyToClipboard = () => {
           <Button 
             type="button"
             onClick={handlePayment}
-            className="w-full bg-gradient-to-r from-green-500 to-purple-500 text-white hover:bg-gradient-to-r hover:from-yellow-600 hover:to-purple-600"
+            className="w-full h-11 rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-sm"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
-                <span className="animate-spin">⏳</span> Processing...
+                <Loader2 className="h-4 w-4 animate-spin" /> Processing...
               </span>
             ) : (
               `Pay ${formatAmount(selectedPackage.price)}`
@@ -208,7 +220,7 @@ const handleCopyToClipboard = () => {
       </Card>
     </TabsContent>
     <TabsContent value="usdt">
-      <Card className="w-full max-w-md">
+      <Card className="w-full border border-slate-200/70 rounded-2xl shadow-sm bg-white/95 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -221,7 +233,7 @@ const handleCopyToClipboard = () => {
         <CardContent>
           <div className="space-y-6">
             {/* Package Summary */}
-            <div className="rounded-lg bg-muted p-4">
+            <div className="rounded-xl bg-slate-50 p-4 border border-slate-200">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-muted-foreground">Package</span>
                 <span className="font-medium">{selectedPackage.name}</span>
@@ -239,7 +251,7 @@ const handleCopyToClipboard = () => {
             </div>
 
             {/* USDT Payment Info */}
-            <div className="bg-gradient-to-br from-purple-500/5 to-primary/5 rounded-lg p-6 space-y-4">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
               {/* <div className="flex justify-center">
                 <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center">
                   <CreditCard className="w-16 h-16 text-primary animate-pulse" />
@@ -256,17 +268,17 @@ const handleCopyToClipboard = () => {
                     <Input
                       readOnly
                       value={wallet}
-                      className="pr-24 font-mono text-sm bg-background border-r-0 rounded-r-none"
+                      className="pr-24 font-mono text-sm bg-white border-slate-300 text-slate-900 rounded-l-lg border-r-0"
                     />
                     <Button
                       size="default"
                       variant="outline"
                       onClick={handleCopyToClipboard}
                       className={cn(
-                        "absolute right-0 px-3 h-10 rounded-l-none border-l-0",
-                        "bg-gradient-to-r from-green-500 to-purple-500 hover:from-green-600 hover:to-purple-600",
-                        "text-white transition-all duration-200",
-                        copied && "from-green-600 to-green-600"
+                        "absolute right-0 px-3 h-10 rounded-r-lg border-l-0",
+                        "bg-amber-600 hover:bg-amber-700",
+                        "text-white transition-colors",
+                        copied && "bg-amber-700"
                       )}
                     >
                       {copied ? (
@@ -281,7 +293,7 @@ const handleCopyToClipboard = () => {
                     </Button>
                   </div>
                   <Button 
-                    className="mt-4 w-full bg-gradient-to-r from-purple-500 to-primary hover:from-purple-600 hover:to-primary/90"
+                    className="mt-4 w-full h-11 rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-sm"
                     onClick={handleUsdtSubmit}
                     disabled={isSubmitting}
                   >
@@ -303,6 +315,8 @@ const handleCopyToClipboard = () => {
       </Card>
     </TabsContent>
       </Tabs>
+        </div>
+      </div>
     </div>
   );
 }

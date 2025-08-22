@@ -64,11 +64,12 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white items-center justify-center p-4">
-      <div className="w-full max-w-[350px] space-y-6">
+    <div className="flex min-h-screen bg-stone-50 items-center justify-center p-4">
+      <div className="w-full max-w-[380px]">
+        <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 md:p-8 space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">Forgot Password</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-mono font-semibold text-stone-900">Forgot Password</h1>
+          <p className="text-stone-600">
             Enter your email address and we'll send you a link to reset your password
           </p>
         </div>
@@ -80,12 +81,13 @@ export default function ForgotPasswordPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-stone-700">Email</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="john@gmail.com"
                       type="email"
                       disabled={isLoading}
+                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none"
                       {...field}
                     />
                   </FormControl>
@@ -96,7 +98,7 @@ export default function ForgotPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-md transition duration-200 disabled:opacity-50"
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-2 rounded-md transition duration-200 disabled:opacity-50"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -110,14 +112,15 @@ export default function ForgotPasswordPage() {
           </form>
         </Form>
 
-        <div className="text-center text-sm">
+        <div className="text-center text-sm text-stone-600">
           Remember your password?{' '}
           <Link
             to="/login"
-            className="font-medium text-emerald-600 hover:underline"
+            className="font-medium text-amber-700 hover:text-amber-800"
           >
             Sign in
           </Link>
+        </div>
         </div>
       </div>
     </div>

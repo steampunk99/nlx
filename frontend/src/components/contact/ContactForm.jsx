@@ -58,7 +58,7 @@ function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-neutral-400">Name</Label>
+          <Label htmlFor="name" className="text-stone-700">Name</Label>
           <Input 
             id="name" 
             name="name"
@@ -67,11 +67,11 @@ function ContactForm() {
             value={formData.name}
             onChange={handleChange}
             required 
-            className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500"
+            className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-600/20 focus:outline-none"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-neutral-400">Email</Label>
+          <Label htmlFor="email" className="text-stone-700">Email</Label>
           <Input 
             id="email" 
             name="email"
@@ -80,12 +80,12 @@ function ContactForm() {
             value={formData.email}
             onChange={handleChange}
             required 
-            className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500"
+            className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-600/20 focus:outline-none"
           />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="message" className="text-neutral-400">Message</Label>
+        <Label htmlFor="message" className="text-stone-700">Message</Label>
         <Textarea 
           id="message" 
           name="message"
@@ -94,14 +94,14 @@ function ContactForm() {
           value={formData.message}
           onChange={handleChange}
           required
-          className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-emerald-500"
+          className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-600/20 focus:outline-none"
         />
       </div>
       <div className="flex justify-end pt-4">
          <Button 
            type="submit" 
            disabled={isSubmitting}
-           className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-md transition duration-200 w-full sm:w-auto disabled:opacity-50"
+           className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-2 rounded-md transition duration-200 w-full sm:w-auto disabled:opacity-50"
          >
            {isSubmitting ? 'Sending...' : 'Send Message'}
          </Button>

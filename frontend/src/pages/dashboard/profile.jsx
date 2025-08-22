@@ -9,7 +9,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Lock, Mail, Phone, Camera, Shield, Briefcase, CalendarDays, Edit3, Save, Loader2, Eye, EyeOff } from 'lucide-react'
+import { User, Lock, Mail, Phone, Camera, Shield, Briefcase, CalendarDays, Edit3, Save, Loader2, Eye, EyeOff, Gem, Pickaxe, Settings2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
@@ -19,12 +19,30 @@ import { useSiteConfig } from '../../hooks/config/useSiteConfig'
 
 const classNames = (...classes) => classes.filter(Boolean).join(' ')
 
-function CocoaPodIcon(props) {
-  return <svg viewBox="0 0 32 32" fill="none" {...props}><ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A"/><ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748"/><ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066"/><path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5"/><path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5"/></svg>;
+function MineralCrystalIcon(props) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" {...props}>
+      <path d="M16 4L22 12L16 28L10 12Z" fill="url(#crystal-gradient)" stroke="#f59e0b" strokeWidth="1.5"/>
+      <path d="M10 12L16 8L22 12L16 16Z" fill="#fbbf24" opacity="0.8"/>
+      <defs>
+        <linearGradient id="crystal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fbbf24"/>
+          <stop offset="100%" stopColor="#f59e0b"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  )
 }
 
-function FarmhouseIcon(props) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M3 12L12 4l9 8" stroke="#4e3b1f" strokeWidth="2"/><rect x="6" y="12" width="12" height="8" rx="2" fill="#ffe066" stroke="#b6d7b0" strokeWidth="2"/><rect x="10" y="15" width="4" height="5" rx="1" fill="#b6d7b0"/></svg>;
+function GeometricPattern(props) {
+  return (
+    <svg viewBox="0 0 200 200" fill="none" {...props}>
+      <circle cx="50" cy="50" r="20" fill="#f59e0b" opacity="0.1"/>
+      <circle cx="150" cy="150" r="30" fill="#fbbf24" opacity="0.1"/>
+      <polygon points="100,20 120,60 80,60" fill="#f59e0b" opacity="0.15"/>
+      <polygon points="40,120 60,160 20,160" fill="#fbbf24" opacity="0.15"/>
+    </svg>
+  )
 }
 
 export default function ProfilePage() {
@@ -123,10 +141,13 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#4e3b1f] overflow-hidden font-sans">
+    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 text-amber-900 overflow-hidden font-sans">
+      {/* Modern Geometric Background */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <CocoaPodIcon className="absolute left-0 top-0 w-40 h-40 opacity-10" />
-        <FarmhouseIcon className="absolute right-0 bottom-0 w-48 h-48 opacity-10" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-amber-200/20 to-orange-200/20 rounded-full blur-3xl"/>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-tl from-yellow-200/20 to-amber-200/20 rounded-full blur-3xl"/>
+        <MineralCrystalIcon className="absolute left-8 top-8 w-32 h-32 opacity-10" />
+        <GeometricPattern className="absolute right-8 bottom-8 w-40 h-40 opacity-10" />
       </div>
 
       <motion.div
@@ -142,12 +163,19 @@ export default function ProfilePage() {
           className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8"
         >
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#4e3b1f] font-cursive">
-              My Profile Settings
-          </h1>
-            <p className="text-[#A67C52]/80 font-medium text-base md:text-lg mt-1">
-              Manage your farm account and security.
-          </p>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg">
+                <Settings2 className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-amber-900">
+                  Profile Settings
+                </h1>
+                <p className="text-amber-700/80 font-medium text-base md:text-lg mt-1">
+                  Manage your mining account and security.
+                </p>
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -158,18 +186,18 @@ export default function ProfilePage() {
             transition={{ delay: 0.2 }}
             className="lg:col-span-1 space-y-6"
           >
-            <div className="relative bg-gradient-to-br from-[#fffbe6]/90 to-[#e6f2ef]/90 border-2 border-[#b6d7b0]/50 rounded-3xl shadow-xl p-6 text-center group">
+            <div className="relative bg-white/80 backdrop-blur-sm border border-amber-200/50 rounded-2xl shadow-xl p-6 text-center group hover:shadow-2xl transition-all duration-300">
               <div className="absolute -top-8 left-1/2 -translate-x-1/2">
                 <div className="relative">
-                  <Avatar className="h-24 w-24 md:h-28 md:w-28 ring-4 ring-[#ffe066] shadow-lg border-2 border-white bg-gradient-to-br from-[#b6d7b0] to-[#ffe066]">
+                  <Avatar className="h-24 w-24 md:h-28 md:w-28 ring-4 ring-amber-300 shadow-lg border-2 border-white bg-gradient-to-br from-amber-200 to-orange-200">
                     <AvatarImage src={profile?.avatarUrl || user?.avatarUrl} alt={`${profile?.firstName} ${profile?.lastName}`} />
-                    <AvatarFallback className="text-3xl md:text-4xl font-semibold text-[#4e3b1f]">
+                    <AvatarFallback className="text-3xl md:text-4xl font-semibold text-amber-800">
                       {getInitials(profile?.firstName, profile?.lastName)}
                     </AvatarFallback>
                   </Avatar>
                   <Label
                     htmlFor="avatarUpload"
-                    className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-[#4e3b1f] text-white flex items-center justify-center cursor-pointer hover:bg-[#8D6748] transition-colors shadow-md border-2 border-[#fffbe6]"
+                    className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 text-white flex items-center justify-center cursor-pointer hover:from-amber-700 hover:to-orange-700 transition-all shadow-md border-2 border-white"
                   >
                     {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
                     <input id="avatarUpload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploading} />
@@ -178,32 +206,34 @@ export default function ProfilePage() {
               </div>
 
               <div className="mt-20">
-                <h2 className="text-2xl font-bold text-[#4e3b1f] font-cursive">
-                  {profile?.firstName} {profile?.lastName}  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${profile?.isActive ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                    <span className={`h-2 w-2 rounded-full ${profile?.isActive ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Gem className="h-5 w-5 text-amber-600" />
+                  <h2 className="text-2xl font-bold text-amber-900">
+                    {profile?.firstName} {profile?.lastName}
+                  </h2>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${profile?.isActive ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                    <span className={`h-2 w-2 rounded-full ${profile?.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                    {profile?.isActive ? 'Active' : 'Inactive'}
                   </span>
-                </h2>
-                <p className="text-[#A67C52]/90 text-sm">{profile?.email}</p>
-                {profile?.username && <p className="text-xs text-[#A67C52]/70 mt-0.5">@{profile.username}</p>}
+                </div>
+                <p className="text-amber-700/90 text-sm font-medium">{profile?.email}</p>
+              
                 </div>
 
               <div className="mt-6 space-y-3 text-left text-sm">
-                <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
-                  <span className="flex items-center text-[#8D6748]"><User size={16} className="mr-2 text-[#C97C3A]" /> Username:</span>
-                  <span className="font-medium text-[#4e3b1f]">{profile?.username || 'N/A'}</span>
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200/30 hover:border-amber-300/50 transition-colors">
+                  <span className="flex items-center text-amber-700 font-medium"><User size={16} className="mr-2 text-amber-600" /> Username</span>
+                  <span className="font-semibold text-amber-900">{profile?.username || 'N/A'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
-                  <span className="flex items-center text-[#8D6748]"><Phone size={16} className="mr-2 text-[#C97C3A]" /> Phone:</span>
-                  <span className="font-medium text-[#4e3b1f]">{profile?.phone || 'Not set'}</span>
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200/30 hover:border-amber-300/50 transition-colors">
+                  <span className="flex items-center text-amber-700 font-medium"><Phone size={16} className="mr-2 text-amber-600" /> Phone</span>
+                  <span className="font-semibold text-amber-900">{profile?.phone || 'Not set'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
-                  <span className="flex items-center text-[#8D6748]"><CalendarDays size={16} className="mr-2 text-[#C97C3A]" /> Member Since:</span>
-                  <span className="font-medium text-[#4e3b1f]">{formatDate(profile?.createdAt)}</span>
-                </div>
+              
                 {userPackage && !packageLoading && (
-                  <div className="flex items-center justify-between p-3 bg-[#e6f2ef]/70 rounded-lg border border-[#b6d7b0]/30">
-                    <span className="flex items-center text-[#8D6748]"><Briefcase size={16} className="mr-2 text-[#C97C3A]" /> Farm Name:</span>
-                    <span className="font-medium text-[#4e3b1f]">{userPackage?.package?.name || 'N/A'}</span>
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200/30 hover:border-amber-300/50 transition-colors">
+                    <span className="flex items-center text-amber-700 font-medium"><Pickaxe size={16} className="mr-2 text-amber-600" /> Mining Package</span>
+                    <span className="font-semibold text-amber-900">{userPackage?.package?.name || 'N/A'}</span>
                   </div>
                 )}
                   </div>
@@ -216,35 +246,35 @@ export default function ProfilePage() {
             transition={{ delay: 0.3 }}
             className="lg:col-span-2"
           >
-            <div className="bg-gradient-to-br from-[#fffbe6]/90 to-[#e6f2ef]/90 border-2 border-[#b6d7b0]/50 rounded-3xl shadow-xl p-6 md:p-8">
+            <div className="bg-white/80 backdrop-blur-sm border border-amber-200/50 rounded-2xl shadow-xl p-6 md:p-8 hover:shadow-2xl transition-all duration-300">
                 <Tabs defaultValue="personal" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-[#e6f2ef]/50 border border-[#b6d7b0]/30 rounded-xl p-1">
+                <TabsList className="grid w-full grid-cols-2 bg-amber-50/80 border border-amber-200/30 rounded-xl p-1">
                     <TabsTrigger 
                       value="personal"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#b6d7b0] data-[state=active]:to-[#ffe066] data-[state=active]:text-[#4e3b1f] data-[state=active]:shadow-md text-[#A67C52] rounded-lg py-2.5 font-semibold transition-all"
+                      className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg text-amber-700 rounded-lg py-3 font-semibold transition-all hover:bg-amber-100/50"
                     >
-                    <Edit3 className="w-5 h-5 mr-2" /> Personal Info
+                      <Edit3 className="w-5 h-5 mr-2" /> Personal Info
                     </TabsTrigger>
                     <TabsTrigger 
                       value="security"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#b6d7b0] data-[state=active]:to-[#ffe066] data-[state=active]:text-[#4e3b1f] data-[state=active]:shadow-md text-[#A67C52] rounded-lg py-2.5 font-semibold transition-all"
+                      className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg text-amber-700 rounded-lg py-3 font-semibold transition-all hover:bg-amber-100/50"
                     >
-                    <Lock className="w-5 h-5 mr-2" /> Security
+                      <Lock className="w-5 h-5 mr-2" /> Security
                     </TabsTrigger>
                   </TabsList>
 
                 <TabsContent value="personal" className="mt-6 space-y-6">
                   <form onSubmit={handleSubmitProfile(onUpdateProfile)} className="space-y-5">
                     <div>
-                      <Label htmlFor="firstName" className="text-sm font-medium text-[#8D6748] flex items-center gap-1 mb-1.5">First Name</Label>
-                          <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C97C3A]/70" />
-                            <Input
-                              id="firstName"
+                      <Label htmlFor="firstName" className="text-sm font-semibold text-amber-800 flex items-center gap-1 mb-2">First Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-600/70" />
+                        <Input
+                          id="firstName"
                           {...registerProfile('firstName', { required: 'First name is required' })}
                           className={classNames(
-                            "pl-10 pr-4 py-3 bg-white/70 border border-[#b6d7b0]/60 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/50 focus:border-[#b6d7b0] focus:ring-1 focus:ring-[#b6d7b0]/70 transition",
-                            profileErrors.firstName ? "border-red-500 focus:ring-red-500/50" : ""
+                            "pl-10 pr-4 py-3 bg-white/90 border border-amber-200/60 rounded-xl text-amber-900 placeholder-amber-500/50 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all",
+                            profileErrors.firstName ? "border-red-400 focus:ring-red-400/20" : ""
                           )}
                           placeholder="Your first name"
                         />

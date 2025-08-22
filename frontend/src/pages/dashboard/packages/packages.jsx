@@ -1,7 +1,33 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import defaultImg from "@/assets/golden.jpg"
+
+const getDetectedCategory = (pkg) => {
+  if (!pkg) return 'Other'
+  // Prefer explicit category field if it exists
+  if (pkg.category && typeof pkg.category === 'string') return pkg.category
+  // Heuristics based on common names in DB
+  const name = `${pkg.name || ''} ${pkg.description || ''}`.toLowerCase()
+  if (name.includes('trinitario')) return 'Trinitario'
+  if (name.includes('forastero')) return 'Forastero'
+  if (name.includes('criollo')) return 'Criollo'
+  return 'Other'
+}
+
+const categoryFallbackImages = {
+  Trinitario: [defaultImg, defaultImg],
+  Forastero: [defaultImg, defaultImg],
+  Criollo: [defaultImg, defaultImg],
+  Other: [defaultImg, defaultImg]
+}
+
+const getFallbackImage = (category, index) => {
+  const list = categoryFallbackImages[category] || categoryFallbackImages.Other
+  return list[index % list.length] || defaultImg
+}
+
 import { Button } from "@/components/ui/button"
-import { Check, Star, TrendingUp, Users, Network } from 'lucide-react'
+import { Check, Star, TrendingUp, Users, Network, ArrowRight } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { usePackages } from '@/hooks/payments/usePackages'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -87,11 +113,11 @@ export default function PackagesPage() {
   }
 
   return (
-    <div className="relative space-y-8 p-8 min-h-screen bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950">
-      {/* Cyberpunk Grid Background */}
+    <div className="relative space-y-8 p-8 min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+      {/* Mineral Grid Background */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_-30%,#1a103b,transparent)]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(251,191,36,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(251,191,36,0.03)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_-30%,rgba(251,191,36,0.1),transparent)]"></div>
       </div>
 
       {/* Content */}
@@ -102,72 +128,79 @@ export default function PackagesPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 text-center"
         >
-          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
-            Investment Packages
-          </h1>
-          <p className="mt-2 text-cyan-300/80">Choose your path to digital prosperity</p>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="text-4xl">🏪</span>
+            <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600">
+              My Store
+            </h1>
+            <span className="text-4xl">💎</span>
+          </div>
+          <p className="mt-2 text-amber-700/80 font-medium">Discover and manage your mineral trading packages</p>
         </motion.div>
 
-        {/* Active Subscription Section */}
+        {/* Active Mineral Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative mb-8 overflow-hidden"
         >
-          <Card className="relative bg-black/40 backdrop-blur-sm border border-cyan-500/20 overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <Card className="relative bg-gradient-to-br from-amber-50/90 to-orange-50/90 backdrop-blur-sm border-2 border-amber-200/50 overflow-hidden group hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 via-orange-400/10 to-yellow-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
-            <CardHeader>
-              <CardTitle className="text-cyan-100">My Active Subscription</CardTitle>
-              <CardDescription className="text-cyan-300/60">View your current package details</CardDescription>
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">💎</span>
+                </div>
+                <div>
+                  <CardTitle className="text-amber-900 text-xl font-bold">Active Mineral</CardTitle>
+                  <CardDescription className="text-amber-700/70">Your current mining operation</CardDescription>
+                </div>
+              </div>
             </CardHeader>
             
             <CardContent>
               {packagesLoading ? (
                 <div className="flex items-center justify-center p-4">
-                  <BorderTrail />
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
                 </div>
               ) : userPackage ? (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-lg font-semibold text-cyan-100">{userPackage.package.name}</h3>
-                      <p className="text-sm text-cyan-300/60">Level {userPackage.package.level} Package</p>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-amber-100/80 to-orange-100/80 rounded-xl border border-amber-200/50">
+                    {/* Mineral Image */}
+                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300 overflow-hidden">
+                      <img src={userPackage.package.imageUrl || userPackage.package.img || getFallbackImage(getDetectedCategory(userPackage.package), 0)} className="w-full h-full object-cover rounded-lg" />
                     </div>
-                    <Badge 
-                      className={cn(
-                        "px-3 py-1",
-                        userPackage.statusColor === 'red' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 
-                        userPackage.statusColor === 'orange' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 
-                        'bg-green-500/20 text-green-400 border-green-500/30'
-                      )}
-                    >
-                      {userPackage.status}
-                    </Badge>
+                    
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-amber-900">{userPackage.package.name}</h3>
+                      <p className="text-amber-700/80 font-medium">Level {userPackage.package.level} Mining Operation</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-2xl font-bold text-amber-800">
+                          {currency.symbol} {formatAmount(userPackage.package.price)}
+                        </span>
+                        <Badge 
+                          className={cn(
+                            "px-2 py-1 text-xs font-semibold",
+                            userPackage.statusColor === 'red' ? 'bg-red-100 text-red-700 border-red-200' : 
+                            userPackage.statusColor === 'orange' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 
+                            'bg-green-100 text-green-700 border-green-200'
+                          )}
+                        >
+                          {userPackage.status}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="bg-black/20 border border-cyan-500/10 rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-cyan-500/10 hover:bg-cyan-500/5">
-                          <TableHead className="text-cyan-300/60">Price</TableHead>
-                          <TableHead className="text-cyan-300/60">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow className="border-cyan-500/10 hover:bg-cyan-500/5">
-                          <TableCell className="text-cyan-100 font-mono">
-                            {currency.symbol} {formatAmount(userPackage.package.price)}
-                          </TableCell>
-                          <TableCell className="text-cyan-100">{userPackage.status}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
+                  
                 </div>
               ) : (
-                <div className="text-center py-6">
-                  <p className="text-cyan-300/60">No active package. Choose your path below.</p>
+                <div className="text-center py-8">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center">
+                    <span className="text-4xl">⚡</span>
+                  </div>
+                  <p className="text-amber-700/70 font-medium">No active mineral. Start your mining journey below!</p>
                 </div>
               )}
             </CardContent>
@@ -181,58 +214,94 @@ export default function PackagesPage() {
           animate="visible"
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
-          {availablePackages?.map((pkg, index) => (
-            <motion.div
-              key={pkg.id}
-              variants={cardVariants}
-              whileHover="hover"
-              className="relative group"
-            >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-              <div className="relative bg-black/40 backdrop-blur-sm border border-cyan-500/20 rounded-lg p-6 h-full flex flex-col">
-                {/* Package Header */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center">
-                    <Star className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-cyan-100">{pkg.name}</h3>
-                    <p className="text-sm text-cyan-300/60">Level {pkg.level}</p>
-                  </div>
-                </div>
+          {availablePackages?.filter(pkg => pkg.id !== userPackage?.package?.id).map((pkg, index) => {
+            const calculations = {
+              price: Number(pkg.price) || 0,
+              dailyMultiplier: Number(pkg.dailyMultiplier) || 0,
+              duration: Number(pkg.duration) || 0,
+              dailyIncome: (Number(pkg.dailyMultiplier) / 100) * Number(pkg.price) || 0,
+              totalRevenue: ((Number(pkg.dailyMultiplier) / 100) * Number(pkg.price)) * (Number(pkg.duration) || 0) || 0
+            };
 
-                {/* Package Details */}
-                <div className="space-y-4 flex-1">
-                  <div className="text-2xl font-bold text-cyan-400 font-mono">
-                    {currency.symbol} {formatAmount(pkg.price)}
-                  </div>
+            const detectedCategory = getDetectedCategory(pkg);
+            const img = pkg.imageUrl || getFallbackImage(detectedCategory, index);
+            
+            return (
+              <motion.div
+                key={pkg.id}
+                variants={cardVariants}
+                whileHover="hover"
+                className="group relative h-full"
+              >
+                <div className="relative h-full bg-white rounded-2xl border border-slate-200/60 overflow-hidden transition-all duration-300 hover:border-slate-300 flex flex-col">
+                  {/* Subtle top accent */}
+                  <div className="h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400" />
                   
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-cyan-400" />
-                      <span className="text-cyan-100">Direct Commission: {pkg.directCommission}%</span>
+                  {/* Image */}
+                  <div className="p-6 pb-0">
+                    <div className="w-full aspect-[4/3] relative overflow-hidden rounded-xl">
+                      <img 
+                        src={img}
+                        alt={pkg.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Network className="w-4 h-4 text-cyan-400" />
-                      <span className="text-cyan-100">Level Commission: {pkg.levelCommission}%</span>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="space-y-3 text-center">
+                      {/* Title and Badge */}
+                      <div className="flex items-center justify-center gap-2">
+                        <h3 className="text-lg lg:text-xl font-medium text-slate-900 tracking-wide">
+                          {pkg.name}
+                        </h3>
+                        {index === 0 && (
+                          <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-medium">Popular</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-cyan-400" />
-                      <span className="text-cyan-100">Daily Reward: {pkg.dailyReward}%</span>
+
+                    {/* Stats Grid */}
+                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-1">
+                        <div className="text-slate-500 font-light">Price</div>
+                        <div className="font-medium text-slate-900">{currency.symbol} {formatAmount(calculations.price)}</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-slate-500 font-light">Duration</div>
+                        <div className="font-medium text-slate-900">{calculations.duration} days</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-slate-500 font-light">Daily Income</div>
+                        <div className="font-medium text-amber-700">{currency.symbol} {formatAmount(calculations.dailyIncome)}</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-slate-500 font-light">Total Return</div>
+                        <div className="font-semibold text-amber-800">{currency.symbol} {formatAmount(calculations.totalRevenue)}</div>
+                      </div>
+                    </div>
+
+
+                    {/* CTA */}
+                    <div className="mt-6">
+                      <Button
+                        onClick={() => handlePackagePurchase(pkg)}
+                        className="w-full group relative px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-medium tracking-wide rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      >
+                        <span className="relative flex items-center justify-center gap-2">
+                          upgrade
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        </span>
+                      </Button>
                     </div>
                   </div>
                 </div>
-
-                {/* Action Button */}
-                <Button
-                  className="mt-6 w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-cyan-500/20 border-none"
-                  onClick={() => handlePackagePurchase(pkg)}
-                >
-                  Activate Package
-                </Button>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* Upgrade Package Modal */}

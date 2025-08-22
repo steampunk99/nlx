@@ -168,7 +168,7 @@ export default function NetworkTree({ networkData }) {
         <Search className="w-5 h-5 text-[#8B5C2A]" />
         <input
           className="flex-1 bg-transparent outline-none text-[#4e3b1f] placeholder:text-[#A67C52]"
-          placeholder="find farmers.."
+          placeholder="refer.."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -219,7 +219,7 @@ export default function NetworkTree({ networkData }) {
               </motion.g>
               {/* Name label */}
               <text x={n.x} y={n.y+44} textAnchor="middle" fontSize={16} fill="#4e3b1f" fontWeight="bold">
-                {n.user?.firstName || 'Farmer'} {n.user?.lastName || ''}
+                {n.user?.firstName || '.'} {n.user?.lastName || ''}
               </text>
             </g>
           )
@@ -229,7 +229,7 @@ export default function NetworkTree({ networkData }) {
       <div className="absolute bottom-3 left-3 z-10 bg-white/90 rounded-xl shadow p-3 text-xs flex flex-col gap-2">
         <div className="flex items-center gap-2"><CocoaPod className="w-5 h-5" /> Inactive</div>
         <div className="flex items-center gap-2"><Farmer className="w-5 h-5" /> Active</div>
-        <div className="flex items-center gap-2"><FarmTreeIcon className="w-5 h-5" /> Your Farm</div>
+        <div className="flex items-center gap-2"><FarmTreeIcon className="w-5 h-5" /> Your network</div>
         <div className="text-[#A67C52] mt-1">Drag to pan, scroll/pinch to zoom, tap node for details</div>
       </div>
       {/* Info Panel */}

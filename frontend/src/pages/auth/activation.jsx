@@ -68,7 +68,7 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
       <div className="relative h-full bg-white rounded-2xl border border-slate-200/60 overflow-hidden transition-all duration-300 hover:border-slate-300 flex flex-col">
         {/* Subtle top accent */}
         <div 
-          className="h-1 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400"
+          className="h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400"
         />
         {/* Image */}
         <div className="p-6 pb-0">
@@ -92,7 +92,7 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
                 {pkg.name}
               </h3>
               {featured && (
-                <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-xs font-medium" title="Most picked by our community">Popular</span>
+                <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-xs font-medium" title="Most picked by our community">Popular</span>
               )}
             </div>
             {/* Rating */}
@@ -115,11 +115,11 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
             </div>
             <div className="space-y-1">
               <div className="text-slate-500 font-light flex items-center gap-1">Daily Income <Info className="w-3.5 h-3.5 text-slate-400" title="Estimated daily earnings" /></div>
-              <div className="font-medium text-emerald-700" title={`Daily income: ${currency.symbol} ${formatAmount(calculations.dailyIncome)}`}>{currency.symbol} {formatAmount(calculations.dailyIncome)}</div>
+              <div className="font-medium text-amber-700" title={`Daily income: ${currency.symbol} ${formatAmount(calculations.dailyIncome)}`}>{currency.symbol} {formatAmount(calculations.dailyIncome)}</div>
             </div>
             <div className="space-y-1">
               <div className="text-slate-500 font-light flex items-center gap-1">Total Return <Info className="w-3.5 h-3.5 text-slate-400" title="Sum of daily income across duration" /></div>
-              <div className="font-semibold text-emerald-800" title={`Total return: ${currency.symbol} ${formatAmount(calculations.totalRevenue)}`}>{currency.symbol} {formatAmount(calculations.totalRevenue)}</div>
+              <div className="font-semibold text-amber-800" title={`Total return: ${currency.symbol} ${formatAmount(calculations.totalRevenue)}`}>{currency.symbol} {formatAmount(calculations.totalRevenue)}</div>
             </div>
           </div>
 
@@ -127,7 +127,7 @@ const PackageCard = ({ pkg, index, onPurchase, currency, formatAmount }) => {
           <div className="mt-6">
             <Button
               onClick={() => onPurchase(pkg)}
-              className="w-full group relative px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-medium tracking-wide rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full group relative px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-medium tracking-wide rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400"
               title="Activate this package"
             >
               <span className="relative flex items-center justify-center gap-2">
@@ -249,7 +249,7 @@ export default function ActivationPage() {
               GET <span className="font-light">STARTED</span>
             </h1>
             <p className="text-slate-600 mt-6 font-light max-w-2xl mx-auto leading-relaxed">
-              Create account → Choose cocoa package → Start earning daily.
+              Create account → Choose mineral → Start earning daily.
 
             </p>
           </div>
@@ -264,19 +264,19 @@ export default function ActivationPage() {
         >
           <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-white/80 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-600" />
+              <Shield className="w-4 h-4 text-amber-600" />
               <span className="text-sm text-slate-700">Enterprise-level security</span>
             </div>
             <div className="bg-white/80 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-amber-600" />
               <span className="text-sm text-slate-700">Daily Prizes</span>
             </div>
             <div className="bg-white/80 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-emerald-600" />
+              <Zap className="w-4 h-4 text-amber-600" />
               <span className="text-sm text-slate-700">Daily earnings</span>
             </div>
             <div className="bg-white/80 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-emerald-600" />
+              <Trophy className="w-4 h-4 text-amber-600" />
               <span className="text-sm text-slate-700">Flexible withdrawals</span>
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function ActivationPage() {
           className="px-4 pb-4"
         >
           <div className="max-w-4xl mx-auto">
-            <div className="rounded-xl p-[1px] bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-500/30">
+            <div className="rounded-xl p-[1px] bg-gradient-to-r from-amber-500/30 via-amber-400/20 to-amber-500/30">
               <div className="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-[10px] p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <div className="flex-1 min-w-0">
@@ -302,11 +302,11 @@ export default function ActivationPage() {
                   <Button 
                     onClick={handleCopyLink} 
                     variant="outline" 
-                    className="h-10 w-full sm:w-10 p-0 border-emerald-300 hover:border-emerald-400 hover:bg-emerald-50"
+                    className="h-10 w-full sm:w-10 p-0 border-amber-300 hover:border-amber-400 hover:bg-amber-50"
                     aria-label="Copy link"
                     disabled={!referralLinkData?.referralLink}
                   >
-                    <Copy className="h-4 w-4 text-emerald-700" />
+                    <Copy className="h-4 w-4 text-amber-700" />
                   </Button>
                 </div>
               </div>
@@ -329,7 +329,7 @@ export default function ActivationPage() {
                   <select
                     value={activeTab}
                     onChange={(e) => setActiveTab(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   >
                     {tabs.map((tab) => (
                       <option key={tab} value={tab}>{tab}</option>
@@ -354,7 +354,7 @@ export default function ActivationPage() {
                       {activeTab === tab && (
                         <motion.div
                           layoutId="activeTab"
-                          className="absolute inset-0 bg-green-600 rounded-xl"
+                          className="absolute inset-0 bg-amber-600 rounded-xl"
                           transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                         />
                       )}

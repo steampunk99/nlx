@@ -64,18 +64,19 @@ export function Header() {
         <div className="mt-3">
           <div className={cn(
             "flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-3",
-            "rounded-full border shadow-lg backdrop-blur",
-            "bg-white border-emerald-100",
-            "transition-all duration-300"
+            "rounded-full border backdrop-blur",
+            "bg-white/90 border-stone-200",
+            "transition-all duration-300",
+            isScrolled ? "shadow-lg" : "shadow-md"
           )}>
             {/* Left: Logo */}
             <Link to="/" className="flex items-center gap-2 min-w-0">
               <img
                 src={siteLogoUrl}
                 alt={siteName}
-                className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border border-emerald-200 shadow"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border border-stone-300 shadow"
               />
-              <span className="hidden sm:inline-block font-extrabold text-xl sm:text-2xl bg-gradient-to-r from-emerald-600 via-cyan-600 to-emerald-500 bg-clip-text text-transparent tracking-tight">
+              <span className="hidden sm:inline-block font-mono font-semibold text-xl sm:text-2xl text-stone-900 tracking-tight">
                 {siteName}
               </span>
             </Link>
@@ -88,17 +89,17 @@ export function Header() {
                     <NavigationMenuItem key={item.name}>
                       {item.submenu ? (
                         <>
-                          <NavigationMenuTrigger className="px-4 py-2 rounded-full text-sm font-semibold text-emerald-800 hover:text-cyan-800 bg-emerald-50 hover:bg-cyan-50 border border-emerald-100">
+                          <NavigationMenuTrigger className="px-3 py-1.5 rounded-full text-sm font-medium text-stone-800 hover:text-amber-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30">
                             {item.name}
                           </NavigationMenuTrigger>
                           <NavigationMenuContent>
-                            <ul className="w-56 p-2 bg-white rounded-2xl border border-emerald-100 shadow-xl">
+                            <ul className="w-56 p-2 bg-white rounded-2xl border border-stone-200 shadow-xl">
                               {item.submenu.map((subItem) => (
                                 <li key={subItem.name}>
                                   <NavigationMenuLink asChild>
                                     <Link
                                       to={subItem.href}
-                                      className="block px-3 py-2 rounded-lg text-sm text-emerald-800 hover:text-cyan-700 hover:bg-emerald-50"
+                                      className="block px-3 py-2 rounded-lg text-sm text-stone-800 hover:text-amber-700 hover:bg-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
                                     >
                                       {subItem.name}
                                     </Link>
@@ -112,7 +113,7 @@ export function Header() {
                         <NavigationMenuLink asChild>
                           <Link
                             to={item.href}
-                            className="px-4 py-2 rounded-full text-sm font-semibold text-emerald-800 hover:text-cyan-800 hover:bg-emerald-50"
+                            className="px-3 py-1.5 rounded-full text-sm font-medium text-stone-800 hover:text-amber-700 hover:bg-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
                           >
                             {item.name}
                           </Link>
@@ -132,21 +133,21 @@ export function Header() {
                     <img
                       src={avatarUrl}
                       alt={`${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User avatar'}
-                      className="h-9 w-9 rounded-full border border-emerald-200 object-cover shadow-sm"
+                      className="h-9 w-9 rounded-full border border-stone-300 object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="h-9 w-9 rounded-full bg-red-500 text-white flex items-center justify-center font-bold shadow-sm">
+                    <div className="h-9 w-9 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold shadow-sm">
                       {initials}
                     </div>
                   )}
-                  <span className="hidden lg:inline-block text-sm font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full">
+                  <span className="hidden lg:inline-block text-sm font-medium text-stone-800 bg-stone-100 px-3 py-1 rounded-full">
                     {user.firstName} {user.lastName}
                   </span>
                   <Button
                     onClick={logout}
                     variant="ghost"
                     size="sm"
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
                   >
                     <LogOut className="h-5 w-5 mr-1" />
                     Logout
@@ -157,13 +158,13 @@ export function Header() {
                   <Button
                     onClick={() => navigate('/login')}
                     variant="ghost"
-                    className="text-emerald-700 hover:text-cyan-700 hover:bg-emerald-50 rounded-full px-4 font-semibold"
+                    className="text-stone-800 hover:text-amber-700 hover:bg-stone-100 rounded-full px-4 font-medium"
                   >
                     Login
                   </Button>
                   <Button
                     onClick={() => navigate('/register')}
-                    className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white hover:from-emerald-400 hover:to-cyan-400 font-bold rounded-full px-5 shadow"
+                    className="bg-amber-600 text-white hover:bg-amber-700 font-semibold rounded-full px-5 shadow"
                   >
                     Register
                   </Button>
@@ -177,7 +178,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 variant="ghost"
                 size="icon"
-                className="text-emerald-800 hover:text-cyan-800 hover:bg-emerald-50 rounded-full"
+                className="text-stone-800 hover:text-amber-700 hover:bg-stone-100 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
               >
                 <span className="sr-only">Toggle menu</span>
                 {mobileMenuOpen ? (
@@ -194,8 +195,8 @@ export function Header() {
       {/* Mobile dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden px-4 sm:px-6">
-          <div className="mt-2 rounded-3xl border border-emerald-100 bg-white/90 backdrop-blur shadow-2xl overflow-hidden">
-            <div className="p-3 divide-y divide-emerald-50">
+          <div className="mt-2 rounded-3xl border border-stone-200 bg-white/95 backdrop-blur shadow-2xl overflow-hidden">
+            <div className="p-3 divide-y divide-stone-100">
               <div className="py-2">
                 {navigation.map((item) => (
                   <div key={item.name} className="">
@@ -203,7 +204,7 @@ export function Header() {
                       <NavigationMenu>
                         <NavigationMenuList>
                           <NavigationMenuItem className="w-full">
-                            <NavigationMenuTrigger className="w-full justify-between px-4 py-2 rounded-xl text-emerald-800 hover:text-cyan-800 bg-emerald-50 hover:bg-cyan-50 border border-emerald-100">
+                            <NavigationMenuTrigger className="w-full justify-between px-4 py-2 rounded-xl text-stone-800 hover:text-amber-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30">
                               {item.name}
                             </NavigationMenuTrigger>
                             <NavigationMenuContent className="p-2">
@@ -213,7 +214,7 @@ export function Header() {
                                     <NavigationMenuLink asChild>
                                       <Link
                                         to={subItem.href}
-                                        className="block w-full px-4 py-2 text-sm text-emerald-800 hover:text-cyan-700 hover:bg-emerald-50 rounded-lg"
+                                        className="block w-full px-4 py-2 text-sm text-stone-800 hover:text-amber-700 hover:bg-stone-100 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
                                         onClick={() => setMobileMenuOpen(false)}
                                       >
                                         {subItem.name}
@@ -229,7 +230,7 @@ export function Header() {
                     ) : (
                       <Link
                         to={item.href}
-                        className="block w-full px-4 py-2 text-sm font-semibold text-emerald-800 hover:text-cyan-700 hover:bg-emerald-50 rounded-xl"
+                        className="block w-full px-4 py-2 text-sm font-medium text-stone-800 hover:text-amber-700 hover:bg-stone-100 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.name}
@@ -242,19 +243,19 @@ export function Header() {
               <div className="py-3">
                 {user ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white border border-emerald-100 shadow-sm">
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white border border-stone-200 shadow-sm">
                       {avatarUrl ? (
                         <img
                           src={avatarUrl}
                           alt={`${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User avatar'}
-                          className="h-10 w-10 rounded-full border border-emerald-200 object-cover"
+                          className="h-10 w-10 rounded-full border border-stone-300 object-cover"
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-red-500 text-white flex items-center justify-center font-bold">
+                        <div className="h-10 w-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold">
                           {initials}
                         </div>
                       )}
-                      <div className="text-emerald-900 font-semibold">
+                      <div className="text-stone-900 font-medium">
                         {user.firstName} {user.lastName}
                       </div>
                     </div>
@@ -278,7 +279,7 @@ export function Header() {
                         setMobileMenuOpen(false);
                       }}
                       variant="ghost"
-                      className="w-full justify-center text-emerald-800 hover:text-cyan-800 hover:bg-emerald-50 rounded-full font-semibold"
+                      className="w-full justify-center text-stone-800 hover:text-amber-700 hover:bg-stone-100 rounded-full font-medium"
                     >
                       Login
                     </Button>
@@ -287,7 +288,7 @@ export function Header() {
                         navigate('/register');
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full justify-center bg-gradient-to-r from-emerald-500 to-cyan-500 text-white hover:from-emerald-400 hover:to-cyan-400 font-bold rounded-full"
+                      className="w-full justify-center bg-amber-600 text-white hover:bg-amber-700 font-semibold rounded-full"
                     >
                       Register
                     </Button>

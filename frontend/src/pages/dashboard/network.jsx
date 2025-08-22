@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, UserPlus, ArrowUpRight, Copy, Check, Share2, Shield, Trophy, Zap, Coins, Activity } from "lucide-react";
+import { Users, UserPlus, ArrowUpRight, Copy, Check, Share2, Shield, Trophy, Zap, Coins, Activity, Gem, Pickaxe, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,32 +20,39 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
 import toast from "react-hot-toast";
  
-// --- Inline SVGs for farm/cocoa theme ---
-const CocoaPod = (props) => (
+// --- Inline SVGs for mineral trading theme ---
+const MineralGem = (props) => (
   <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="16" cy="16" rx="12" ry="16" fill="#8B5C2A" stroke="#5C3310" strokeWidth="2" />
-    <ellipse cx="16" cy="16" rx="8" ry="12" fill="#D2A86A" stroke="#8B5C2A" strokeWidth="1.5" />
-    <ellipse cx="16" cy="16" rx="4" ry="8" fill="#F7E1B5" stroke="#D2A86A" strokeWidth="1" />
+    <path d="M16 4L24 12L16 28L8 12L16 4Z" fill="#F59E0B" stroke="#D97706" strokeWidth="2" />
+    <path d="M16 4L20 8L16 16L12 8L16 4Z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1.5" />
+    <path d="M12 8L16 16L8 12L12 8Z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1" />
+    <path d="M20 8L24 12L16 16L20 8Z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1" />
   </svg>
 );
-const FarmUser = (props) => (
+const MineralTrader = (props) => (
   <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="16" cy="12" r="6" fill="#A7F3D0" stroke="#059669" strokeWidth="2" />
-    <ellipse cx="16" cy="24" rx="10" ry="6" fill="#FBBF24" stroke="#B45309" strokeWidth="2" />
+    <circle cx="16" cy="12" r="6" fill="#FED7AA" stroke="#EA580C" strokeWidth="2" />
+    <ellipse cx="16" cy="24" rx="10" ry="6" fill="#FB923C" stroke="#EA580C" strokeWidth="2" />
+    <circle cx="13" cy="10" r="1" fill="#EA580C" />
+    <circle cx="19" cy="10" r="1" fill="#EA580C" />
+    <path d="M14 14C14 14 16 16 18 14" stroke="#EA580C" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
-const FarmTree = (props) => (
+const MiningNetwork = (props) => (
   <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="16" cy="24" rx="10" ry="6" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2" />
-    <rect x="14" y="12" width="4" height="12" rx="2" fill="#C97C3A" />
-    <ellipse cx="16" cy="12" rx="8" ry="8" fill="#A7F3D0" stroke="#059669" strokeWidth="2" />
+    <path d="M4 20L16 8L28 20L16 28L4 20Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="2" />
+    <path d="M16 8L22 14L16 20L10 14L16 8Z" fill="#FB923C" stroke="#EA580C" strokeWidth="1.5" />
+    <circle cx="8" cy="16" r="2" fill="#F59E0B" stroke="#EA580C" strokeWidth="1" />
+    <circle cx="24" cy="16" r="2" fill="#F59E0B" stroke="#EA580C" strokeWidth="1" />
+    <circle cx="16" cy="6" r="2" fill="#F59E0B" stroke="#EA580C" strokeWidth="1" />
   </svg>
 );
-const FarmCoin = (props) => (
+const MineralCoin = (props) => (
   <svg {...props} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="16" cy="16" r="14" fill="#FFD700" stroke="#B8860B" strokeWidth="2" />
-    <ellipse cx="16" cy="16" rx="8" ry="8" fill="#FFF8DC" stroke="#FFD700" strokeWidth="1.5" />
-    <path d="M12 16h8M16 12v8" stroke="#B8860B" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="16" cy="16" r="14" fill="#F59E0B" stroke="#D97706" strokeWidth="2" />
+    <ellipse cx="16" cy="16" rx="8" ry="8" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1.5" />
+    <path d="M12 16h8M16 12v8" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="16" cy="16" r="3" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1" />
   </svg>
 );
 
@@ -114,71 +121,73 @@ export default function NetworkPage() {
 
   if (isLoading) {
     return (
-      <div className="relative min-h-screen p-6 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] animate-pulse">
-        <div className="h-12 w-3/4 bg-[#e6f2ef] rounded-lg mb-6"></div>
+      <div className="relative min-h-screen p-6 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 animate-pulse">
+        <div className="h-12 w-3/4 bg-amber-100 rounded-lg mb-6"></div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-40 bg-[#e6f2ef] rounded-xl"></div>
+            <div key={i} className="h-40 bg-amber-100 rounded-xl"></div>
           ))}
         </div>
-        <div className="h-[400px] bg-[#e6f2ef] rounded-xl mb-6"></div>
+        <div className="h-[400px] bg-amber-100 rounded-xl mb-6"></div>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="h-[400px] bg-[#e6f2ef] rounded-xl"></div>
-          <div className="h-[400px] bg-[#e6f2ef] rounded-xl"></div>
+          <div className="h-[400px] bg-amber-100 rounded-xl"></div>
+          <div className="h-[400px] bg-amber-100 rounded-xl"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#4e3b1f] overflow-hidden font-sans">
-      {/* Immersive Cocoa Farm World Background */}
+    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 text-amber-900 overflow-hidden font-sans">
+      {/* Mineral Trading World Background */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <svg className="absolute left-0 top-0 w-40 h-40 opacity-10" viewBox="0 0 32 32">
-          <ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A" />
-          <ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748" />
-          <ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066" />
-          <path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5" />
-          <path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5" />
+          <path d="M16 4L24 12L16 28L8 12L16 4Z" fill="#F59E0B" />
+          <path d="M16 4L20 8L16 16L12 8L16 4Z" fill="#FCD34D" />
+          <circle cx="16" cy="12" r="2" fill="#FBBF24" />
         </svg>
         <svg className="absolute right-0 bottom-0 w-48 h-48 opacity-10" viewBox="0 0 32 32">
-          <rect x="6" y="14" width="20" height="12" rx="2" fill="#FFE066" stroke="#C97C3A" strokeWidth="2" />
-          <rect x="13" y="20" width="6" height="6" rx="1" fill="#B6D7B0" />
-          <path d="M4 16L16 6l12 10" stroke="#B6D7B0" strokeWidth="2" />
+          <path d="M4 20L16 8L28 20L16 28L4 20Z" fill="#FB923C" />
+          <circle cx="8" cy="16" r="3" fill="#F59E0B" />
+          <circle cx="24" cy="16" r="3" fill="#F59E0B" />
+          <circle cx="16" cy="6" r="3" fill="#F59E0B" />
         </svg>
         <svg className="absolute left-1/2 -translate-x-1/2 bottom-10 w-32 h-32 opacity-5" viewBox="0 0 32 32">
-          <ellipse cx="16" cy="20" rx="10" ry="5" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2" />
-          <ellipse cx="16" cy="20" rx="5" ry="2.5" fill="#FFE066" stroke="#8D6748" strokeWidth="1.5" />
-          <rect x="14" y="8" width="4" height="10" rx="2" fill="#C97C3A" />
+          <circle cx="16" cy="16" r="12" fill="#F59E0B" />
+          <circle cx="16" cy="16" r="8" fill="#FCD34D" />
+          <circle cx="16" cy="16" r="4" fill="#FBBF24" />
         </svg>
-        {/* Animated clouds */}
+        {/* Animated mineral particles */}
         <svg className="absolute top-10 left-1/4 w-32 h-12 animate-cloud-move" viewBox="0 0 100 40">
-          <ellipse cx="30" cy="20" rx="30" ry="12" fill="#fffbe6" />
-          <ellipse cx="60" cy="20" rx="20" ry="10" fill="#e6f2ef" />
+          <circle cx="20" cy="20" r="8" fill="#FED7AA" opacity="0.6" />
+          <circle cx="50" cy="15" r="6" fill="#FB923C" opacity="0.4" />
+          <circle cx="80" cy="25" r="4" fill="#F59E0B" opacity="0.5" />
         </svg>
         <svg className="absolute top-20 right-1/4 w-40 h-16 animate-cloud-move2" viewBox="0 0 120 50">
-          <ellipse cx="50" cy="25" rx="40" ry="15" fill="#fffbe6" />
-          <ellipse cx="90" cy="25" rx="25" ry="12" fill="#e6f2ef" />
+          <circle cx="30" cy="25" r="10" fill="#FED7AA" opacity="0.6" />
+          <circle cx="70" cy="20" r="8" fill="#FB923C" opacity="0.4" />
+          <circle cx="100" cy="30" r="6" fill="#F59E0B" opacity="0.5" />
         </svg>
       </div>
       <motion.div className="relative z-10 space-y-8" initial="hidden" animate="visible">
         {/* Header / Hero Section */}
         <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#8B5C2A] font-cursive flex items-center gap-2">
-              <FarmTree className="w-8 h-8" />
-              Cocoa Farm Network
+            <h1 className="text-3xl font-extrabold tracking-tight text-amber-800 flex items-center gap-3">
+              <span className="text-4xl">🌐</span>
+              My Network
+              <span className="text-4xl">💎</span>
             </h1>
-            <p className="text-[#A67C52] mt-1 max-w-xl">
-              Grow your cocoa farm by recruiting new farmers and nurturing your network. Each new member is a seedling—help them thrive and watch your farm flourish!
+            <p className="text-amber-700/80 mt-2 max-w-xl font-medium">
+              Expand your mineral trading network by inviting new traders. Each connection strengthens your mining operation and increases your rewards!
             </p>
           </div>
           <button
             onClick={() => setIsReferralModalOpen(true)}
-            className="bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 text-[#4e3b1f] font-bold rounded-xl px-6 py-3 shadow-lg border-2 border-[#b6d7b0]/40 flex items-center gap-2 transition-transform hover:scale-105"
+            className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold rounded-xl px-6 py-3 shadow-lg border-2 border-amber-300/50 flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-xl"
           >
-            <FarmUser className="w-6 h-6" />
-            Recruit a Farmer
+            <span className="text-xl">⛏️</span>
+            Invite Trader
           </button>
         </section>
         {/* Network Stats Section */}
@@ -186,22 +195,22 @@ export default function NetworkPage() {
           {networkStats.map((stat, index) => (
             <motion.div
               key={index}
-              className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-2xl overflow-visible shadow-2xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-transform"
+              className="relative bg-gradient-to-br from-amber-50/90 to-orange-50/90 border-2 border-amber-200/50 rounded-2xl overflow-visible shadow-xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/20"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.04 }}
             >
               <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-                <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                  {stat.icon === "UserPlus" ? <FarmUser className="w-8 h-8" /> : <CocoaPod className="w-8 h-8" />}
+                <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-full p-3 shadow-lg border-2 border-amber-300/50 flex items-center justify-center">
+                  {stat.icon === "UserPlus" ? <MineralTrader className="w-8 h-8" /> : <MineralGem className="w-8 h-8" />}
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-base font-cursive text-[#A67C52]">{stat.title}</p>
-                <p className="text-2xl font-extrabold text-[#4e3b1f] mt-1">{stat.value}</p>
+                <p className="text-base font-medium text-amber-700/80">{stat.title}</p>
+                <p className="text-2xl font-extrabold text-amber-900 mt-1">{stat.value}</p>
               </div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#8d6748] rounded-b-xl shadow-inner border-t-4 border-[#b6d7b0]/30" />
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-gradient-to-r from-amber-300 to-orange-400 rounded-b-xl shadow-inner border-t-4 border-amber-200/50" />
             </motion.div>
           ))}
         </section>
@@ -244,7 +253,7 @@ export default function NetworkPage() {
               <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2">
                   <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                    <FarmTree className="w-8 h-8" />
+                  
                   </div>
                 </div>
                 <div className="mt-8">
@@ -276,7 +285,7 @@ export default function NetworkPage() {
               <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2">
                   <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                    <FarmUser className="w-8 h-8" />
+                  
                   </div>
                 </div>
                 <div className="mt-8">
@@ -334,9 +343,9 @@ export default function NetworkPage() {
       <Dialog open={isReferralModalOpen} onOpenChange={setIsReferralModalOpen}>
         <DialogContent className="sm:max-w-md bg-[#fffbe6] border border-[#b6d7b0] text-[#4e3b1f]">
           <DialogHeader>
-            <DialogTitle className="text-[#8B5C2A]">Recruit a Farmer</DialogTitle>
+            <DialogTitle className="text-[#8B5C2A]">Share Your Link</DialogTitle>
             <DialogDescription className="text-[#A67C52]">
-              Share your farm's referral link to grow your cocoa network and earn rewards
+              Share your referral link to grow your network and earn rewards
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4">
@@ -357,11 +366,11 @@ export default function NetworkPage() {
             </div>
             <div className="bg-[#b6d7b0]/30 border border-[#b6d7b0]/50 rounded-lg p-4 text-sm">
               <p className="text-[#059669] flex items-center gap-2">
-                <FarmCoin className="h-4 w-4" />
+             
                 Recruitment Bonus
               </p>
               <p className="mt-1 text-[#4e3b1f]">
-                For each new farmer that joins with your link, you'll earn 35% commission on their plan purchase.
+                For each new person that joins with your link, you'll earn 35% commission on their plan purchase.
               </p>
             </div>
           </div>
@@ -371,7 +380,7 @@ export default function NetworkPage() {
               className="w-full bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 text-[#4e3b1f] font-bold rounded-xl px-6 py-3 shadow-lg border-2 border-[#b6d7b0]/40 flex items-center gap-2 justify-center transition-transform hover:scale-105"
               onClick={handleShare}
             >
-              <FarmUser className="mr-2 h-5 w-5" />
+    
               Share Link
             </button>
           </DialogFooter>

@@ -1,24 +1,29 @@
-import { useState, useEffect } from "react"; // Keep for potential future use
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { api } from "../../lib/axios"; // Assuming axios instance is configured
+import { api } from "../../lib/axios";
 import toast from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "../../hooks/auth/useAuth"; // Assuming needed for context
+import { useAuth } from "../../hooks/auth/useAuth";
 import { useCommissions } from "../../hooks/dashboard/useCommissions";
 import { useCountry } from "@/hooks/config/useCountry"; 
 import { useEarnings } from "@/hooks/dashboard/useDashboard";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Wallet,
-  ArrowDown,
-  AlertCircle,
-  CheckCircle2,
+  CreditCard,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle,
   XCircle,
   Clock,
-  Zap, // Using Zap for loading indicator
-  DatabaseZap, // Icon for history
-  Send, // Icon for request form
-  Loader2 // Added for history loading state
+  ArrowUpRight,
+  History,
+  Smartphone,
+  DollarSign,
+  Loader2,
+  Eye,
+  EyeOff,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 
 // Animation variants for staggering children
@@ -136,19 +141,50 @@ export default function WithdrawalsPage() {
     0
   );
 
-  // --- UI Configuration ---
+  // --- Additional State ---
+  const [showBalance, setShowBalance] = useState(true);
+  const [modal, setModal] = useState({ open: false, status: null, message: "" });
 
+  // --- UI Configuration ---
   const getStatusConfig = (status) => {
     switch (status) {
       case "SUCCESSFUL":
-        return { icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-900/30", border: "border-emerald-500/30", glow: "shadow-emerald-500/20", text: "Successful" };
+        return { 
+          icon: CheckCircle, 
+          color: "text-emerald-600", 
+          bg: "bg-emerald-50", 
+          border: "border-emerald-200", 
+          text: "Completed",
+          dotColor: "bg-emerald-500"
+        };
       case "PENDING":
       case "PROCESSING":
-        return { icon: Clock, color: "text-amber-400", bg: "bg-amber-900/30", border: "border-amber-500/30", glow: "shadow-amber-500/20", text: "Pending" };
+        return { 
+          icon: Clock, 
+          color: "text-amber-600", 
+          bg: "bg-amber-50", 
+          border: "border-amber-200", 
+          text: "Processing",
+          dotColor: "bg-amber-500"
+        };
       case "FAILED":
-        return { icon: XCircle, color: "text-rose-400", bg: "bg-rose-900/30", border: "border-rose-500/30", glow: "shadow-rose-500/20", text: "Failed" };
+        return { 
+          icon: XCircle, 
+          color: "text-red-600", 
+          bg: "bg-red-50", 
+          border: "border-red-200", 
+          text: "Failed",
+          dotColor: "bg-red-500"
+        };
       default:
-        return { icon: AlertCircle, color: "text-gray-400", bg: "bg-gray-800/30", border: "border-gray-600/30", glow: "shadow-gray-500/10", text: status || "Unknown" };
+        return { 
+          icon: AlertTriangle, 
+          color: "text-gray-600", 
+          bg: "bg-gray-50", 
+          border: "border-gray-200", 
+          text: status || "Unknown",
+          dotColor: "bg-gray-500"
+        };
     }
   };
 
@@ -171,81 +207,100 @@ export default function WithdrawalsPage() {
   // --- Render ---
 
   return (
-    <div className="relative min-h-screen space-y-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#4e3b1f] overflow-hidden font-sans">
-      {/* Immersive Cocoa Farm World Background */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <svg className="absolute left-0 top-0 w-40 h-40 opacity-10" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="13" ry="8" fill="#C97C3A"/><ellipse cx="16" cy="16" rx="9" ry="5" fill="#8D6748"/><ellipse cx="16" cy="16" rx="5" ry="2.5" fill="#FFE066"/><path d="M16 8C18 10 20 14 16 24" stroke="#8D6748" strokeWidth="1.5"/><path d="M16 8C14 10 12 14 16 24" stroke="#8D6748" strokeWidth="1.5"/></svg>
-        <svg className="absolute right-0 bottom-0 w-48 h-48 opacity-10" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="12" rx="2" fill="#FFE066" stroke="#C97C3A" strokeWidth="2"/><rect x="13" y="20" width="6" height="6" rx="1" fill="#B6D7B0"/><path d="M4 16L16 6l12 10" stroke="#B6D7B0" strokeWidth="2"/></svg>
-        <svg className="absolute left-1/2 -translate-x-1/2 bottom-10 w-32 h-32 opacity-5" viewBox="0 0 32 32"><ellipse cx="16" cy="20" rx="10" ry="5" fill="#B6D7B0" stroke="#8D6748" strokeWidth="2"/><ellipse cx="16" cy="20" rx="5" ry="2.5" fill="#FFE066" stroke="#8D6748" strokeWidth="1.5"/><rect x="14" y="8" width="4" height="10" rx="2" fill="#C97C3A"/></svg>
-        {/* Animated clouds */}
-        <svg className="absolute top-10 left-1/4 w-32 h-12 animate-cloud-move" viewBox="0 0 100 40"><ellipse cx="30" cy="20" rx="30" ry="12" fill="#fffbe6"/><ellipse cx="60" cy="20" rx="20" ry="10" fill="#e6f2ef"/></svg>
-        <svg className="absolute top-20 right-1/4 w-40 h-16 animate-cloud-move2" viewBox="0 0 120 50"><ellipse cx="50" cy="25" rx="40" ry="15" fill="#fffbe6"/><ellipse cx="90" cy="25" rx="25" ry="12" fill="#e6f2ef"/></svg>
+    <div className="min-h-screen  p-4 md:p-6 lg:p-8">
+      {/* Modern geometric background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl"></div>
       </div>
+
       <motion.div
-        className="relative z-10 space-y-8"
+        className="relative z-10 max-w-7xl mx-auto space-y-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Stats Section */}
-        <motion.section variants={itemVariants} className="grid gap-6 md:grid-cols-2">
+        {/* Header */}
+        <motion.div variants={itemVariants} className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            💳 Withdrawals
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Manage your funds with secure and instant withdrawals
+          </p>
+        </motion.div>
+        {/* Stats Cards */}
+        <motion.section variants={itemVariants} className="grid gap-6 md:grid-cols-3 mb-12">
           {/* Available Balance Card */}
-          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-2xl overflow-visible shadow-2xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-transform">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                <Wallet className="w-8 h-8 text-[#8D6748]" />
+          <div className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                <CreditCard className="w-6 h-6 text-white" />
               </div>
+              <button
+                onClick={() => setShowBalance(!showBalance)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                {showBalance ? <Eye className="w-4 h-4 text-gray-500" /> : <EyeOff className="w-4 h-4 text-gray-500" />}
+              </button>
             </div>
-            <div className="text-center">
-              <p className="text-base font-cursive text-[#A67C52]">Available Balance</p>
-              <p className="text-2xl font-extrabold text-[#4e3b1f] mt-1">{formatAmount(availableBalance)}</p>
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">Available Balance</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {showBalance ? `${currency.symbol} ${formatAmount(availableBalance)}` : '••••••'}
+              </p>
             </div>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#8d6748] rounded-b-xl shadow-inner border-t-4 border-[#b6d7b0]/30" />
           </div>
+
           {/* Total Withdrawn Card */}
-          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#ffe066]/80 border-2 border-[#ffe066]/40 rounded-2xl overflow-visible shadow-2xl flex flex-col items-center px-6 pt-12 pb-8 min-w-[160px] max-w-xs mx-auto group hover:scale-105 transition-transform">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                <ArrowDown className="w-8 h-8 text-[#C97C3A]" />
+          <div className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
             </div>
-            <div className="text-center">
-              <p className="text-base font-cursive text-[#A67C52]">Total Withdrawn</p>
-              <p className="text-2xl font-extrabold text-[#4e3b1f] mt-1">{formatAmount(totalWithdrawn)}</p>
+            <div>
+              <p className="text-sm font-medium text-gray-600 mb-1">Total Withdrawn</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {currency.symbol} {formatAmount(totalWithdrawn)}
+              </p>
             </div>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#8d6748] rounded-b-xl shadow-inner border-t-4 border-[#b6d7b0]/30" />
           </div>
+
         </motion.section>
-        {/* Withdrawal Form Section */}
-        <motion.section variants={itemVariants}>
-          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                <Send className="w-8 h-8 text-[#8D6748]" />
+        {/* Main Content Grid */}
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Withdrawal Form */}
+          <motion.div variants={itemVariants}>
+            <div className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-8 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg">
+                  <ArrowUpRight className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Request Withdrawal</h2>
               </div>
-            </div>
-            <div className="mt-8">
-              <h2 className="text-4xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
-                Request Withdrawal
-              </h2>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                {hasWithdrawnToday && (
-                  <div className="mb-4 p-3 rounded-lg bg-amber-100 border border-amber-300 text-amber-700 flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-amber-500" />
-                    <span>You can only make one successful withdrawal per day. Please come back tomorrow.</span>
+
+              {hasWithdrawnToday && (
+                <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-amber-800 font-medium">Daily limit reached</p>
+                    <p className="text-amber-700 text-sm">You can only make one successful withdrawal per day. Please try again tomorrow.</p>
                   </div>
-                )}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Amount Input */}
-                <div className="space-y-2">
-                  {/* Guiding text for withdrawal limits */}
-                  <p className="text-xs text-[#A67C52] mb-1">
-                    Minimum withdrawal is <span className="font-semibold">10,000</span>, maximum is <span className="font-semibold">1,000,000</span>.
-                  </p>
-                  <label htmlFor="amount" className="text-sm font-medium text-[#A67C52] flex items-center gap-1">
-                    Amount 
+                <div>
+                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                    Withdrawal Amount
                   </label>
                   <div className="relative">
-                   
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <DollarSign className="h-5 w-5 text-gray-400" />
+                    </div>
                     <input
                       id="amount"
                       type="number"
@@ -253,203 +308,249 @@ export default function WithdrawalsPage() {
                       {...register("amount", {
                         required: "Amount is required",
                         valueAsNumber: true,
-                        min: { value: 10000, message: `Minimum withdrawal is ${currency.symbol.replace('US', '')} 10,000` },
+                        min: { value: 10000, message: `Minimum withdrawal is ${currency.symbol} 10,000` },
                         max: { value: availableBalance, message: `Insufficient balance (Available: ${formatAmount(availableBalance)})` },
                         validate: value => value <= availableBalance || `Amount exceeds available balance`
                       })}
-                      className="w-full pl-8 pr-4 py-2.5 bg-white/60 border border-[#b6d7b0]/40 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/40 focus:outline-none focus:border-[#b6d7b0]/80 focus:ring-1 focus:ring-[#b6d7b0]/50 transition duration-200"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white/70"
                       placeholder="Enter amount"
                       disabled={hasWithdrawnToday}
                     />
                   </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Minimum: {currency.symbol} 10,000 • Maximum: {currency.symbol} {formatAmount(availableBalance)}
+                  </p>
                   {errors.amount && (
-                    <p className="text-sm text-rose-400 flex items-center gap-1">
-                      <AlertCircle size={14} /> {errors.amount?.message?.toString() || 'Invalid amount'}
+                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                      <AlertTriangle size={14} /> {errors.amount?.message?.toString() || 'Invalid amount'}
                     </p>
                   )}
                 </div>
+
                 {/* Phone Input */}
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium text-[#A67C52]">
-                    Mobile Money Number (Uganda)
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Mobile Money Number
                   </label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    {...register("phone", {
-                      required: "Phone number is required",
-                      pattern: {
-                        value: /^07\d{8}$/,
-                        message: "Enter a valid Ugandan number (e.g., 0701234567)",
-                      },
-                    })}
-                    className="w-full px-4 py-2.5 bg-white/60 border border-[#b6d7b0]/40 rounded-lg text-[#4e3b1f] placeholder-[#A67C52]/40 focus:outline-none focus:border-[#b6d7b0]/80 focus:ring-1 focus:ring-[#b6d7b0]/50 transition duration-200"
-                    placeholder="e.g., 0701234567"
-                    disabled={hasWithdrawnToday}
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Smartphone className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="phone"
+                      type="tel"
+                      {...register("phone", {
+                        required: "Phone number is required",
+                        pattern: {
+                          value: /^07\d{8}$/,
+                          message: "Enter a valid Ugandan number (e.g., 0701234567)",
+                        },
+                      })}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white/70"
+                      placeholder="0701234567"
+                      disabled={hasWithdrawnToday}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter your Uganda mobile money number
+                  </p>
                   {errors.phone && (
-                    <p className="text-sm text-rose-400 flex items-center gap-1">
-                      <AlertCircle size={14} /> {errors.phone?.message?.toString() || 'Invalid phone number'}
+                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                      <AlertTriangle size={14} /> {errors.phone?.message?.toString() || 'Invalid phone number'}
                     </p>
                   )}
                 </div>
+
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={withdrawalMutation.isPending || availableBalance < 1000 || hasWithdrawnToday}
-                  className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#b6d7b0]/50 focus:ring-[#C97C3A]
-                    ${withdrawalMutation.isPending || availableBalance < 1000 || hasWithdrawnToday
-                      ? 'bg-gray-600 cursor-not-allowed opacity-70'
-                      : 'bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] hover:from-[#b6d7b0]/80 hover:to-[#ffe066]/80 shadow-lg hover:shadow-[#b6d7b0]/40 transform hover:-translate-y-0.5'
+                  disabled={withdrawalMutation.isPending || availableBalance < 10000 || hasWithdrawnToday}
+                  className={`w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                    ${withdrawalMutation.isPending || availableBalance < 10000 || hasWithdrawnToday
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                     }`}
                 >
                   {withdrawalMutation.isPending ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin text-amber-400" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Processing...
                     </>
                   ) : (
                     <>
-                      <Send className="w-5 h-5" />
+                      <ArrowUpRight className="w-5 h-5" />
                       Request Withdrawal
                     </>
                   )}
                 </button>
               </form>
             </div>
-          </div>
-        </motion.section>
-        {/* Withdrawal History Section */}
-        <motion.section variants={itemVariants}>
-          <div className="relative bg-gradient-to-br from-[#fffbe6]/80 to-[#e6f2ef]/80 border-2 border-[#b6d7b0]/40 rounded-3xl overflow-visible shadow-2xl p-8 pt-12 group hover:scale-[1.02] transition-transform duration-300">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-              <div className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] rounded-full p-3 shadow-lg border-2 border-[#8d6748]/30 flex items-center justify-center">
-                <DatabaseZap className="w-8 h-8 text-[#8D6748]" />
+          </motion.div>
+          {/* Transaction History */}
+          <motion.div variants={itemVariants}>
+            <div className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-8 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl shadow-lg">
+                  <History className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Transaction History</h2>
               </div>
-            </div>
-            <div className="mt-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#C97C3A] font-cursive mb-5 flex items-center gap-3">
-                Transaction History
-              </h2>
+
               {isLoadingHistory ? (
-                <div className="text-center py-10 text-[#A67C52]/70 flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" /> Loading History...
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                  <span className="ml-3 text-gray-600">Loading transactions...</span>
                 </div>
               ) : withdrawalHistory.length > 0 ? (
-                <motion.ul
-                  className="space-y-3 max-h-[400px] sm:max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[#b6d7b0] scrollbar-track-transparent hover:scrollbar-thumb-[#8d6748]/50 transition-colors"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
+                <div className="space-y-3 max-h-96 overflow-y-auto">
                   {withdrawalHistory.map((withdrawal) => {
                     const statusConfig = getStatusConfig(withdrawal.status);
                     const StatusIcon = statusConfig.icon;
                     const isExpanded = expandedId === withdrawal.id;
-                    // Spinner for PENDING/PROCESSING
                     const isPending = withdrawal.status === "PENDING" || withdrawal.status === "PROCESSING";
+                    
                     return (
-                      <motion.li
+                      <motion.div
                         key={withdrawal.id}
                         variants={itemVariants}
-                        className={`flex flex-col gap-2 p-4 rounded-lg border ${statusConfig.border} ${statusConfig.bg} shadow-md ${statusConfig.glow} transition-all hover:bg-[#e6f2ef]/40 cursor-pointer`}
+                        className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${statusConfig.border} ${statusConfig.bg}`}
                         onClick={() => setExpandedId(expandedId === withdrawal.id ? null : withdrawal.id)}
-                        tabIndex={0}
-                        role="button"
-                        aria-expanded={isExpanded}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            setExpandedId(expandedId === withdrawal.id ? null : withdrawal.id);
-                          }
-                        }}
                       >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${statusConfig.bg} border ${statusConfig.border}`}>
-                              {isPending ? (
-                                <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
-                              ) : (
-                                <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <div className={`w-3 h-3 rounded-full ${statusConfig.dotColor}`}></div>
+                              {isPending && (
+                                <div className={`absolute inset-0 w-3 h-3 rounded-full ${statusConfig.dotColor} animate-ping`}></div>
                               )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-[#4e3b1f] truncate">
+                            <div>
+                              <p className="font-semibold text-gray-900">
                                 {currency.symbol} {formatAmount(withdrawal.amount)}
                               </p>
-                              <p className="text-xs text-[#A67C52] truncate">
-                                {new Date(withdrawal.createdAt).toLocaleDateString('en-UG', {
-                                  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                              <p className="text-sm text-gray-500">
+                                {new Date(withdrawal.createdAt).toLocaleDateString('en-US', {
+                                  year: 'numeric', 
+                                  month: 'short', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
                                 })}
                               </p>
                             </div>
                           </div>
-                          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
-                            {statusConfig.text}
-                          </span>
-                        </div>
-                        {isExpanded && (
-                          <div className="mt-2 text-sm bg-white/70 rounded-lg p-3 border border-[#b6d7b0]/30">
-                            <div className="flex flex-col gap-1">
-                              <div><span className="font-semibold">Amount:</span> {currency.symbol} {formatAmount(withdrawal.amount)}</div>
-                              <div><span className="font-semibold">Status:</span> {withdrawal.status}</div>
-                              <div><span className="font-semibold">Date:</span> {new Date(withdrawal.createdAt).toLocaleString('en-UG')}</div>
-                              {/* Add more details if available, e.g. phone, failure reason */}
-                              {withdrawal.phone && <div><span className="font-semibold">Phone:</span> {withdrawal.phone}</div>}
-                              {withdrawal.failureReason && <div className="text-rose-500"><span className="font-semibold">Reason:</span> {withdrawal.failureReason}</div>}
-                              {/* Show details fields if present */}
-                              {withdrawal.details && (
-                                <>
-                                  {withdrawal.details.trans_id && (
-                                    <div><span className="font-semibold">Transaction ID:</span> {withdrawal.details.trans_id}</div>
-                                  )}
-                                  {withdrawal.details.fee !== undefined && (
-                                    <div><span className="font-semibold">Charge:</span> {currency.symbol} {formatAmount(withdrawal.details.fee)}</div>
-                                  )}
-                                  {withdrawal.details.phone && withdrawal.details.phone !== withdrawal.phone && (
-                                    <div><span className="font-semibold">Phone (details):</span> {withdrawal.details.phone}</div>
-                                  )}
-                                </>
-                              )}
-                            </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color} border ${statusConfig.border}`}>
+                              {statusConfig.text}
+                            </span>
+                            <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
                           </div>
-                        )}
-                      </motion.li>
+                        </div>
+
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mt-4 pt-4 border-t border-gray-200"
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                <div>
+                                  <span className="font-medium text-gray-700">Amount:</span>
+                                  <span className="ml-2 text-gray-900">{currency.symbol} {formatAmount(withdrawal.amount)}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700">Status:</span>
+                                  <span className="ml-2 text-gray-900">{withdrawal.status}</span>
+                                </div>
+                                {withdrawal.phone && (
+                                  <div>
+                                    <span className="font-medium text-gray-700">Phone:</span>
+                                    <span className="ml-2 text-gray-900">{withdrawal.phone}</span>
+                                  </div>
+                                )}
+                                {withdrawal.details?.trans_id && (
+                                  <div>
+                                    <span className="font-medium text-gray-700">Transaction ID:</span>
+                                    <span className="ml-2 text-gray-900 font-mono text-xs">{withdrawal.details.trans_id}</span>
+                                  </div>
+                                )}
+                                {withdrawal.details?.fee !== undefined && (
+                                  <div>
+                                    <span className="font-medium text-gray-700">Fee:</span>
+                                    <span className="ml-2 text-gray-900">{currency.symbol} {formatAmount(withdrawal.details.fee)}</span>
+                                  </div>
+                                )}
+                                {withdrawal.failureReason && (
+                                  <div className="md:col-span-2">
+                                    <span className="font-medium text-red-700">Failure Reason:</span>
+                                    <span className="ml-2 text-red-600">{withdrawal.failureReason}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
                     );
                   })}
-                </motion.ul>
+                </div>
               ) : (
-                <p className="text-center py-10 text-[#A67C52]/70">
-                  No withdrawal history yet.
-                </p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <History className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 text-lg font-medium">No transactions yet</p>
+                  <p className="text-gray-500 text-sm mt-1">Your withdrawal history will appear here</p>
+                </div>
               )}
             </div>
-          </div>
-        </motion.section>
+          </motion.div>
+        </div>
       </motion.div>
-      {/* Transaction Feedback Modal with live status */}
-     
-      {/* Animations CSS */}
-      <style>{`
-        @keyframes cloud-move { 0%{transform:translateX(0);} 100%{transform:translateX(60vw);} }
-        @keyframes cloud-move2 { 0%{transform:translateX(0);} 100%{transform:translateX(40vw);} }
-        .animate-cloud-move { animation: cloud-move 60s linear infinite; }
-        .animate-cloud-move2 { animation: cloud-move2 80s linear infinite; }
-        
-        /* Scrollbar Styles */
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #b6d7b0;
-          border-radius: 3px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: rgba(141, 103, 72, 0.5);
-        }
-      `}</style>
+      {/* Success/Error Modal */}
+      <AnimatePresence>
+        {modal.open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setModal({ open: false, status: null, message: "" })}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center">
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                  modal.status === 'error' ? 'bg-red-100' : 'bg-blue-100'
+                }`}>
+                  {modal.status === 'error' ? (
+                    <XCircle className="w-8 h-8 text-red-600" />
+                  ) : (
+                    <CheckCircle className="w-8 h-8 text-blue-600" />
+                  )}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {modal.status === 'error' ? 'Withdrawal Failed' : 'Withdrawal Submitted'}
+                </h3>
+                <p className="text-gray-600 mb-6">{modal.message}</p>
+                <button
+                  onClick={() => setModal({ open: false, status: null, message: "" })}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

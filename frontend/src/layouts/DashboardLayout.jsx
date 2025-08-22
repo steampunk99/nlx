@@ -6,19 +6,24 @@ import { usePackages } from '../hooks/payments/usePackages'
 import { useSiteConfig } from '../hooks/config/useSiteConfig'
 import { 
   LayoutDashboard, 
-  Network, 
+  Users, 
+  TrendingUp, 
   DollarSign, 
-  Package, 
-  Wallet, 
-  Settings,
-  User2Icon,
-  LogOut,
-  Menu,
+  Activity, 
+  Settings, 
+  LogOut, 
+  Menu, 
   X,
-  Star,
-  ChevronUp,
-  Bell,
-  BadgeMinus
+  Phone, 
+  Bell, 
+  Search, 
+  ChevronDown, 
+  User, 
+  Store,  
+  Network, 
+  ArrowDownToLine,
+  Gift,
+  Wallet
 } from 'lucide-react'
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter'
 import { UserNotificationBell } from "@/components/UserNotificationBell"
@@ -37,7 +42,7 @@ export function DashboardLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const navRef = useRef(null)
-  const { logout, user } = useAuth()
+  const { logout, user, profile } = useAuth()
   const { data: userPackage, isLoading } = usePackages()
   
   // State management
@@ -87,146 +92,60 @@ export function DashboardLayout() {
     }, 500)
   }
 
-  // --- Farm/Cocoa SVG Icons ---
-  const FarmhouseIcon = (props) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M3 12L12 4l9 8" stroke="#4e3b1f" strokeWidth="2"/><rect x="6" y="12" width="12" height="8" rx="2" fill="#ffe066" stroke="#b6d7b0" strokeWidth="2"/><rect x="10" y="15" width="4" height="5" rx="1" fill="#b6d7b0"/></svg>
-  );
-  const FarmersIcon = (props) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="8" cy="8" r="4" fill="#b6d7b0" stroke="#4e3b1f" strokeWidth="2"/><circle cx="16" cy="8" r="4" fill="#ffe066" stroke="#4e3b1f" strokeWidth="2"/><rect x="2" y="16" width="20" height="6" rx="3" fill="#e6f2ef" stroke="#b6d7b0" strokeWidth="2"/></svg>
-  );
 
 
 
-// Withdraw Icon
-const WithdrawIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-    <rect x="4" y="17" width="16" height="4" rx="1" />
-  </svg>
-);
-
-// Commissions Icon (percentage symbol)
-const CommissionsIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <circle cx="6" cy="6" r="2" />
-    <circle cx="18" cy="18" r="2" />
-    <line x1="6" y1="18" x2="18" y2="6" />
-  </svg>
-);
-
-// Support Icon (chat bubble)
-const SupportIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8A8.5 8.5 0 0 1 3 12a8.5 8.5 0 0 1 14.1-6.4" />
-    <path d="M22 4l-10 10" />
-  </svg>
-);
-
-// Settings Icon (gear)
-const SettingsIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 3.09V3a2 2 0 1 1 4 0v.09c.39.14.75.36 1 .67a1.65 1.65 0 0 0 1.51.33h.09a1.65 1.65 0 0 0 1-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09c-.17.63-.52 1.22-1.01 1.71z" />
-  </svg>
-);
-
-// Profile Icon (user silhouette)
-const ProfileIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-  </svg>
-);
-
-// Logout Icon
-const LogoutIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-
-  const GiftIcon = (props) => (
-    <svg width="120" height="120" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="black" stroke-width="2">
-  <rect x="12" y="24" width="40" height="28" fill="#FF4F64" stroke="#B00020"/>
-  <rect x="10" y="18" width="44" height="10" fill="#FF6F91" stroke="#B00020"/>
-  <rect x="30" y="18" width="4" height="34" fill="#FFD700" stroke="none"/>
-  <rect x="10" y="32" width="44" height="4" fill="#FFD700" stroke="none"/>
-  <circle cx="32" cy="18" r="4" fill="#FFD700" stroke="#B00020"/>
-  <path d="M28 18 C24 14, 20 14, 18 18" fill="#FFD700" stroke="#B00020"/>
-  <path d="M36 18 C40 14, 44 14, 46 18" fill="#FFD700" stroke="#B00020"/>
-</svg>
-
-  )
-  // Navigation menu items (renamed, new icons)
+  // Navigation menu items - Mineral Trading themed
   const menuItems = [
     {
       to: '/dashboard',
-      icon: FarmhouseIcon,
-      label: 'Farmhouse',
-      color: 'from-green-600 to-lime-400',
-      bgColor: 'from-green-700/20 to-lime-400/20',
-      hoverColor: 'from-green-700 to-lime-400',
+      icon: LayoutDashboard,
+      label: 'Mine Hub',
+    },
+    {
+      to: '/dashboard/packages',
+      icon: Store,
+      label: 'My Store',
     },
     {
       to: '/dashboard/network',
-      icon: FarmersIcon,
-      label: 'Farmers',
-      color: 'from-amber-600 to-yellow-400',
-      bgColor: 'from-amber-700/20 to-yellow-400/20',
-      hoverColor: 'from-amber-700 to-yellow-400',
+      icon: Network,
+      label: 'Referrals',
     },
     {
       to: '/dashboard/commissions',
-      icon: CommissionsIcon,
+      icon: DollarSign,
       label: 'Commissions',
-      color: 'from-orange-600 to-yellow-400',
-      bgColor: 'from-orange-700/20 to-yellow-400/20',
-      hoverColor: 'from-orange-700 to-yellow-400',
     },
     {
       to: '/dashboard/prizes',
-      icon: GiftIcon,
-      label: 'Prizes',
-      color: 'from-yellow-600 to-amber-400',
-      bgColor: 'from-yellow-700/20 to-amber-400/20',
-      hoverColor: 'from-yellow-700 to-amber-400',
+      icon: Gift,
+      label: 'Rewards',
     },
     {
       to: '/dashboard/withdrawals',
-      icon: WithdrawIcon,
-      label: 'Withdraw',
-      color: 'from-lime-600 to-green-400',
-      bgColor: 'from-lime-700/20 to-green-400/20',
-      hoverColor: 'from-lime-700 to-green-400',
+      icon: Wallet,
+      label: 'Withdrawals',
     },
     {
       to: '/dashboard/support',
-      icon: SupportIcon,
+      icon: Phone,
       label: 'Support',
-      color: 'from-gray-500 to-slate-400',
-      bgColor: 'from-gray-600/20 to-slate-500/20',
-      hoverColor: 'from-gray-600 to-slate-500',
     },
-    
     {
       to: '/dashboard/profile',
-      icon: SettingsIcon,
-      label: 'Settings',
-      color: 'from-gray-500 to-slate-400',
-      bgColor: 'from-gray-600/20 to-slate-500/20',
-      hoverColor: 'from-gray-600 to-slate-500',
+      icon: Settings,
+      label: 'Profile',
     }
   ]
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-500"></div>
-          <div className="mt-4 h-2 w-24 bg-gray-700 rounded"></div>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-600 shadow-lg"></div>
+          <div className="mt-4 h-3 w-32 bg-gray-200 rounded-full"></div>
+          <div className="mt-2 h-2 w-24 bg-gray-100 rounded-full"></div>
         </div>
       </div>
     )
@@ -235,132 +154,225 @@ const LogoutIcon = (props) => (
 
 
 
-  // --- Redesigned Responsive Cocoa-Themed Dashboard Layout with Enhanced Top Bar and Creative Mobile Nav ---
+  // Gamified Mineral Trading Dashboard Layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f8f5] via-[#e6f2ef] to-[#b6d7b0] text-[#2c2c2c] relative overflow-x-hidden font-sans">
-      {/* Responsive Sidebar Navigation (hidden on mobile) */}
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 text-amber-900 relative overflow-x-hidden font-sans">
+      {/* Game-style Sidebar Navigation */}
       <aside
         className={classNames(
-          "hidden md:flex fixed top-0 left-0 z-30 h-full flex-col items-center py-8 px-2 bg-gradient-to-b from-[#e6f2ef] to-[#b6d7b0] shadow-xl border-r border-[#b6d7b0]/30 transition-all duration-500",
-          "w-20 lg:w-28 xl:w-40"
+          "hidden md:flex fixed top-0 left-0 z-30 h-full flex-col py-6 px-3 bg-gradient-to-b from-amber-100/80 to-orange-100/80 backdrop-blur-sm shadow-xl border-r border-amber-200/50 transition-all duration-300",
+          isCollapsed ? "w-16" : "w-64",
         )}
       >
-        {/* Cocoa Pod Logo */}
-        <Link to="/dashboard" className="mb-8 flex flex-col items-center group">
-          <img src="https://static.vecteezy.com/system/resources/previews/042/125/124/non_2x/cacao-beans-with-leaves-isolated-on-transparent-background-with-clipping-path-3d-render-free-png.png" alt="Cocoa Pod" className="w-12 h-12 lg:w-16 lg:h-16 rounded-full border-4 border-[#fffbe6] shadow-lg group-hover:scale-110 transition-transform duration-200" />
-          <span className="mt-2 text-base lg:text-lg font-cursive text-[#4e3b1f] tracking-tight" style={{fontFamily:'Pacifico, cursive'}}>My Farm</span>
+        {/* Collapse Toggle Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="hidden md:flex absolute -right-3 top-6 w-6 h-6 bg-amber-200 hover:bg-amber-300 rounded-full items-center justify-center shadow-md transition-colors z-40"
+        >
+          <Menu className={classNames(
+            "h-3 w-3 text-amber-700 transition-transform duration-300",
+            isCollapsed ? "rotate-180" : ""
+          )} />
+        </button>
+        {/* Logo */}
+        <Link to="/dashboard" className="mb-8 flex items-center justify-center group px-2">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-600 via-orange-500 to-amber-700 shadow-lg grid place-items-center group-hover:scale-105 transition-transform relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+            <span className="text-white text-lg font-bold relative z-10">⛏️</span>
+          </div>
+          {!isCollapsed && (
+            <span className="ml-3 text-xl font-bold text-amber-800 tracking-tight transition-opacity duration-300">Mineral Traders</span>
+          )}
         </Link>
-        {/* Navigation - farm plot style */}
-        <nav className="flex-1 flex flex-col gap-4 items-center w-full mt-4">
+        {/* Navigation - Game style */}
+        <nav className="flex-1 flex flex-col gap-2 w-full">
           {menuItems.map((item, idx) => (
             <button
               key={item.to}
               onClick={() => handleNavClick(item.to)}
               className={classNames(
-                "group flex flex-col items-center w-full py-2 rounded-2xl transition-all duration-300 hover:bg-[#fffbe6]/60 hover:shadow-lg",
-                location.pathname === item.to ? "bg-[#fffbe6] shadow-lg" : "bg-transparent"
+                "group flex items-center w-full px-3 py-3 rounded-xl transition-all duration-200 text-left relative overflow-hidden",
+                location.pathname === item.to 
+                  ? "bg-gradient-to-r from-amber-200 to-orange-200 text-amber-800 shadow-md transform scale-105" 
+                  : "text-amber-700 hover:bg-amber-100/50 hover:text-amber-800 hover:scale-102"
               )}
             >
-              <span className="flex items-center justify-center w-9 h-9 lg:w-11 lg:h-11 rounded-full bg-gradient-to-br from-[#b6d7b0] to-[#e6f2ef] mb-1 group-hover:scale-110 transition-transform">
-                <item.icon className={classNames("h-5 w-5 lg:h-6 lg:w-6", location.pathname === item.to ? "text-[#4e3b1f]" : "text-[#2c5f63]")} />
+              {location.pathname === item.to && (
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-300/30 to-orange-300/30 rounded-xl"></div>
+              )}
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors relative z-10">
+                <item.icon className={classNames(
+                  "h-5 w-5 transition-colors",
+                  location.pathname === item.to ? "text-amber-700" : "text-amber-600 group-hover:text-amber-700"
+                )} />
               </span>
-              <span className="text-[10px] lg:text-xs font-semibold text-[#4e3b1f] group-hover:text-[#2c5f63] transition-colors text-center">
-                {item.label}
-              </span>
+              {!isCollapsed && (
+                <span className="ml-3 text-sm font-semibold transition-colors relative z-10 transition-opacity duration-300">
+                  {item.label}
+                </span>
+              )}
             </button>
           ))}
         </nav>
-        {/* Plant Cocoa CTA */}
-        <Button
-          onClick={() => handleLogout()}
-          className="mt-8 w-11/12 bg-gradient-to-r from-[#b6d7b0] to-[#ffe066] text-[#4e3b1f] font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform text-xs lg:text-base py-2 lg:py-3"
-        >
-          <span className="flex items-center gap-2 justify-center">
-            <span className="text-lg">🌱</span> Logout
-          </span>
-        </Button>
+        {/* User Profile Section */}
+        <div className="mt-auto pt-4 border-t border-amber-200/50">
+          <div className="flex items-center px-2 py-3">
+            {(() => {
+              const avatarUrl = profile?.avatar || user?.avatar || user?.photo || user?.profileImage
+              const name = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'User'
+              const initials = name.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]?.toUpperCase()).join('') || 'U'
+              return (
+                <>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={name} className="h-8 w-8 rounded-full object-cover border-2 border-amber-300" />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-amber-200 to-orange-200 text-amber-800 grid place-items-center text-sm font-bold border-2 border-amber-300">{initials}</div>
+                  )}
+                  {!isCollapsed && (
+                    <div className="ml-3 flex-1 min-w-0 transition-opacity duration-300">
+                      <p className="text-sm font-semibold text-amber-800 truncate">{name}</p>
+                      <p className="text-xs text-amber-600">Mine Operator</p>
+                    </div>
+                  )}
+                  {!isCollapsed && (
+                    <button 
+                      onClick={handleLogout}
+                      className="ml-2 p-2 rounded-full bg-red-500 text-white hover:text-amber-800 hover:bg-amber-100 transition-colors"
+                    >
+                      <LogOut className="h-6 w-6" />
+                    </button>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        </div>
       </aside>
 
-      {/* Creative Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden justify-between items-end px-0 pb-2 pt-0 bg-gradient-to-t from-[#ffe066]/90 via-[#b6d7b0]/90 to-[#e6f2ef]/90 shadow-2xl rounded-t-3xl border-t-2 border-[#ffe066]/40">
-        {/* Floating cocoa pod centerpiece */}
-        <div className="absolute left-1/2 -top-12 animate-pulse -translate-x-1/2 z-10 flex flex-col items-center">
-          <button
-            onClick={() => handleNavClick('/dashboard/prizes')}
-            className="bg-gradient-to-br from-[#ffe066] to-[#b6d7b0] shadow-lg rounded-full w-16 h-16 flex items-center justify-center border-4 border-white hover:scale-110 transition-transform"
-            style={{ boxShadow: '0 4px 24px 0 #ffe06655' }}
-          >
-            <GiftIcon className="h-6 w-6" />
-          </button>
+      {/* Mobile Navigation Drawer (opened from header hamburger) */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-[60] md:hidden"
+          aria-modal="true"
+          role="dialog"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setIsMobileOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="absolute left-0 top-0 h-full w-[82vw] max-w-sm bg-white shadow-2xl border-r border-gray-200 p-6 flex flex-col animate-in slide-in-from-left duration-300 ease-out">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-600 via-orange-500 to-amber-700 shadow-lg grid place-items-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+                  <span className="text-white text-lg font-bold relative z-10">⛏️</span>
+                </div>
+                <span className="text-xl font-bold text-amber-800">MineralCo</span>
+              </div>
+              <button
+                aria-label="Close menu"
+                onClick={() => setIsMobileOpen(false)}
+                className="p-2 rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto">
+              <ul className="space-y-2">
+                {menuItems.map((item) => (
+                  <li key={item.to}>
+                    <button
+                      onClick={() => { handleNavClick(item.to); setIsMobileOpen(false) }}
+                      className={classNames(
+                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 relative overflow-hidden",
+                        location.pathname === item.to 
+                          ? "bg-gradient-to-r from-amber-200 to-orange-200 text-amber-800 border-l-4 border-amber-500 shadow-md" 
+                          : "text-amber-700 hover:bg-amber-100/50 hover:text-amber-800"
+                      )}
+                    >
+                      {location.pathname === item.to && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-amber-300/30 to-orange-300/30 rounded-xl"></div>
+                      )}
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg relative z-10">
+                        <item.icon className={classNames(
+                          "h-5 w-5", 
+                          location.pathname === item.to ? "text-amber-700" : "text-amber-600"
+                        )} />
+                      </span>
+                      <span className="font-semibold relative z-10">{item.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <div className="pt-6 border-t border-amber-200/50 mt-6">
+              {(() => {
+                const avatarUrl = profile?.avatar || user?.avatar || user?.photo || user?.profileImage
+                const name = `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.email || 'User'
+                const initials = name.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]?.toUpperCase()).join('') || 'U'
+                return (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt={name} className="h-10 w-10 rounded-full object-cover border-2 border-amber-300" />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-orange-200 text-amber-800 grid place-items-center text-sm font-bold border-2 border-amber-300">{initials}</div>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-amber-800 truncate max-w-[30vw]">{name}</span>
+                        <span className="text-xs text-amber-600">Mine Operator</span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handleLogout}
+                      className="ml-2 p-2 rounded-full bg-red-500 text-white hover:text-amber-800 hover:bg-amber-100 transition-colors"
+                    >
+                      <LogOut className="h-6 w-6" />
+                    </button>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
         </div>
-        {/* Nav items, spaced around centerpiece (omit 'Barn' on mobile) */}
-        <div className="flex flex-1 justify-evenly items-end gap-1">
-          {menuItems.slice(0, 3).map((item, idx) => (
-            <button
-              key={item.to}
-              onClick={() => handleNavClick(item.to)}
-              className={classNames(
-                "flex flex-col items-center px-2 py-2 rounded-xl transition-all duration-200",
-                location.pathname === item.to ? "bg-[#fffbe6]/80 shadow" : "bg-transparent"
-              )}
-            >
-              <item.icon className={classNames("h-6 w-6", location.pathname === item.to ? "text-[#4e3b1f]" : "text-[#2c5f63]")} />
-              <span className="text-[11px] font-semibold mt-1 text-[#4e3b1f]">{item.label}</span>
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-1 justify-evenly items-end gap-1">
-          {/* Only show menuItems 4 and 5 (skip 'Barn' which is index 3) */}
-          {menuItems.slice(4).map((item, idx) => (
-            <button
-              key={item.to}
-              onClick={() => handleNavClick(item.to)}
-              className={classNames(
-                "flex flex-col items-center px-2 py-2 rounded-xl transition-all duration-200",
-                location.pathname === item.to ? "bg-[#fffbe6]/80 shadow" : "bg-transparent"
-              )}
-            >
-              <item.icon className={classNames("h-6 w-6", location.pathname === item.to ? "text-[#4e3b1f]" : "text-[#2c5f63]")} />
-              <span className="text-[11px] font-semibold mt-1 text-[#4e3b1f]">{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      )}
 
-      {/* Main Content Area with farm illustration */}
+      {/* Main Content Area */}
       <main className={classNames(
-        "min-h-screen transition-all duration-500 md:pl-20 lg:pl-28 xl:pl-40 pb-24 md:pb-0",
+        "min-h-screen transition-all duration-300 pb-24 md:pb-0",
+        isCollapsed ? "md:pl-16" : "md:pl-64"
       )}>
-        {/* Enhanced Top Bar - farm sky, more visual, more info */}
-        <header className="h-20 z-100 flex items-center justify-between px-4 md:px-8 bg-gradient-to-r from-[#ffe066]/60 via-[#b6d7b0]/60 to-[#e6f2ef]/60 border-b-2 border-[#ffe066]/30 shadow-md relative rounded-b-3xl">
+        {/* Game-style Header */}
+        <header className="h-16 flex items-center justify-between px-4 md:px-8 bg-gradient-to-r from-amber-100/80 to-orange-100/80 backdrop-blur-sm border-b border-amber-200/50 shadow-lg">
+          <div className="flex items-center gap-4">
+            {/* Mobile menu button */}
+            <button
+              type="button"
+              aria-label="Open menu"
+              onClick={() => setIsMobileOpen(true)}
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl bg-amber-200/50 text-amber-700 hover:text-amber-800 hover:bg-amber-200 transition-all"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            
+            {/* Welcome message */}
+            <div className="hidden md:block">
+              <h2 className="text-lg font-bold text-amber-800">Welcome back, {user?.firstName || 'Miner'}!</h2>
+              <p className="text-sm text-amber-600">Ready to explore the mines today?</p>
+            </div>
+          </div>
           
-         
-          <div className="flex w-full items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-4">
             <UserNotificationBell />
             <MessageBoard interval={4500} />
-            <button onClick={handleLogout} className="text-red-600 border border-red-800 hover:text-red-300 hover:bg-red-100/60 rounded-xl px-3 md:px-4 text-xs md:text-base">
-              <LogoutIcon className="h-5 w-5 mr-1 p-1" /> 
-            </button>
           </div>
         </header>
 
-        {/* Farm field illustration background */}
-        <div className="relative min-h-[calc(100vh-5rem)]">
-          <svg className="absolute inset-0 w-full h-full object-cover pointer-events-none" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <ellipse cx="720" cy="320" rx="720" ry="80" fill="#b6d7b0" />
-            <ellipse cx="200" cy="300" rx="180" ry="60" fill="#e6f2ef" />
-            <ellipse cx="1240" cy="310" rx="200" ry="70" fill="#ffe066" />
-            {/* Cocoa trees */}
-            {[320, 1120, 600, 900].map((x, i) => (
-              <g key={x}>
-                <rect x={x} y={220} width="16" height="60" rx="7" fill="#8d6748"/>
-                <ellipse cx={x+8} cy={220} rx="28" ry="18" fill="#4e7c3a"/>
-                <ellipse cx={x+8} cy={220} rx="14" ry="9" fill="#7bb661"/>
-                <ellipse cx={x+18} cy={240} rx="5" ry="10" fill="#c97c3a"/>
-              </g>
-            ))}
-          </svg>
-          <div className="relative z-10 p-3 md:p-6 lg:p-10">
+        {/* Main content area */}
+        <div className="relative min-h-[calc(100vh-4rem)]">
+          <div className="p-6 md:p-8">
             <Outlet />
           </div>
         </div>

@@ -37,7 +37,7 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="auth-layout min-h-screen">
+    <div className="min-h-screen bg-stone-50">
       <div className="min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Background Image */}
         <motion.div
@@ -48,10 +48,10 @@ const LoginPage = () => {
           <div 
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1579226905180-636b76d96082?q=80&w=2574&auto=format&fit=crop")',
+              backgroundImage: `url("https://plus.unsplash.com/premium_photo-1746108793640-d866511539e3?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")`,
             }}
           />
-          <div className="absolute inset-0 auth-gradient backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
           
           {/* Content Overlay */}
           <div className="relative z-10 p-12 flex flex-col justify-center text-white">
@@ -62,26 +62,26 @@ const LoginPage = () => {
               className="space-y-8 max-w-lg mx-auto"
             >
               <div>
-                <h1 className="text-5xl font-bold mb-4">Welcome Back!</h1>
+                <h1 className="text-5xl font-mono font-semibold mb-4 tracking-tight">Welcome Back</h1>
                 <p className="text-xl text-white/90">Sign in to continue your journey with {siteName}</p>
               </div>
 
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">We pay farmers per day of the harvests</p>
+                  <p className="text-white/90">Invest in curated minerals with daily accruals</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Instant withdrawals</p>
+                  <p className="text-white/90">Fast, reliable withdrawals</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">We have 3 Million farmers in africa.</p>
+                  <p className="text-white/90">Transparent performance and reporting</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-1 rounded-full bg-white" />
-                  <p className="text-white/90">Join the farming club</p>
+                  <p className="text-white/90">Join Mineral Traders</p>
                 </div>
               </div>
             </motion.div>
@@ -95,49 +95,50 @@ const LoginPage = () => {
           className="flex-1 flex items-center justify-center px-4 py-20 lg:px-12 relative z-10"
         >
           <div className="w-full max-w-md">
+            <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-6 md:p-8">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight premium-text-gradient">Sign In</h2>
-              <p className="text-gray-400">Enter your credentials to continue</p>
+              <h2 className="text-3xl font-mono font-semibold tracking-tight text-stone-900">Sign In</h2>
+              <p className="text-stone-600">Enter your credentials to continue</p>
             </div>
 
             {isError && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-md p-3 text-sm"
+                className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-md p-3 text-sm"
               >
                 {isError}
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <form onSubmit={handleSubmit} className="mt-6 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-300">Email</Label>
+                  <Label htmlFor="email" className="text-stone-700">Email</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-2.5 h-5 w-5 text-stone-400" />
                     <Input
                       id="email"
                       name="email"
                       type="email"
                       placeholder="Enter your email"
                       required
-                      className="pl-10 bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500"
+                      className="pl-10 bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-300">Password</Label>
+                  <Label htmlFor="password" className="text-stone-700">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Lock className="absolute left-3 top-2.5 h-5 w-5 text-stone-400" />
                     <Input
                       id="password"
                       name="password"
                       type="password"
                       placeholder="Enter your password"
                       required
-                      className="pl-10 bg-gray-900/50 border-gray-800 text-gray-100 focus:border-emerald-500 placeholder:text-gray-500"
+                      className="pl-10 bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:ring-amber-500/20 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -149,15 +150,15 @@ const LoginPage = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500"
+                    className="h-4 w-4 rounded border-stone-300 bg-white text-amber-600 focus:ring-amber-600"
                   />
-                  <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-300">
+                  <label htmlFor="remember-me" className="ml-3 block text-sm text-stone-700">
                     Remember me
                   </label>
                 </div>
 
                 <div className="text-sm">
-                  <Link to="/forgot-password" className="font-medium text-emerald-400 hover:text-emerald-300">
+                  <Link to="/forgot-password" className="font-medium text-amber-700 hover:text-amber-800">
                     Forgot password?
                   </Link>
                 </div>
@@ -167,7 +168,7 @@ const LoginPage = () => {
                 type="submit"
                 disabled={isLoading}
                 className={cn(
-                  "w-full h-12 premium-button",
+                  "w-full h-12 bg-amber-600 hover:bg-amber-700 text-white rounded-lg",
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -185,18 +186,19 @@ const LoginPage = () => {
                 ) : (
                   <span className="flex items-center justify-center">
                     Sign In
-                    <LockOpen className="ml-2 h-5 w-5 " />
+                    <LockOpen className="ml-2 h-5 w-5" />
                   </span>
                 )}
               </Button>
 
-              <p className="text-center text-gray-400">
+              <p className="text-center text-stone-600">
                 Don't have an account?{" "}
-                <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-medium">
+                <Link to="/register" className="text-amber-700 hover:text-amber-800 font-medium">
                   Sign up
                 </Link>
               </p>
             </form>
+            </div>
           </div>
         </motion.div>
       </div>

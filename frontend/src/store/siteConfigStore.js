@@ -4,9 +4,9 @@ import { api } from '../lib/axios'
 const useSiteConfigStore = create((set) => ({
   config: {
     // Site Information
-    siteName: 'Earn Drip',
+    siteName: 'Mineral Traders',
     siteLogoUrl: null,
-    siteBaseUrl: 'https://earndrip.com',
+    siteBaseUrl: 'https://mineraltraders.net',
     promoImageUrl: null,
 
     // Payment Collection Numbers

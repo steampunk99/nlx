@@ -35,12 +35,29 @@ const handleCopyToClipboard = () => {
   setTimeout(() => setCopied(false), 2000);
 }
 
+  // Normalize phone numbers to local formats, e.g. "+256 782..." -> "0782..."
+  const normalizePhone = (raw) => {
+    if (!raw) return '';
+    // Keep digits only
+    let digits = String(raw).replace(/\D/g, '');
+    // If UG country code is present (256...), convert to 0-prefixed local
+    if (digits.startsWith('256')) {
+      digits = '0' + digits.slice(3);
+    }
+    // If length is 9 and doesn't start with 0, prefix 0 (common for UG typed without leading 0)
+    if (!digits.startsWith('0') && digits.length === 9) {
+      digits = '0' + digits;
+    }
+    return digits;
+  };
+
   const handlePayment = async () => {
     try {
       setIsSubmitting(true);
+      const normalizedPhone = normalizePhone(phone);
       const response = await api.post('/payments/package', {
         amount: selectedPackage?.price,
-        phone: phone,
+        phone: normalizedPhone,
         packageId: selectedPackage.id,
         currency: currency.symbol
       });

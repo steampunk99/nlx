@@ -75,7 +75,7 @@ class PaymentController {
                 });
 
                 return { payment };
-            });
+            }, { maxWait: 10000, timeout: 15000 });
 
             res.status(201).json({
                 success: true,
@@ -163,7 +163,7 @@ class PaymentController {
                 });
 
                 return { payment };
-            });
+            }, { maxWait: 10000, timeout: 15000 });
 
             res.status(201).json({
                 success: true,
@@ -277,7 +277,7 @@ class PaymentController {
                 }
 
                 return updatedPayment;
-            });
+            }, { maxWait: 10000, timeout: 15000 });
 
             res.status(200).json({
                 success: true,
@@ -410,7 +410,7 @@ class PaymentController {
                 });
 
                 return { payment };
-            });
+            }, { maxWait: 10000, timeout: 15000 });
 
             // 2. First validate mobile money request before creating payment record
             try {
@@ -426,6 +426,12 @@ class PaymentController {
                         error: mobileMoneyResponse?.error,
                         trans_id
                     });
+                    // Mark payment as FAILED to avoid dangling PENDING
+                    try {
+                        await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED');
+                    } catch (e) {
+                        logger.error('Failed to mark payment FAILED after mobile money error:', { payment_id: payment.id, error: e.message });
+                    }
                     return res.status(400).json({
                         success: false,
                         message: 'Mobile money request failed',
@@ -442,6 +448,12 @@ class PaymentController {
                     error: error.message,
                     trans_id
                 });
+                // Mark payment as FAILED to avoid dangling PENDING
+                try {
+                    await nodePaymentService.updateMobileMoneyPaymentStatus(payment.id, 'FAILED');
+                } catch (e) {
+                    logger.error('Failed to mark payment FAILED after request error:', { payment_id: payment.id, error: e.message });
+                }
                 return res.status(400).json({
                     success: false,
                     message: 'Mobile money request failed',
@@ -470,7 +482,7 @@ class PaymentController {
                         await this.processSuccessfulPayment(payment.id, tx);
                         logger.info('Initial payment status successful:', { trans_id, payment_id: payment.id });
                     }
-                });
+                }, { maxWait: 10000, timeout: 15000 });
             }
             
 

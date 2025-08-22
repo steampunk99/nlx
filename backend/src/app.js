@@ -98,8 +98,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
         .swagger-ui input { border-radius: 4px; }
         .swagger-ui textarea { border-radius: 4px; }
     `,
-    customSiteTitle: "earndrip MLM API Documentation",
-    customfavIcon: "https://earndrip.com/favicon.ico",
+    customSiteTitle: "Mineral Traders API Documentation",
+    customfavIcon: "https://mineraltraders.net/favicon.ico",
     swaggerOptions: {
         persistAuthorization: true,
         filter: true,

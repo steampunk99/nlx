@@ -133,8 +133,8 @@ class NodePaymentService {
         });
     }
 
-    async findById(id) {
-        return prisma.nodePayment.findUnique({
+    async findById(id, tx = prisma) {
+        return tx.nodePayment.findUnique({
             where: { id },
             include: {
                 node: {
@@ -283,14 +283,14 @@ class NodePaymentService {
         };
     }
 
-    async findByReference(reference) {
-        return prisma.nodePayment.findFirst({
+    async findByReference(reference, tx = prisma) {
+        return tx.nodePayment.findFirst({
             where: { reference }
         });
     }
 
-    async findByTransactionId(trans_id) {
-        return prisma.nodePayment.findFirst({
+    async findByTransactionId(trans_id, tx = prisma) {
+        return tx.nodePayment.findFirst({
             where: { 
                 transactionId: trans_id
             },

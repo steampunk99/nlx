@@ -73,11 +73,11 @@ async function seedAdmin() {
   try {
     // Check if admin already exists
     const existingAdmin = await prisma.user.findUnique({
-      where: { email: 'luk23bonnie898@gmail.com' }
+      where: { email: 'earndrip@gmail.com' }
     });
 
     if (existingAdmin) {
-      console.log('❌ Admin user already exists with email: luk23bonnie898@gmail.com');
+      console.log('❌ Admin user already exists with email: earndrip@gmail.com');
       return;
     }
 
@@ -89,7 +89,7 @@ async function seedAdmin() {
     const adminUser = await prisma.user.create({
       data: {
         username: 'hyperadmin',
-        email: 'luk23bonnie898@gmail.com',
+        email: 'earndrip@gmail.com',
         password: hashedPassword,
         firstName: 'Hyper',
         lastName: 'Admin',

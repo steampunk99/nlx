@@ -1,6 +1,6 @@
 {
-  "name": "Earn Drip",
-  "short_name": "Earn Drip",
+  "name": "MineralTraders",
+  "short_name": "MineralTraders",
   "description": "Your Investment Network Platform",
   "start_url": "/",
   "display": "standalone",

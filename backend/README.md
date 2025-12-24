@@ -2,17 +2,7 @@
 
 A modern REST API built with Node.js and Express for the EarnDrip Network Marketing platform. This API provides comprehensive functionality for managing network marketing operations, including user authentication, network management, package handling, and financial operations.
 
-## Features
 
-- 🔐 Secure Authentication & Authorization
-- 👥 Network Marketing Management
-- 📦 Package Management System
-- 💰 Commission & Withdrawal Processing
-- 📱 Uganda Mobile Money Integration (MTN & Airtel)
-- 📢 Announcements & Notifications
-- 📊 Comprehensive Reporting
-- 📝 Swagger API Documentation
-- ✅ Automated Testing Suite
 
 ## Prerequisites
 
